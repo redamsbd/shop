@@ -237,42 +237,51 @@ function updateCartUI(isPaidOverride = null) {
     countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
 }
 
-// ৯. পেমেন্ট ভ্যালিডেশন (bKash/Nagad Theme with Advance Logic)
+// ৯. আপডেট করা পেমেন্ট ভ্যালিডেশন (বিকাশ ও নগদের আলাদা নম্বরসহ)
 function updatePaymentUI(method) {
     const instructionBox = document.getElementById('payment-instruction');
     const instructionContent = document.getElementById('instruction-content');
     const trnxInput = document.getElementById('trnx-id');
     
-    // কার্টে কয়টি আইটেম আছে চেক করা
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    // কার্টে মোট আইটেম সংখ্যা বের করা
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
     
-    // ডেলিভারি চার্জ কত (সিলেক্ট করা রেডিও বাটন থেকে)
+    // ডেলিভারি চার্জ কত সিলেক্ট করা আছে
     const areaCharge = document.querySelector('input[name="delivery"]:checked').value;
     
-    // যদি ৩টি বা তার বেশি প্রোডাক্ট হয় তবে ১০০ টাকা, নাহলে ফুল ডেলিভারি চার্জ
-    const advanceAmount = totalItems >= 3 ? "100" : areaCharge;
-    
-    // ইনপুট রিসেট করা
+    // লজিক: ৩টি প্রোডাক্ট হলে ১০০ টাকা, নাহলে ফুল ডেলিভারি চার্জ
+    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
+
+    // আপনার বিকাশ ও নগদ নম্বর (এখানে নিজের নম্বর বসিয়ে দিন)
+    const bkashNumber = "01740550559"; 
+    const nagadNumber = "01894357549"; 
+
     trnxInput.value = ''; 
-    checkValidation(); // বাটন স্ট্যাটাস আপডেট করার জন্য
+    validateOrder(); // বাটন চেক করা
 
     if (method === 'bKash') {
         instructionBox.style.borderColor = '#e2136e';
         instructionContent.innerHTML = `
-            <p class="text-[9px] font-black text-[#e2136e] uppercase mb-1">bKash (Personal): 01740550559</p>
-            <p class="text-[10px] font-bold text-black leading-tight">
-                অর্ডার কনফার্ম করতে <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            <p class="text-[10px] font-black text-[#e2136e] uppercase mb-1">bKash Personal: ${bkashNumber}</p>
+            <p class="text-[11px] font-bold text-black leading-tight">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
             </p>`;
     } else if (method === 'Nagad') {
         instructionBox.style.borderColor = '#f7941d';
         instructionContent.innerHTML = `
-            <p class="text-[9px] font-black text-[#f7941d] uppercase mb-1">Nagad (Personal): 01740550559</p>
-            <p class="text-[10px] font-bold text-black leading-tight">
-                অর্ডার কনফার্ম করতে <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            <p class="text-[10px] font-black text-[#f7941d] uppercase mb-1">Nagad Personal: ${nagadNumber}</p>
+            <p class="text-[11px] font-bold text-black leading-tight">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
             </p>`;
     } else {
-        instructionBox.style.borderColor = '#eee';
-        instructionContent.innerHTML = `<p class="text-[9px] font-bold text-gray-400 uppercase text-center">ডেলিভারি চার্জ অগ্রিম দিয়ে অর্ডার কনফার্ম করুন।</p>`;
+        // Cash on Delivery বা ডিফল্ট অবস্থা
+        instructionBox.style.borderColor = '#000';
+        instructionContent.innerHTML = `
+            <p class="text-[10px] font-black text-red-600 uppercase mb-1">অর্ডার কনফার্ম করতে ডেলিভারি চার্জ অগ্রিম দিন</p>
+            <p class="text-[9px] font-bold text-gray-500 uppercase">উপরের বিকাশ বা নগদ অপশন সিলেক্ট করে পেমেন্ট সম্পন্ন করুন।</p>
+        `;
     }
 }
 function validateOrder() {
