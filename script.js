@@ -116,10 +116,11 @@ function displayProducts(products, showAll = false) {
                         <span class="font-black text-black text-sm">৳ ${p.price}</span>
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
                     </div>
-
-                    <button onclick="openModal(${p.id})" class="w-full bg-black text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest group-hover:bg-green-600 transition-colors pointer-events-auto">
-                        Order Now
-                    </button>
+// আপনার প্রোডাক্ট রেন্ডারিং ফাংশনের ভেতর এই বাটনটি বসান
+<button onclick="showProduct(${product.id})" class="w-full bg-black text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 hover:bg-red-600 transition">
+    Order Now
+</button>
+                   
                 </div>
             </div>`;
     }).join('');
