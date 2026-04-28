@@ -187,7 +187,7 @@ function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
     const freeDeliveryMsg = document.getElementById('free-delivery-msg');
-    const paymentSection = document.getElementById('payment-options-wrapper'); // পেমেন্ট সেকশন আইডি
+    const paymentSection = document.getElementById('payment-options-wrapper');
 
     if (isPaidOverride !== null) isPaymentVerified = isPaidOverride;
 
@@ -210,7 +210,6 @@ function updateCartUI(isPaidOverride = null) {
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     
-    // ১. আপডেট: ডেলিভারি এরিয়া সিলেক্ট করলে পেমেন্ট অপশন দেখাবে
     if (deliveryOption && paymentSection) {
         paymentSection.classList.remove('hidden');
     }
@@ -219,21 +218,40 @@ function updateCartUI(isPaidOverride = null) {
 
     if (itemCount >= 3) {
         baseDeliveryCharge = 0;
-        if (freeDeliveryMsg) { freeDeliveryMsg.classList.add('text-green-600', 'opacity-100'); freeDeliveryMsg.innerHTML = "FREE DELIVERY UNLOCKED! 🚚✅"; }
+        if (freeDeliveryMsg) { 
+            freeDeliveryMsg.classList.add('text-green-600', 'opacity-100'); 
+            freeDeliveryMsg.innerHTML = "FREE DELIVERY UNLOCKED! 🚚✅"; 
+        }
     } else {
-        if (freeDeliveryMsg) { freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100'); freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚"; }
+        if (freeDeliveryMsg) { 
+            freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100'); 
+            freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚"; 
+        }
     }
 
-    // ২. আপডেট: পেইড হলে চার্জ ০ হবে এবং ডিসপ্লে-তে PAID দেখাবে
-    const finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
-    const finalTotal = subtotal + finalDeliveryCharge;
+    // --- নতুন লজিক আপডেট শুরু ---
+    let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
+    
+    // যদি ৩টি বা তার বেশি প্রোডাক্ট হয় এবং পেমেন্ট ভেরিফাইড হয়, তবে সাবটোটাল থেকে ১০০ টাকা কমবে
+    let finalTotal = subtotal + finalDeliveryCharge;
+    if (isPaymentVerified && itemCount >= 3) {
+        finalTotal = subtotal - 100;
+    }
+
     const deliveryDisplay = isPaymentVerified ? '<span class="text-green-600 font-black">PAID</span>' : (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
+    // --- নতুন লজিক আপডেট শেষ ---
 
     if (totalElement) {
         totalElement.innerHTML = `
             <div class="space-y-1 mb-3 pt-4 border-t">
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold"><span>Subtotal</span><span>৳${subtotal}</span></div>
                 <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery Charge</span><span>${deliveryDisplay}</span></div>
+                
+                ${isPaymentVerified && itemCount >= 3 ? `
+                <div class="flex justify-between text-[10px] uppercase font-bold text-red-600">
+                    <span>Advance Discount</span><span>-৳100</span>
+                </div>` : ''}
+
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
                     <span class="text-2xl font-black text-black">৳${finalTotal}</span>
