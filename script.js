@@ -97,11 +97,13 @@ function renderNewArrivals(products) {
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
+    
     const productsToShow = showAll ? products : products.slice(0, 8);
 
     grid.innerHTML = productsToShow.map(p => {
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
+        
         return `
             <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative">
                 ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
@@ -116,11 +118,10 @@ function displayProducts(products, showAll = false) {
                         <span class="font-black text-black text-sm">৳ ${p.price}</span>
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
                     </div>
-// আপনার প্রোডাক্ট রেন্ডারিং ফাংশনের ভেতর এই বাটনটি বসান
-<button onclick="showProduct(${product.id})" class="w-full bg-black text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 hover:bg-red-600 transition">
-    Order Now
-</button>
-                   
+                    
+                    <button onclick="openModal(${p.id})" class="w-full bg-black text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 hover:bg-red-600 transition">
+                        Order Now
+                    </button>
                 </div>
             </div>`;
     }).join('');
