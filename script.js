@@ -93,7 +93,7 @@ function renderNewArrivals(products) {
     setupAutoScroll(slider);
 }
 
-// ৬. প্রোডাক্ট গ্রিড এবং ডিসকাউন্ট ক্যালকুলেশন
+// ৬. প্রোডাক্ট গ্রিড এবং ডিসকাউন্ট ক্যালকুলেশন (Fixed)
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
@@ -103,18 +103,23 @@ function displayProducts(products, showAll = false) {
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
         return `
-            <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative" onclick="openModal(${p.id})">
+            <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative">
                 ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
-                <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50">
+                
+                <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="openModal(${p.id})">
                     <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                 </div>
+
                 <div class="p-3 text-center">
                     <h3 class="font-bold text-gray-800 text-[11px] uppercase tracking-tighter mb-1">${p.name}</h3>
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <span class="font-black text-black text-sm">৳ ${p.price}</span>
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
                     </div>
-                    <button class="w-full bg-black text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest group-hover:bg-green-600 transition-colors">Order Now</button>
+
+                    <button onclick="openModal(${p.id})" class="w-full bg-black text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest group-hover:bg-green-600 transition-colors pointer-events-auto">
+                        Order Now
+                    </button>
                 </div>
             </div>`;
     }).join('');
