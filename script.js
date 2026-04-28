@@ -64,34 +64,35 @@ function updateQty(val) {
 
 // ৫. New Arrivals স্লাইডার (Auto Scroll & Loop Fixed)
 function renderNewArrivals(products) {
-    const slider = document.getElementById('new-arrivals-slider');
-    if (!slider) return;
-    const newItems = products.slice(-10).reverse(); 
+    const slider = document.getElementById('new-arrivals-slider');
+    if (!slider) return;
+    const newItems = products.slice(-10).reverse(); 
 
-    slider.innerHTML = newItems.map(p => `
-        <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer" onclick="openModal(${p.id})">
-            <div class="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-[#f8f8f8]">
-                <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-8 flex flex-col justify-end">
-                     <p class="text-white/70 text-[10px] uppercase tracking-widest">${p.category}</p>
-                     <h3 class="text-white text-lg font-black uppercase">${p.name}</h3>
-                     <p class="text-white font-bold mt-2">৳ ${p.price}</p>
-                </div>
-                <div class="absolute top-6 right-6">
-                    <div class="bg-white/10 backdrop-blur-xl text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2">
-                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> New Drop
-                    </div>
-                </div>
-            </div>
-            <div class="mt-6 text-center">
-                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${p.category}</h3>
-                <h2 class="text-sm font-black uppercase text-gray-900">${p.name}</h2>
-                <p class="text-lg font-black mt-1">৳ ${p.price}</p>
-            </div>
-        </div>
-    `).join('');
-    setupAutoScroll(slider);
+    slider.innerHTML = newItems.map(p => `
+        <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer" onclick="openModal(${p.id})">
+            <div class="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-[#f8f8f8]">
+                <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-8 flex flex-col justify-end">
+                     <p class="text-white/70 text-[10px] uppercase tracking-widest">${p.category}</p>
+                     <h3 class="text-white text-lg font-black uppercase">${p.name}</h3>
+                     <p class="text-white font-bold mt-2">৳ ${p.price}</p>
+                </div>
+                <div class="absolute top-6 right-6">
+                    <div class="bg-white/10 backdrop-blur-xl text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2">
+                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> New Drop
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${p.category}</h3>
+                <h2 class="text-sm font-black uppercase text-gray-900">${p.name}</h2>
+                <p class="text-lg font-black mt-1">৳ ${p.price}</p>
+            </div>
+        </div>
+    `).join('');
+    setupAutoScroll(slider);
 }
+
 // ৬. প্রোডাক্ট গ্রিড এবং ডিসকাউন্ট ক্যালকুলেশন (Fixed)
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
