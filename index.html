@@ -206,45 +206,57 @@
             <textarea id="final-address" placeholder="সম্পূর্ণ ঠিকানা (FOR DELIVERY)" class="w-full p-3 text-sm border rounded-xl outline-none h-16 bg-gray-50 focus:bg-white transition resize-none"></textarea>
         </div>
 
-        <div class="mt-4 space-y-3 bg-gray-50 p-4 rounded-[2rem] border border-gray-100 text-left">
-            <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2 ml-2">Payment Method</p>
-            <div class="grid grid-cols-1 gap-2">
-                <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-[#e2136e] cursor-pointer transition">
-                    <div class="flex items-center gap-3">
-                        <input type="radio" name="payment-method" value="bKash" class="hidden" onclick="updatePaymentUI('bKash')">
-                        <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
-                            <div class="w-2 h-2 bg-[#e2136e] rounded-full opacity-0 check-dot transition"></div>
-                        </div>
-                        <span class="text-[10px] font-black uppercase">bKash (Advance Charge)</span>
-                    </div>
-                    <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" class="h-5 w-5 object-contain">
-                </label>
-                <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-[#f7941d] cursor-pointer transition">
-                    <div class="flex items-center gap-3">
-                        <input type="radio" name="payment-method" value="Nagad" class="hidden" onclick="updatePaymentUI('Nagad')">
-                        <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
-                            <div class="w-2 h-2 bg-[#f7941d] rounded-full opacity-0 check-dot transition"></div>
-                        </div>
-                        <span class="text-[10px] font-black uppercase">Nagad (Advance Charge)</span>
-                    </div>
-                    <img src="https://download.logo.wine/logo/Nagad/Nagad-Vertical-Logo.wine.png" class="h-5 w-5 object-contain">
-                </label>
+      <div class="mt-4 space-y-3 bg-gray-50 p-4 rounded-[2rem] border border-gray-100 text-left">
+    <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2 ml-2">Payment Method</p>
+    
+    <div class="grid grid-cols-1 gap-2">
+        <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-black cursor-pointer transition">
+            <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="COD" checked class="hidden" onclick="updatePaymentUI('COD')">
+                <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                    <div class="w-2 h-2 bg-black rounded-full opacity-0 check-dot transition"></div>
+                </div>
+                <span class="text-[10px] font-black uppercase">Cash On Delivery</span>
             </div>
+            <i class="fa-solid fa-truck-fast text-gray-400 text-xs"></i>
+        </label>
 
-            <div id="payment-instruction" class="mt-3 p-4 rounded-xl border bg-white shadow-sm flex flex-col justify-center">
-                <div id="instruction-content" class="text-center">
-                    </div>
-                <input type="text" id="trnx-id" oninput="checkValidation()" placeholder="Transaction ID (TRXID)" class="w-full mt-3 p-3 text-[10px] font-bold uppercase border border-gray-100 rounded-xl outline-none focus:border-black bg-gray-50">
+        <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-[#e2136e] cursor-pointer transition">
+            <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="bKash" class="hidden" onclick="updatePaymentUI('bKash')">
+                <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                    <div class="w-2 h-2 bg-[#e2136e] rounded-full opacity-0 check-dot transition"></div>
+                </div>
+                <span class="text-[10px] font-black uppercase">bKash (Advance Charge)</span>
             </div>
-        </div>
+            <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" class="h-5 w-5 object-contain">
+        </label>
 
-        <div id="cart-total" class="pt-2 text-left"></div>
-        <button id="confirm-order-btn" onclick="confirmOrderWhatsApp()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
-            <i class="fa-brands fa-whatsapp text-2xl"></i><span>Confirm Order</span>
-        </button>
+        <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-[#f7941d] cursor-pointer transition">
+            <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="Nagad" class="hidden" onclick="updatePaymentUI('Nagad')">
+                <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                    <div class="w-2 h-2 bg-[#f7941d] rounded-full opacity-0 check-dot transition"></div>
+                </div>
+                <span class="text-[10px] font-black uppercase">Nagad (Advance Charge)</span>
+            </div>
+            <img src="https://download.logo.wine/logo/Nagad/Nagad-Vertical-Logo.wine.png" class="h-5 w-5 object-contain">
+        </label>
     </div>
-</div>
 
+    <div id="payment-instruction" class="mt-3 p-4 rounded-xl border bg-white shadow-sm flex flex-col justify-center min-h-[80px]">
+        <div id="instruction-content" class="text-center">
+            <p class="text-[9px] font-bold text-red-600 uppercase italic leading-tight">অর্ডার কনফার্ম করতে ডেলিভারি চার্জ অগ্রিম দিয়ে TRXID দিন।</p>
+        </div>
+        <input type="text" id="trnx-id" oninput="validateOrder()" placeholder="Transaction ID (TRXID)" class="w-full mt-3 p-3 text-[10px] font-bold uppercase border border-gray-100 rounded-xl outline-none focus:border-black bg-gray-50">
+    </div>
+
+    <div id="cart-total" class="pt-2 text-left"></div>
+
+    <button id="confirm-order-btn" onclick="confirmOrderWhatsApp()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
+        <i class="fa-brands fa-whatsapp text-2xl"></i><span>Confirm Order</span>
+    </button>
+</div>
 <style>
     input:checked + div .check-dot { opacity: 1; }
 </style>
