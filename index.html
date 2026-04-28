@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redams - Premium Lifestyle</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .swal2-container { z-index: 10000 !important; }
+        .swal2-popup { border-radius: 15px !important; }
+        .hero-swiper { width: 100%; height: auto; }
+        .swiper-pagination-bullet-active { background: #e11d48 !important; width: 25px !important; border-radius: 5px !important; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-ticker { display: flex; width: max-content; animation: ticker 30s linear infinite; }
+        .payment-card input:checked + div .check-dot { opacity: 1 !important; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
+        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center">
+                <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
+            </a>
+            <div class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-widest">
+                <a href="index.html" class="hover:text-gray-400 transition">Home</a>
+                <a href="#product-grid" class="hover:text-gray-400 transition">All Products</a>
+                <div class="relative group">
+                    <button class="hover:text-gray-400 transition flex items-center uppercase">
+                        Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                        <div class="py-2 text-xs font-bold">
+                            <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 hover:bg-gray-100 transition">Drop Shoulder</a>
+                            <a href="shop.html?cat=acid-wash" class="block px-4 py-2 hover:bg-gray-100 transition">Acid Wash</a>
+                            <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Regular T-Shirt</a>
+                            <a href="shop.html?cat=hoodie" class="block px-4 py-2 hover:bg-gray-100 transition">Hoodie</a>
+                            <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Couple T-Shirt</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button class="text-lg hover:text-gray-400 transition"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pt-20 md:pt-24 swiper hero-swiper">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide relative overflow-hidden md:rounded-[2.5rem] aspect-[16/9] md:aspect-[21/9]">
+                <img src="images/cover photo.jpg" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/40 flex flex-col justify-center px-6 md:px-16">
+                    <h2 class="text-white text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-4">Urban <br>Essentials</h2>
+                    <p class="text-gray-200 text-[10px] md:text-xs uppercase tracking-[0.3em] mb-6">Premium Drop 2026</p>
+                    <a href="shop.html" class="inline-block bg-white text-black px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition shadow-lg w-fit">Shop Now</a>
+                </div>
+            </div>
+            <div class="swiper-slide relative overflow-hidden md:rounded-[2.5rem] aspect-[16/9] md:aspect-[21/9]">
+                <img src="images/2nd cover.png" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/40 flex flex-col justify-center items-end text-right px-6 md:px-20">
+                    <h2 class="text-white text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-4">Street <br>Classic</h2>
+                    <p class="text-gray-200 text-[10px] md:text-xs uppercase tracking-[0.3em] mb-6">Unmatched Comfort</p>
+                    <a href="shop.html" class="inline-block bg-red-600 text-white px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition shadow-lg w-fit">Explore Items</a>
+                </div>
+            </div>
+        </div>
+        <div class="swiper-pagination"></div>
+    </section>
+
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div onclick="window.location.href='shop.html?cat=drop-shoulder'" class="cursor-pointer group relative overflow-hidden rounded-xl aspect-[2/3] shadow-sm">
+                <img src="images/drop shoulder- Pirates Tee.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end justify-center pb-4">
+                    <span class="text-white font-bold text-[10px] uppercase bg-black/40 px-2 py-1 rounded">Drop Shoulder</span>
+                </div>
+            </div>
+            <div onclick="window.location.href='shop.html?cat=acid-wash'" class="cursor-pointer group relative overflow-hidden rounded-xl aspect-[2/3] shadow-sm">
+                <img src="images/ACID WASH.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end justify-center pb-4">
+                    <span class="text-white font-bold text-[10px] uppercase bg-black/40 px-2 py-1 rounded">Acid Wash</span>
+                </div>
+            </div>
+            <div onclick="window.location.href='shop.html?cat=regular-tshirt'" class="cursor-pointer group relative overflow-hidden rounded-xl aspect-[2/3] shadow-sm">
+                <img src="images/regular t shirt.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end justify-center pb-4">
+                    <span class="text-white font-bold text-[10px] uppercase bg-black/40 px-2 py-1 rounded">Regular T-Shirt</span>
+                </div>
+            </div>
+            <div onclick="window.location.href='shop.html?cat=hoodie'" class="cursor-pointer group relative overflow-hidden rounded-xl aspect-[2/3] shadow-sm">
+                <img src="images/hoodie main .jpeg" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end justify-center pb-4">
+                    <span class="text-white font-bold text-[10px] uppercase bg-black/40 px-2 py-1 rounded">Hoodie</span>
+                </div>
+            </div>
+            <div onclick="window.location.href='shop.html?cat=couple-tshirt'" class="cursor-pointer group relative overflow-hidden rounded-xl aspect-[2/3] shadow-sm">
+                <img src="images/couple tee.jpg" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end justify-center pb-4">
+                    <span class="text-white font-bold text-[10px] uppercase bg-black/40 px-2 py-1 rounded">Couple T-Shirt</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative bg-black py-3 border-y border-red-900/30 overflow-hidden group">
+        <div class="animate-ticker">
+            <div class="flex items-center gap-12 px-6">
+                <span class="flex items-center gap-3">
+                    <span class="h-1.5 w-1.5 rounded-full bg-red-600 shadow-[0_0_8px_#dc2626]"></span>
+                    <p class="text-white text-[10px] md:text-xs font-black uppercase tracking-[0.3em]">New Season Drop: Up to 20% Off</p>
+                </span>
+                <span class="flex items-center gap-3">
+                    <span class="h-1.5 w-1.5 rounded-full bg-red-600 shadow-[0_0_8px_#dc2626]"></span>
+                    <p class="text-white text-[10px] md:text-xs font-black uppercase tracking-[0.3em]">BUY 3 TO GET FREE DELIVERY</p>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <section class="py-20 bg-white">
+        <div class="max-w-[1400px] mx-auto px-4">
+            <div class="text-center mb-16">
+                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-red-600 block mb-3">Limited Release</span>
+                <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-black">New Arrivals</h2>
+                <div class="w-20 h-1.5 bg-black mx-auto mt-6 rounded-full"></div>
+            </div>
+            <div id="new-arrivals-slider" class="flex gap-8 overflow-x-auto pb-12 scrollbar-hide cursor-grab active:cursor-grabbing"></div>
+        </div>
+    </section>
+
+    <div class="container mx-auto px-4 py-16 border-t border-gray-100">
+        <h2 class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">Featured Products</h2>
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        <div id="view-all-container" class="mt-16 text-center">
+            <a href="shop.html" class="inline-block px-12 py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl">View All Items</a>
+        </div>
+    </div>
+
+    <div id="product-modal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-10 shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-4 right-6 text-4xl text-gray-400 hover:text-black transition">&times;</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
+        <div class="p-5 bg-black text-white flex justify-between items-center shrink-0">
+            <h2 class="font-black uppercase tracking-widest text-sm">Shopping Bag (<span id="cart-count-drawer">0</span>)</h2>
+            <button onclick="toggleCart()" class="text-3xl hover:text-gray-400 transition">&times;</button>
+        </div>
+
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 custom-scrollbar"></div>
+
+        <div class="p-5 border-t space-y-4 bg-white shrink-0 overflow-y-auto max-h-[75vh] custom-scrollbar">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest text-left">Delivery Area:</p>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 text-xs font-bold cursor-pointer"><input type="radio" name="delivery" value="80" checked onclick="updateCartUI()" class="accent-black"> <span>Inside Dhaka</span></label>
+                    <label class="flex items-center gap-2 text-xs font-bold cursor-pointer"><input type="radio" name="delivery" value="130" onclick="updateCartUI()" class="accent-black"> <span>Outside Dhaka</span></label>
+                </div>
+                <div id="free-delivery-msg" class="text-[9px] font-black uppercase tracking-tighter opacity-60">Buy 3 or more items to get FREE DELIVERY 🚚</div>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <input type="text" id="final-name" placeholder="আপনার নাম" class="w-full p-3 text-sm border rounded-xl outline-none bg-gray-50 focus:bg-white transition">
+                <input type="text" id="final-phone" placeholder="ফোন নম্বর" class="w-full p-3 text-sm border rounded-xl outline-none bg-gray-50 focus:bg-white transition">
+                <textarea id="final-address" placeholder="সম্পূর্ণ ঠিকানা (FOR DELIVERY)" class="w-full p-3 text-sm border rounded-xl outline-none h-16 bg-gray-50 focus:bg-white transition resize-none"></textarea>
+            </div>
+
+            <div class="mt-4 space-y-3 bg-gray-50 p-4 rounded-[2rem] border border-gray-100 text-left">
+                <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2 ml-2">Payment Method</p>
+                <div class="grid grid-cols-1 gap-2">
+                    <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-black cursor-pointer transition">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="payment-method" value="COD" checked class="hidden" onclick="updatePaymentUI('COD')">
+                            <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center"><div class="w-2 h-2 bg-black rounded-full opacity-0 check-dot transition"></div></div>
+                            <span class="text-[10px] font-black uppercase">Cash On Delivery</span>
+                        </div>
+                        <i class="fa-solid fa-truck-fast text-gray-400 text-xs"></i>
+                    </label>
+                    <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-[#e2136e] cursor-pointer transition">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="payment-method" value="bKash" class="hidden" onclick="updatePaymentUI('bKash')">
+                            <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center"><div class="w-2 h-2 bg-[#e2136e] rounded-full opacity-0 check-dot transition"></div></div>
+                            <span class="text-[10px] font-black uppercase">bKash (Advance)</span>
+                        </div>
+                        <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" class="h-5 w-5 object-contain">
+                    </label>
+                </div>
+                <div id="payment-instruction" class="mt-3 p-4 rounded-xl border bg-white shadow-sm flex flex-col justify-center min-h-[80px]">
+                    <div id="instruction-content">
+                        <p class="text-[9px] font-bold text-gray-500 uppercase text-center">অগ্রিম ডেলিভারি চার্জ দিয়ে অর্ডার কনফার্ম করুন।</p>
+                    </div>
+                    <input type="text" id="trnx-id" placeholder="Transaction ID (TRXID)" class="w-full mt-3 p-3 text-[10px] font-bold uppercase border border-gray-100 rounded-xl outline-none focus:border-black bg-gray-50">
+                </div>
+            </div>
+
+            <div id="cart-total" class="pt-2"></div>
+            <button id="confirm-order-btn" onclick="confirmOrderWhatsApp()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
+                <i class="fa-brands fa-whatsapp text-2xl"></i><span>Confirm Order</span>
+            </button>
+        </div>
+    </div>
+
+    <footer class="bg-[#080808] text-gray-400 border-t border-gray-900 pt-20 pb-10 mt-20">
+        <div class="container mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-center md:text-left">
+            <div class="space-y-6">
+                <img src="images/RedAmS logo main png.png" class="h-10 md:h-12 w-auto brightness-125 grayscale hover:grayscale-0 transition mx-auto md:mx-0">
+                <p class="text-[11px] uppercase tracking-[0.2em] leading-relaxed text-gray-500">Premium lifestyle apparel brand from Bangladesh.</p>
+                <div class="flex justify-center md:justify-start space-x-6 text-lg">
+                    <a href="#" class="hover:text-red-600 transition"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#" class="hover:text-red-600 transition"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-black uppercase mb-6 text-[10px] tracking-[0.4em] text-white border-b-2 border-red-600 pb-1 inline-block">Categories</h3>
+                <ul class="space-y-4 text-[11px] font-bold uppercase tracking-widest">
+                    <li><a href="shop.html?cat=drop-shoulder" class="hover:text-white transition">Drop Shoulder</a></li>
+                    <li><a href="shop.html?cat=acid-wash" class="hover:text-white transition">Acid Wash</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-black uppercase mb-6 text-[10px] tracking-[0.4em] text-white border-b-2 border-red-600 pb-1 inline-block">Company</h3>
+                <ul class="space-y-4 text-[11px] font-bold uppercase tracking-widest">
+                    <li><a href="privacy.html" class="hover:text-white transition">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white transition">Terms & Conditions</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-black uppercase mb-6 text-[10px] tracking-[0.4em] text-white border-b-2 border-red-600 pb-1 inline-block">Contact</h3>
+                <ul class="space-y-5 text-[11px] tracking-widest text-gray-500 font-medium">
+                    <li>Savar, Dhaka, Bangladesh</li>
+                    <li>+880 1894 357549</li>
+                    <li class="lowercase">redamsbd16@gmail.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-900 mt-20 pt-10 text-center">
+            <p class="text-[9px] text-gray-700 uppercase tracking-[0.6em] font-black">&copy; 2026 REDAMS - ALL RIGHTS RESERVED. DEVELOPED BY RIDWAN.</p>
+        </div>
+    </footer>
+
+    <a href="https://m.me/redamsbd" target="_blank" class="fixed bottom-6 right-6 z-[999] bg-[#0084FF] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition group">
+        <i class="fa-brands fa-facebook-messenger text-white text-2xl"></i>
+        <span class="absolute right-16 bg-white text-black text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Chat with us</span>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        const swiper = new Swiper('.hero-swiper', {
+            loop: true,
+            autoplay: { delay: 5000 },
+            pagination: { el: '.swiper-pagination', clickable: true },
+            effect: 'fade',
+            fadeEffect: { crossFade: true }
+        });
+    </script>
+</body>
+</html>
