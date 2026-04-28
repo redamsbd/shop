@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <style>
+    .swal2-container {
+        z-index: 10000 !important;
+    }
+    /* নোটিফিকেশনের ফন্ট সুন্দর করার জন্য */
+    .swal2-popup {
+        font-family: 'Inter', sans-serif !important;
+        border-radius: 15px !important;
+    }
+</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDAMS Shop - All Collections</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar for better UI */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50 pt-24"> <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
+        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center">
+                <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-widest hover:text-gray-400 transition">Home</a>
+                <a href="shop.html" class="text-xs font-bold uppercase tracking-widest text-gray-400">All Products</a>
+                
+                <div class="relative group">
+                    <button class="text-xs font-bold uppercase tracking-widest hover:text-gray-400 transition flex items-center">
+                        Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                        <div class="py-2 text-left">
+                            <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Drop Shoulder</a>
+                            <a href="shop.html?cat=acid-wash" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Acid Wash</a>
+                            <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Regular T-Shirt</a>
+                            <a href="shop.html?cat=hoodie" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Hoodie</a>
+                            <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Couple T-Shirt</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cart-count-float" class="absolute -top-2 -right-2 bg-white text-black text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-10">
+        <h2 id="page-title" class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">Our Collection</h2>
+        
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            </div>
+    </div>
+
+    <footer class="bg-black text-white border-t border-gray-800 pt-16 pb-8 mt-20 text-left">
+        <div class="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+            <div class="space-y-4">
+                <h1 class="text-2xl font-bold tracking-tighter">REDAMS</h1>
+                <p class="text-sm text-gray-400">Premium lifestyle apparel brand from Bangladesh.</p>
+                <div class="flex space-x-4 text-xl">
+                    <a href="https://www.facebook.com/profile.php?id=61559665337072" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/redams_bd?igsh=dXc1cnFxNmMzenI4" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://wa.me/8801894357549" target="_blank" class="text-gray-400 hover:text-white"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-bold uppercase mb-4 text-sm tracking-widest text-white border-b border-gray-800 pb-2">Categories</h3>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="shop.html?cat=drop-shoulder" class="hover:text-white transition">Drop Shoulder</a></li>
+                    <li><a href="shop.html?cat=acid-wash" class="hover:text-white transition">Acid Wash</a></li>
+                    <li><a href="shop.html" class="hover:text-white transition">New Arrivals</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-bold uppercase mb-4 text-sm tracking-widest border-b border-gray-800 pb-2">Policy</h3>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-white">Terms & Conditions</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-bold uppercase mb-4 text-sm tracking-widest border-b border-gray-800 pb-2">Contact Us</h3>
+                <p class="text-sm text-gray-400">Savar, Dhaka, Bangladesh<br>+880 1894 357549<br>redamsbd16@gmail.com</p>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-16 pt-8 text-center text-[10px] text-gray-500 uppercase tracking-widest">
+            &copy; 2026 REDAMS - DEVELOPED BY RIDWAN.
+        </div>
+    </footer>
+
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
+        <div class="p-5 bg-black text-white flex justify-between items-center shrink-0">
+            <h2 class="font-black uppercase tracking-widest text-sm">Shopping Bag (<span id="cart-count-drawer">0</span>)</h2>
+            <button onclick="toggleCart()" class="text-3xl hover:text-gray-400 transition">&times;</button>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 custom-scrollbar"></div>
+
+        <div class="p-5 border-t space-y-4 bg-white shadow-[0_-15px_30px_rgba(0,0,0,0.08)] shrink-0">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Delivery Area:</p>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 text-xs font-bold cursor-pointer">
+                        <input type="radio" name="delivery" value="80" checked onclick="updateCartUI()" class="w-4 h-4 accent-black"> 
+                        <span>Inside Dhaka</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-bold cursor-pointer">
+                        <input type="radio" name="delivery" value="130" onclick="updateCartUI()" class="w-4 h-4 accent-black"> 
+                        <span>Outside Dhaka</span>
+                    </label>
+                </div>
+                <div id="free-delivery-msg" class="text-[9px] font-black uppercase tracking-tighter opacity-60 py-1 px-2 rounded bg-white border border-dashed border-gray-200 inline-block transition-all">
+                    Buy 3 or more items to get FREE DELIVERY 🚚
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <input type="text" id="final-name" placeholder="আপনার নাম" class="w-full p-3 text-sm border border-gray-200 rounded-xl outline-none focus:border-black transition-all bg-gray-50">
+                <input type="text" id="final-phone" placeholder="ফোন নম্বর" class="w-full p-3 text-sm border border-gray-200 rounded-xl outline-none focus:border-black transition-all bg-gray-50">
+                <textarea id="final-address" placeholder="সম্পূর্ণ ঠিকানা (গ্রাম/শহর, জেলা)" class="w-full p-3 text-sm border border-gray-200 rounded-xl outline-none h-16 focus:border-black resize-none bg-gray-50"></textarea>
+            </div>
+
+            <div id="cart-total" class="pt-2"></div>
+            
+            <button type="button" onclick="confirmOrderWhatsApp()" class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-green-600 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-3">
+                <i class="fa-brands fa-whatsapp text-2xl"></i>
+                <span>Confirm Order</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="product-modal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-10 shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-4 right-6 text-4xl text-gray-400 hover:text-black transition">&times;</button>
+            <div id="modal-content" class="grid grid-cols-1 md:grid-cols-2 gap-10"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
