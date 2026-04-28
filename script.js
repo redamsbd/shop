@@ -187,6 +187,7 @@ function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
     const freeDeliveryMsg = document.getElementById('free-delivery-msg');
+    const paymentSection = document.getElementById('payment-options-wrapper'); // পেমেন্ট সেকশন আইডি
 
     if (isPaidOverride !== null) isPaymentVerified = isPaidOverride;
 
@@ -208,6 +209,12 @@ function updateCartUI(isPaidOverride = null) {
     }).join('');
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    
+    // ১. আপডেট: ডেলিভারি এরিয়া সিলেক্ট করলে পেমেন্ট অপশন দেখাবে
+    if (deliveryOption && paymentSection) {
+        paymentSection.classList.remove('hidden');
+    }
+
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
     if (itemCount >= 3) {
@@ -217,6 +224,7 @@ function updateCartUI(isPaidOverride = null) {
         if (freeDeliveryMsg) { freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100'); freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚"; }
     }
 
+    // ২. আপডেট: পেইড হলে চার্জ ০ হবে এবং ডিসপ্লে-তে PAID দেখাবে
     const finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
     const finalTotal = subtotal + finalDeliveryCharge;
     const deliveryDisplay = isPaymentVerified ? '<span class="text-green-600 font-black">PAID</span>' : (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
@@ -236,7 +244,6 @@ function updateCartUI(isPaidOverride = null) {
     const countEls = ['cart-count', 'cart-count-drawer', 'cart-count-float'];
     countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
 }
-
 // ৯. আপডেট করা পেমেন্ট ভ্যালিডেশন (বিকাশ ও নগদের আলাদা নম্বরসহ)
 function updatePaymentUI(method) {
     const instructionBox = document.getElementById('payment-instruction');
