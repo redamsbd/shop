@@ -443,5 +443,21 @@
     ],
     "colors": ["Black", "White"],
     "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": 33,
+    "name": "Classic Zipper Polo Shirt",
+    "price": 650,
+    "originalPrice":799,
+    "category": "polo-tshirt",
+    "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
+    "images": [
+      "images/polo coklet model.jpeg",
+       "images/polo coklet close.jpeg",
+ "images/polo coklet only tee.jpeg",
+      "images/polo size chart.jpg"
+    ],
+    "colors": ["Chocolate"],
+    "sizes": [ "M", "L", "XL"]
   }
 ]
