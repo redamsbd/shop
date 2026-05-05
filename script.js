@@ -45,25 +45,19 @@ function toggleMobileMenu() {
     const overlay = document.getElementById('menu-overlay');
     
     if (menu.classList.contains('-translate-x-full')) {
-        // Open Menu
+        // মেনু ওপেন করার সময়
         menu.classList.remove('-translate-x-full');
-        menu.classList.add('translate-x-0');
+        menu.classList.add('translate-x-0', 'shadow-[20px_0_50px_rgba(0,0,0,0.9)]'); // শ্যাডো যোগ হবে
         overlay.classList.remove('hidden');
-        // Chotto delay jate animation-ti thikmoto kaj kore
-        setTimeout(() => {
-            overlay.style.opacity = "1";
-        }, 10);
+        setTimeout(() => overlay.classList.add('opacity-100'), 10);
     } else {
-        // Close Menu
-        menu.classList.remove('translate-x-0');
+        // মেনু ক্লোজ করার সময়
+        menu.classList.remove('translate-x-0', 'shadow-[20px_0_50px_rgba(0,0,0,0.9)]'); // শ্যাডো চলে যাবে
         menu.classList.add('-translate-x-full');
-        overlay.style.opacity = "0";
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-        }, 300);
+        overlay.classList.remove('opacity-100');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
     }
 }
-
 // ৩. কালার ও সাইজ সিলেকশন
 function selectFeature(type, val, el) {
     const buttons = el.parentElement.getElementsByTagName('button');
