@@ -40,6 +40,29 @@ function loadProducts() {
         })
         .catch(err => console.error("Error loading products:", err));
 }
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('menu-overlay');
+    
+    if (menu.classList.contains('-translate-x-full')) {
+        // Open Menu
+        menu.classList.remove('-translate-x-full');
+        menu.classList.add('translate-x-0');
+        overlay.classList.remove('hidden');
+        // Chotto delay jate animation-ti thikmoto kaj kore
+        setTimeout(() => {
+            overlay.style.opacity = "1";
+        }, 10);
+    } else {
+        // Close Menu
+        menu.classList.remove('translate-x-0');
+        menu.classList.add('-translate-x-full');
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300);
+    }
+}
 
 // ৩. কালার ও সাইজ সিলেকশন
 function selectFeature(type, val, el) {
@@ -434,19 +457,4 @@ function setupAutoScroll(slider) {
     }; 
     requestAnimationFrame(step);
 }
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    const overlay = document.getElementById('menu-overlay');
-    
-    if (menu.classList.contains('-translate-x-full')) {
-        menu.classList.remove('-translate-x-full');
-        menu.classList.add('translate-x-0');
-        overlay.classList.remove('hidden');
-        setTimeout(() => overlay.classList.add('opacity-100'), 10);
-    } else {
-        menu.classList.remove('translate-x-0');
-        menu.classList.add('-translate-x-full');
-        overlay.classList.remove('opacity-100');
-        setTimeout(() => overlay.classList.add('hidden'), 500);
-    }
-}
+
