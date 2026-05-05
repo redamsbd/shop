@@ -40,24 +40,23 @@ function loadProducts() {
         })
         .catch(err => console.error("Error loading products:", err));
 }
+
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('menu-overlay');
     
+    // মেনু স্লাইড ইন/আউট করার জন্য
     if (menu.classList.contains('-translate-x-full')) {
-        // মেনু ওপেন করার সময়
         menu.classList.remove('-translate-x-full');
-        menu.classList.add('translate-x-0', 'shadow-[20px_0_50px_rgba(0,0,0,0.9)]'); // শ্যাডো যোগ হবে
-        overlay.classList.remove('hidden');
-        setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        menu.classList.add('translate-x-0');
+        overlay.classList.add('active'); // আমাদের নতুন CSS ক্লাস
     } else {
-        // মেনু ক্লোজ করার সময়
-        menu.classList.remove('translate-x-0', 'shadow-[20px_0_50px_rgba(0,0,0,0.9)]'); // শ্যাডো চলে যাবে
+        menu.classList.remove('translate-x-0');
         menu.classList.add('-translate-x-full');
-        overlay.classList.remove('opacity-100');
-        setTimeout(() => overlay.classList.add('hidden'), 300);
+        overlay.classList.remove('active');
     }
 }
+
 // ৩. কালার ও সাইজ সিলেকশন
 function selectFeature(type, val, el) {
     const buttons = el.parentElement.getElementsByTagName('button');
