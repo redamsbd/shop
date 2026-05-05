@@ -11,21 +11,28 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <style>
-        /* ওভারলে যখন ইনঅ্যাক্টিভ থাকবে তখন সেটি পুরোপুরি অদৃশ্য থাকবে */
-#menu-overlay {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+   <style>
+    /* মেনু ওভারলে ডিফল্টভাবে পুরোপুরি ইনঅ্যাক্টিভ থাকবে */
+    #menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 5000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
 
-/* মেনু খুললে এই ক্লাসটি জাভাস্ক্রিপ্ট দিয়ে যোগ হবে */
-#menu-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    display: block !important; /* নিশ্চিত করতে যে এটি শো করছে */
-}
+    /* যখন মেনু খুলবে তখন এটি দৃশ্যমান হবে */
+    #menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    body { font-family: 'Inter', sans-serif; }
+    /* বাকি আপনার আগের স্টাইলগুলো এখানে থাকবে... */
+
         body { font-family: 'Inter', sans-serif; }
         .swal2-container { z-index: 10000 !important; }
         .swal2-popup { border-radius: 15px !important; }
@@ -85,15 +92,26 @@
 </nav>
 
 <!-- মোবাইল মেনু ড্রয়ার -->
-<div id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-[#0a0a0a] z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden overflow-y-auto">
+<div id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-[#0a0a0a] z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden overflow-y-auto border-r border-white/10 shadow-2xl">
     <div class="p-6 flex justify-between items-center border-b border-white/5">
-        <span class="font-black uppercase tracking-[0.3em] text-white text-[10px]">Redams Menu</span>
-        <button onclick="toggleMobileMenu()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
+        <div class="flex flex-col">
+            <span class="text-white font-black text-lg tracking-tighter">REDAMS</span>
+            <span class="text-[9px] text-red-600 font-bold tracking-[0.3em] uppercase">Premium Apparel</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
     </div>
     
     <div class="p-8 flex flex-col space-y-7">
-        <a href="index.html" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition">Home</a>
-        <a href="#product-grid" onclick="toggleMobileMenu()" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition">All Products</a>
+        <a href="index.html" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
+            <span>Home</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
+        </a>
+        <a href="#product-grid" onclick="toggleMobileMenu()" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
+            <span>All Products</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
+        </a>
         
         <div class="pt-6 border-t border-white/5">
             <p class="text-gray-500 mb-6 text-[9px] font-black uppercase tracking-[0.4em]">Collections</p>
@@ -102,15 +120,15 @@
                 <a href="shop.html?cat=acid-wash" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Acid Wash</a>
                 <a href="shop.html?cat=regular-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Regular T-Shirt</a>
                 <a href="shop.html?cat=hoodie" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Hoodie</a>
-                <a href="shop.html?cat=couple-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Couple T-Shirt</a>
                 <a href="shop.html?cat=polo-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Polo T-Shirt</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Overlay: এটি মেনু খুললে ব্যাকগ্রাউন্ড ঝাপসা করবে -->
-<div id="menu-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[5000] hidden opacity-0 transition-opacity duration-300"></div>
+<!-- মোবাইল ওভারলে (এটি একবারই থাকবে) -->
+<div id="menu-overlay" onclick="toggleMobileMenu()"></div>
+    
     <section class="pt-20 md:pt-24 swiper hero-swiper">
         <div class="swiper-wrapper">
             <div class="swiper-slide relative overflow-hidden md:rounded-[2.5rem] aspect-[16/9] md:aspect-[21/9]">
@@ -238,48 +256,6 @@
         </div>
     </div>
     
-  <div id="mobile-menu" class="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-[#0a0a0a] z-[6000] transform -translate-x-full transition-all duration-500 ease-in-out flex flex-col border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.8)]">
-    
-    <div class="p-6 flex justify-between items-center border-b border-white/5">
-        <div class="flex flex-col">
-            <span class="text-white font-black text-xl tracking-tighter">REDAMS</span>
-            <span class="text-[10px] text-red-600 font-bold tracking-[0.3em] uppercase">Premium Apparel</span>
-        </div>
-        <button onclick="toggleMobileMenu()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-    </div>
-
-    <div class="p-8 flex flex-col space-y-8">
-        <a href="index.html" class="flex items-center justify-between text-white text-sm font-bold uppercase tracking-[0.2em]">
-            <span>Home</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
-        </a>
-        <a href="#product-grid" onclick="toggleMobileMenu()" class="flex items-center justify-between text-white text-sm font-bold uppercase tracking-[0.2em]">
-            <span>New Arrivals</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
-        </a>
-        <a href="shop.html?cat=drop-shoulder" class="flex items-center justify-between text-white text-sm font-bold uppercase tracking-[0.2em]">
-            <span>Drop Shoulder</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
-        </a>
-        <a href="shop.html?cat=acid-wash" class="flex items-center justify-between text-white text-sm font-bold uppercase tracking-[0.2em]">
-            <span>Acid Wash</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
-        </a>
-    </div>
-
-    <div class="mt-auto p-8 border-t border-white/5">
-        <div class="flex space-x-6 text-gray-400">
-            <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
-        </div>
-    </div>
-</div>
-
-<div id="menu-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[5999] hidden transition-opacity duration-300"></div>
-
     <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
     <div class="p-5 bg-black text-white flex justify-between items-center shrink-0">
         <h2 class="font-black uppercase tracking-widest text-sm">Shopping Bag (<span id="cart-count-drawer">0</span>)</h2>
