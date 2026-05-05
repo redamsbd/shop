@@ -70,29 +70,33 @@
     </div>
 </nav>
 
-<!-- মোবাইল মেনু ড্রয়ার (এটি শুধু মোবাইলে দেখা যাবে) -->
-<div id="mobile-menu" class="fixed inset-y-0 left-0 w-64 bg-black shadow-2xl z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden border-r border-gray-800">
-    <div class="p-5 flex justify-between items-center border-b border-gray-800">
-        <span class="font-black uppercase tracking-widest text-xs">Menu</span>
-        <button onclick="toggleMobileMenu()" class="text-2xl hover:text-red-600">&times;</button>
+<!-- মোবাইল মেনু ড্রয়ার -->
+<div id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-[#0a0a0a] z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden overflow-y-auto">
+    <div class="p-6 flex justify-between items-center border-b border-white/5">
+        <span class="font-black uppercase tracking-[0.3em] text-white text-[10px]">Redams Menu</span>
+        <button onclick="toggleMobileMenu()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
     </div>
-    <div class="p-6 flex flex-col space-y-6 text-xs font-bold uppercase tracking-[0.2em]">
-        <a href="index.html" class="hover:text-red-600 transition">Home</a>
-        <a href="#product-grid" onclick="toggleMobileMenu()" class="hover:text-red-600 transition">All Products</a>
-        <div class="pt-4 border-t border-gray-800">
-            <p class="text-gray-500 mb-4 text-[10px]">Collections</p>
-            <div class="flex flex-col space-y-4 pl-2">
-                <a href="shop.html?cat=drop-shoulder" class="hover:text-red-600 transition">Drop Shoulder</a>
-                <a href="shop.html?cat=acid-wash" class="hover:text-red-600 transition">Acid Wash</a>
-                <a href="shop.html?cat=regular-tshirt" class="hover:text-red-600 transition">Regular T-Shirt</a>
-                <a href="shop.html?cat=hoodie" class="hover:text-red-600 transition">Hoodie</a>
-                <a href="shop.html?cat=couple-tshirt" class="hover:text-red-600 transition">Couple T-Shirt</a>
-                <a href="shop.html?cat=polo-tshirt" class="hover:text-red-600 transition">Polo T-Shirt</a>
+    
+    <div class="p-8 flex flex-col space-y-7">
+        <a href="index.html" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition">Home</a>
+        <a href="#product-grid" onclick="toggleMobileMenu()" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition">All Products</a>
+        
+        <div class="pt-6 border-t border-white/5">
+            <p class="text-gray-500 mb-6 text-[9px] font-black uppercase tracking-[0.4em]">Collections</p>
+            <div class="flex flex-col space-y-5 pl-2">
+                <a href="shop.html?cat=drop-shoulder" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Drop Shoulder</a>
+                <a href="shop.html?cat=acid-wash" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Acid Wash</a>
+                <a href="shop.html?cat=regular-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Regular T-Shirt</a>
+                <a href="shop.html?cat=hoodie" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Hoodie</a>
+                <a href="shop.html?cat=couple-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Couple T-Shirt</a>
+                <a href="shop.html?cat=polo-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Polo T-Shirt</a>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Overlay: এটি মেনু খুললে ব্যাকগ্রাউন্ড ঝাপসা করবে -->
+<div id="menu-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[5000] hidden opacity-0 transition-opacity duration-300"></div>
     <section class="pt-20 md:pt-24 swiper hero-swiper">
         <div class="swiper-wrapper">
             <div class="swiper-slide relative overflow-hidden md:rounded-[2.5rem] aspect-[16/9] md:aspect-[21/9]">
