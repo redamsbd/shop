@@ -434,17 +434,19 @@ function setupAutoScroll(slider) {
     }; 
     requestAnimationFrame(step);
 }
-// মোবাইল মেনু ওপেন এবং ক্লোজ করার ফাংশন
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('menu-overlay');
+    
     if (menu.classList.contains('-translate-x-full')) {
         menu.classList.remove('-translate-x-full');
         menu.classList.add('translate-x-0');
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.add('opacity-100'), 10);
     } else {
         menu.classList.remove('translate-x-0');
         menu.classList.add('-translate-x-full');
+        overlay.classList.remove('opacity-100');
+        setTimeout(() => overlay.classList.add('hidden'), 500);
     }
 }
-
-// তোমার নেভিগেশন বারে যে বাটনটি আছে (৩-ডট বাটন), সেটিতে এই ফাংশনটি কল করো
-// উদাহরণ: <button id="mobile-menu-btn" onclick="toggleMobileMenu()"> ... </button>
