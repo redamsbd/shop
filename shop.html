@@ -1,56 +1,134 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="bn">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .swal2-container { z-index: 10000 !important; }
-        .swal2-popup { font-family: 'Inter', sans-serif !important; border-radius: 15px !important; }
-    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REDAMS Shop - All Collections</title>
+    <title>Redams - Premium Lifestyle</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #000; border-radius: 10px; }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+   <style>
+    /* মেনু ওভারলে ডিফল্টভাবে পুরোপুরি ইনঅ্যাক্টিভ থাকবে */
+    #menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 5000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* যখন মেনু খুলবে তখন এটি দৃশ্যমান হবে */
+    #menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    body { font-family: 'Inter', sans-serif; }
+    /* বাকি আপনার আগের স্টাইলগুলো এখানে থাকবে... */
+
+        body { font-family: 'Inter', sans-serif; }
+        .swal2-container { z-index: 10000 !important; }
+        .swal2-popup { border-radius: 15px !important; }
+        .hero-swiper { width: 100%; height: auto; }
+        .swiper-pagination-bullet-active { background: #e11d48 !important; width: 25px !important; border-radius: 5px !important; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-ticker { display: flex; width: max-content; animation: ticker 30s linear infinite; }
+        .payment-card input:checked + div .check-dot { opacity: 1 !important; }
     </style>
 </head>
-<body class="bg-gray-50 pt-24"> 
-    <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
-        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center">
-                <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
-            </a>
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="index.html" class="text-xs font-bold uppercase tracking-widest hover:text-gray-400 transition">Home</a>
-                <a href="shop.html" class="text-xs font-bold uppercase tracking-widest text-gray-400">All Products</a>
-                <div class="relative group">
-                    <button class="text-xs font-bold uppercase tracking-widest hover:text-gray-400 transition flex items-center">
-                        Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
-                    </button>
-                    <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                        <div class="py-2 text-left">
-                            <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Drop Shoulder</a>
-                            <a href="shop.html?cat=acid-wash" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Acid Wash</a>
-                            <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Regular T-Shirt</a>
-                            <a href="shop.html?cat=hoodie" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Hoodie</a>
-                            <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 text-xs font-bold hover:bg-gray-100 transition uppercase">Couple T-Shirt</a>
-                             <a href="shop.html?cat=polo-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Polo T-Shirt</a>
-                        </div>
+<body class="bg-gray-50">
+
+   <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
+    <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+        <!-- মোবাইলের জন্য ৩-ডট মেনু বাটন -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-xl hover:text-gray-400 transition">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <a href="index.html" class="flex items-center">
+            <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
+        </a>
+
+        <!-- ডেস্কটপ মেনু (আগের মতোই আছে) -->
+        <div class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-widest">
+            <a href="index.html" class="hover:text-gray-400 transition">Home</a>
+            <a href="#product-grid" class="hover:text-gray-400 transition">All Products</a>
+            <div class="relative group">
+                <button class="hover:text-gray-400 transition flex items-center uppercase">
+                    Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                </button>
+                <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div class="py-2 text-xs font-bold">
+                        <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 hover:bg-gray-100 transition">Drop Shoulder</a>
+                        <a href="shop.html?cat=acid-wash" class="block px-4 py-2 hover:bg-gray-100 transition">Acid Wash</a>
+                        <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Regular T-Shirt</a>
+                        <a href="shop.html?cat=hoodie" class="block px-4 py-2 hover:bg-gray-100 transition">Hoodie</a>
+                        <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Couple T-Shirt</a>
+                        <a href="shop.html?cat=polo-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Polo T-Shirt</a>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    <span id="cart-count-float" class="absolute -top-2 -right-2 bg-white text-black text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
-                </button>
+        </div>
+
+        <div class="flex items-center space-x-6">
+            <button class="text-lg hover:text-gray-400 transition"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- মোবাইল মেনু ড্রয়ার -->
+<div id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-[#0a0a0a] z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden overflow-y-auto border-r border-white/10 shadow-2xl">
+    <div class="p-6 flex justify-between items-center border-b border-white/5">
+        <div class="flex flex-col">
+            <span class="text-white font-black text-lg tracking-tighter">REDAMS</span>
+            <span class="text-[9px] text-red-600 font-bold tracking-[0.3em] uppercase">Premium Apparel</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+    </div>
+    
+    <div class="p-8 flex flex-col space-y-7">
+        <a href="index.html" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
+            <span>Home</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
+        </a>
+        <a href="#product-grid" onclick="toggleMobileMenu()" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
+            <span>All Products</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
+        </a>
+        
+        <div class="pt-6 border-t border-white/5">
+            <p class="text-gray-500 mb-6 text-[9px] font-black uppercase tracking-[0.4em]">Collections</p>
+            <div class="flex flex-col space-y-5 pl-2">
+                <a href="shop.html?cat=drop-shoulder" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Drop Shoulder</a>
+                <a href="shop.html?cat=acid-wash" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Acid Wash</a>
+                <a href="shop.html?cat=regular-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Regular T-Shirt</a>
+                <a href="shop.html?cat=hoodie" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Hoodie</a>
+                <a href="shop.html?cat=polo-tshirt" class="text-gray-300 text-[11px] font-bold uppercase tracking-widest hover:text-red-600 transition">Polo T-Shirt</a>
             </div>
         </div>
-    </nav>
+    </div>
+</div>
 
+<!-- মোবাইল ওভারলে (এটি একবারই থাকবে) -->
+<div id="menu-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="container mx-auto px-4 py-10">
         <h2 id="page-title" class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">Our Collection</h2>
         <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
