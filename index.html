@@ -28,39 +28,70 @@
 </head>
 <body class="bg-gray-50">
 
-    <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
-        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center">
-                <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
-            </a>
-            <div class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-widest">
-                <a href="index.html" class="hover:text-gray-400 transition">Home</a>
-                <a href="#product-grid" class="hover:text-gray-400 transition">All Products</a>
-                <div class="relative group">
-                    <button class="hover:text-gray-400 transition flex items-center uppercase">
-                        Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
-                    </button>
-                    <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                        <div class="py-2 text-xs font-bold">
-                            <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 hover:bg-gray-100 transition">Drop Shoulder</a>
-                            <a href="shop.html?cat=acid-wash" class="block px-4 py-2 hover:bg-gray-100 transition">Acid Wash</a>
-                            <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Regular T-Shirt</a>
-                            <a href="shop.html?cat=hoodie" class="block px-4 py-2 hover:bg-gray-100 transition">Hoodie</a>
-                            <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Couple T-Shirt</a>
-                            <a href="shop.html?cat=polo-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Polo T-Shirt</a>
-                        </div>
+   <nav class="fixed top-0 left-0 right-0 bg-black text-white shadow-lg z-[1000] border-b border-gray-800">
+    <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+        <!-- মোবাইলের জন্য ৩-ডট মেনু বাটন -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-xl hover:text-gray-400 transition">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <a href="index.html" class="flex items-center">
+            <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
+        </a>
+
+        <!-- ডেস্কটপ মেনু (আগের মতোই আছে) -->
+        <div class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-widest">
+            <a href="index.html" class="hover:text-gray-400 transition">Home</a>
+            <a href="#product-grid" class="hover:text-gray-400 transition">All Products</a>
+            <div class="relative group">
+                <button class="hover:text-gray-400 transition flex items-center uppercase">
+                    Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                </button>
+                <div class="absolute left-0 mt-2 w-48 bg-white text-black rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div class="py-2 text-xs font-bold">
+                        <a href="shop.html?cat=drop-shoulder" class="block px-4 py-2 hover:bg-gray-100 transition">Drop Shoulder</a>
+                        <a href="shop.html?cat=acid-wash" class="block px-4 py-2 hover:bg-gray-100 transition">Acid Wash</a>
+                        <a href="shop.html?cat=regular-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Regular T-Shirt</a>
+                        <a href="shop.html?cat=hoodie" class="block px-4 py-2 hover:bg-gray-100 transition">Hoodie</a>
+                        <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Couple T-Shirt</a>
+                        <a href="shop.html?cat=polo-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Polo T-Shirt</a>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <button class="text-lg hover:text-gray-400 transition"><i class="fa-solid fa-magnifying-glass"></i></button>
-                <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
-                    <i class="fa-solid fa-bag-shopping"></i>
-                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
-                </button>
+        </div>
+
+        <div class="flex items-center space-x-6">
+            <button class="text-lg hover:text-gray-400 transition"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- মোবাইল মেনু ড্রয়ার (এটি শুধু মোবাইলে দেখা যাবে) -->
+<div id="mobile-menu" class="fixed inset-y-0 left-0 w-64 bg-black shadow-2xl z-[5001] transform -translate-x-full transition-transform duration-300 md:hidden border-r border-gray-800">
+    <div class="p-5 flex justify-between items-center border-b border-gray-800">
+        <span class="font-black uppercase tracking-widest text-xs">Menu</span>
+        <button onclick="toggleMobileMenu()" class="text-2xl hover:text-red-600">&times;</button>
+    </div>
+    <div class="p-6 flex flex-col space-y-6 text-xs font-bold uppercase tracking-[0.2em]">
+        <a href="index.html" class="hover:text-red-600 transition">Home</a>
+        <a href="#product-grid" onclick="toggleMobileMenu()" class="hover:text-red-600 transition">All Products</a>
+        <div class="pt-4 border-t border-gray-800">
+            <p class="text-gray-500 mb-4 text-[10px]">Collections</p>
+            <div class="flex flex-col space-y-4 pl-2">
+                <a href="shop.html?cat=drop-shoulder" class="hover:text-red-600 transition">Drop Shoulder</a>
+                <a href="shop.html?cat=acid-wash" class="hover:text-red-600 transition">Acid Wash</a>
+                <a href="shop.html?cat=regular-tshirt" class="hover:text-red-600 transition">Regular T-Shirt</a>
+                <a href="shop.html?cat=hoodie" class="hover:text-red-600 transition">Hoodie</a>
+                <a href="shop.html?cat=couple-tshirt" class="hover:text-red-600 transition">Couple T-Shirt</a>
+                <a href="shop.html?cat=polo-tshirt" class="hover:text-red-600 transition">Polo T-Shirt</a>
             </div>
         </div>
-    </nav>
+    </div>
+</div>
 
     <section class="pt-20 md:pt-24 swiper hero-swiper">
         <div class="swiper-wrapper">
