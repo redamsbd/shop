@@ -469,6 +469,7 @@
     "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/polo blue model.jpeg",
+      "images/polo blue close.jpeg",
        "images/polo blue only tee.jpeg",
       "images/polo size chart.jpeg"
     ],
@@ -484,7 +485,7 @@
     "images": [
       "images/polo olive model.jpeg",
        "images/polo olive close.jpeg",
- "images/polo olive close zipper.jpeg",
+ "images/polo olive only tee.jpeg",
       "images/polo size chart.jpeg"
     ],
     "colors": ["Olive"],
