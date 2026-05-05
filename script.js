@@ -434,3 +434,17 @@ function setupAutoScroll(slider) {
     }; 
     requestAnimationFrame(step);
 }
+// মোবাইল মেনু ওপেন এবং ক্লোজ করার ফাংশন
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    if (menu.classList.contains('-translate-x-full')) {
+        menu.classList.remove('-translate-x-full');
+        menu.classList.add('translate-x-0');
+    } else {
+        menu.classList.remove('translate-x-0');
+        menu.classList.add('-translate-x-full');
+    }
+}
+
+// তোমার নেভিগেশন বারে যে বাটনটি আছে (৩-ডট বাটন), সেটিতে এই ফাংশনটি কল করো
+// উদাহরণ: <button id="mobile-menu-btn" onclick="toggleMobileMenu()"> ... </button>
