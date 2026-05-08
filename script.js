@@ -518,3 +518,4 @@ function setupAutoScroll(slider) {
     }; 
     requestAnimationFrame(step);
 }
+~
