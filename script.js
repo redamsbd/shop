@@ -212,7 +212,10 @@ function updateCartUI(isPaidOverride = null) {
     const freeDeliveryMsg = document.getElementById('free-delivery-msg');
     const paymentSection = document.getElementById('payment-options-wrapper');
 
-    if (isPaidOverride !== null) isPaymentVerified = isPaidOverride;
+    // "Full Paid" অথবা Boolean ভ্যালু হ্যান্ডেল করা
+    if (isPaidOverride !== null) {
+        isPaymentVerified = (isPaidOverride === true || isPaidOverride === "Full Paid");
+    }
 
     let subtotal = 0, itemCount = 0;
     cartContainer.innerHTML = cart.map((item, index) => {
@@ -239,6 +242,7 @@ function updateCartUI(isPaidOverride = null) {
 
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
+    // ৩টি বা তার বেশি আইটেম হলে ডেলিভারি চার্জ ০ (ফ্রি)
     if (itemCount >= 3) {
         baseDeliveryCharge = 0;
         if (freeDeliveryMsg) { 
@@ -252,17 +256,12 @@ function updateCartUI(isPaidOverride = null) {
         }
     }
 
-    // --- নতুন লজিক আপডেট শুরু ---
+    // পেমেন্ট ভেরিফাইড (Online Payment) হলে ডেলিভারি চার্জ PAID দেখাবে
     let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
-    
-    // যদি ৩টি বা তার বেশি প্রোডাক্ট হয় এবং পেমেন্ট ভেরিফাইড হয়, তবে সাবটোটাল থেকে ১০০ টাকা কমবে
     let finalTotal = subtotal + finalDeliveryCharge;
-    if (isPaymentVerified && itemCount >= 3) {
-        finalTotal = subtotal - 100;
-    }
 
+    // ডেলিভারি ডিসপ্লে লজিক
     const deliveryDisplay = isPaymentVerified ? '<span class="text-green-600 font-black">PAID</span>' : (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
-    // --- নতুন লজিক আপডেট শেষ ---
 
     if (totalElement) {
         totalElement.innerHTML = `
@@ -270,14 +269,11 @@ function updateCartUI(isPaidOverride = null) {
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold"><span>Subtotal</span><span>৳${subtotal}</span></div>
                 <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery Charge</span><span>${deliveryDisplay}</span></div>
                 
-                ${isPaymentVerified && itemCount >= 3 ? `
-                <div class="flex justify-between text-[10px] uppercase font-bold text-red-600">
-                    <span>Advance Discount</span><span>-৳100</span>
-                </div>` : ''}
-
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
-                    <span class="text-2xl font-black text-black">৳${finalTotal}</span>
+                    <span class="text-2xl font-black ${isPaymentVerified ? 'text-green-600' : 'text-black'}">
+                        ৳${finalTotal} ${isPaymentVerified ? '<span class="text-[10px] block text-right font-black">[ FULL PAID ]</span>' : ''}
+                    </span>
                 </div>
             </div>`;
     }
@@ -369,7 +365,7 @@ function validateOrder() {
     const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
 
-    // বেসিক ইনফরমেশন ভ্যালিডেশন (নাম, ফোন ১১ ডিজিট, এবং ঠিকানা)
+    // বেসিক ইনফরমেশন ভ্যালিডেশন (নাম, ফোন অন্তত ১১ ডিজিট, এবং ঠিকানা)
     let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
     
     // পেমেন্ট ভ্যালিডেশন লজিক
@@ -389,15 +385,18 @@ function validateOrder() {
         btn.classList.add('bg-[#25D366]'); // হোয়াটসঅ্যাপ সবুজ রঙ
         btn.style.opacity = "1";
         
-        // কার্টে পেড স্ট্যাটাস আপডেট (যদি আপনার সিস্টেমে থাকে)
-        if (typeof updateCartUI === "function") updateCartUI(paymentMethod !== 'COD'); 
+        // কার্টে ফুল পেইড স্ট্যাটাস আপডেট
+        if (typeof updateCartUI === "function") {
+            // যদি অনলাইন পেমেন্ট হয় তবে "Full Paid" স্ট্যাটাস যাবে
+            updateCartUI(paymentMethod !== 'COD' ? "Full Paid" : "Unpaid");
+        }
     } else {
         btn.disabled = true;
         btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
         btn.classList.remove('bg-[#25D366]');
         btn.style.opacity = "0.5";
         
-        if (typeof updateCartUI === "function") updateCartUI(false);
+        if (typeof updateCartUI === "function") updateCartUI("Unpaid");
     }
 }
 // ১০. হোয়াটসঅ্যাপ অর্ডার (Final Output)
