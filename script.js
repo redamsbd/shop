@@ -469,11 +469,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 function setupAutoScroll(slider) {
     if (!slider) return;
+
     let scrollSpeed = 0.6;
+    let isPaused = false;
+    let animationId;
+
     const step = () => {
-        slider.scrollLeft += scrollSpeed;
-        if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) slider.scrollLeft = 0;
-        requestAnimationFrame(step);
-    }; 
-    requestAnimationFrame(step);
+        if (!isPaused) {
+            slider.scrollLeft += scrollSpeed;
+            
+            // লুপ শেষ হলে শুরুতে ফিরে আসা
+            if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) {
+                slider.scrollLeft = 0;
+            }
+        }
+        animationId = requestAnimationFrame(step);
+    };
+
+    // ইউজার মাউস বা টাচ করলে স্ক্রল থামিয়ে দেওয়া (User Experience ভালো করার জন্য)
+    slider.addEventListener('mouseenter', () => isPaused = true);
+    slider.addEventListener('mouseleave', () => isPaused = false);
+    slider.addEventListener('touchstart', () => isPaused = true);
+    slider.addEventListener('touchend', () => isPaused = false);
+
+    // প্রথমবার ফাংশনটি চালু করা
+    animationId = requestAnimationFrame(step);
 }
