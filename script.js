@@ -282,197 +282,216 @@ function updateCartUI(isPaidOverride = null) {
     countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
 }
 let selectedSubMethod = ""; // ইউজার বিকাশ না নগদ সিলেক্ট করল তা মনে রাখার জন্য
-const WHATSAPP_NUMBER = "8801894357549"; // আপনার হোয়াটসঅ্যাপ নম্বর এখানে দিন
 
-// ১. প্রধান পেমেন্ট অপশন পরিবর্তনের ফাংশন
+// প্রধান পেমেন্ট অপশন পরিবর্তনের ফাংশন
 function updatePaymentUI(method) {
-    const onlineSubOptions = document.getElementById('online-sub-options');
-    const instructionBox = document.getElementById('payment-instruction');
-    const trnxInput = document.getElementById('trnx-id');
+    const onlineSubOptions = document.getElementById('online-sub-options');
+    const instructionBox = document.getElementById('payment-instruction');
+    const trnxInput = document.getElementById('trnx-id');
 
-    if (method === 'COD') {
-        if (onlineSubOptions) onlineSubOptions.classList.add('hidden');
-        if (instructionBox) instructionBox.classList.add('hidden');
-        if (trnxInput) trnxInput.value = ''; 
-        selectedSubMethod = "";
-    } else {
-        if (onlineSubOptions) onlineSubOptions.classList.remove('hidden');
-    }
-    validateOrder();
+    if (method === 'COD') {
+        onlineSubOptions.classList.add('hidden');
+        instructionBox.classList.add('hidden');
+        trnxInput.value = ''; 
+        selectedSubMethod = "";
+    } else {
+        onlineSubOptions.classList.remove('hidden');
+    }
+    validateOrder();
 }
 
-// ২. বিকাশ বা নগদ বাটন সিলেক্ট করার ফাংশন
+// বিকাশ বা নগদ বাটন সিলেক্ট করার ফাংশন
 function setOnlineMethod(method) {
-    selectedSubMethod = method;
-    const instructionBox = document.getElementById('payment-instruction');
-    const methodHeader = document.getElementById('method-header');
-    const methodName = document.getElementById('method-name');
-    const displayNumber = document.getElementById('display-number');
-    const instructionContent = document.getElementById('instruction-content');
+    selectedSubMethod = method;
+    const instructionBox = document.getElementById('payment-instruction');
+    const methodHeader = document.getElementById('method-header');
+    const methodName = document.getElementById('method-name');
+    const displayNumber = document.getElementById('display-number');
+    const instructionContent = document.getElementById('instruction-content');
 
-    const bkashNumber = "01740550559"; 
-    const nagadNumber = "01894357549"; 
+    const bkashNumber = "01740550559"; 
+    const nagadNumber = "01894357549"; 
 
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
-    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
-    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
+    // কার্ট লজিক (আপনার আগের কোড অনুযায়ী)
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
+    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
 
-    if (instructionBox) {
-        instructionBox.classList.remove('hidden');
-        instructionBox.style.display = 'flex';
-    }
+    instructionBox.classList.remove('hidden');
+    instructionBox.style.display = 'flex';
 
-    if (method === 'bKash') {
-        if (methodName) methodName.innerText = "Payment with bKash";
-        if (methodHeader) methodHeader.style.backgroundColor = "#e2136e";
-        if (displayNumber) displayNumber.innerText = bkashNumber;
-    } else if (method === 'Nagad') {
-        if (methodName) methodName.innerText = "Payment with Nagad";
-        if (methodHeader) methodHeader.style.backgroundColor = "#f7941d";
-        if (displayNumber) displayNumber.innerText = nagadNumber;
-    }
-
-    if (instructionContent) {
-        instructionContent.innerHTML = `
-            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-            <p class="text-[11px] font-bold text-black leading-tight mt-1">
-                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
-                অগ্রিম <span class="text-red-600">৳${advanceAmount}</span> Send Money করে TRXID দিন।
-            </p>`;
-    }
-    validateOrder();
+    if (method === 'bKash') {
+        methodName.innerText = "Payment with bKash";
+        methodHeader.style.backgroundColor = "#e2136e";
+        displayNumber.innerText = bkashNumber;
+        instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
+    } else if (method === 'Nagad') {
+        methodName.innerText = "Payment with Nagad";
+        methodHeader.style.backgroundColor = "#f7941d";
+        displayNumber.innerText = nagadNumber;
+        instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
+    }
+    validateOrder();
 }
 
-// ৩. অর্ডার ভ্যালিডেশন ফাংশন (বাটন এনাবল/ডিজেবল)
 function validateOrder() {
-    const nameInput = document.getElementById('final-name');
-    const phoneInput = document.getElementById('final-phone');
-    const addressInput = document.getElementById('final-address');
-    const trnxInput = document.getElementById('trnx-id');
-    const btn = document.getElementById('confirm-order-btn');
+    // ইনপুট ফিল্ডগুলো খুঁজে বের করা
+    const nameInput = document.getElementById('final-name');
+    const phoneInput = document.getElementById('final-phone');
+    const addressInput = document.getElementById('final-address');
+    const trnxInput = document.getElementById('trnx-id');
+    const btn = document.getElementById('confirm-order-btn');
 
-    if (!btn) return;
+    if (!btn) return;
 
-    const name = nameInput ? nameInput.value.trim() : "";
-    const phone = phoneInput ? phoneInput.value.trim() : "";
-    const address = addressInput ? addressInput.value.trim() : "";
-    const trnxId = trnxInput ? trnxInput.value.trim() : "";
+    // মানগুলো সংগ্রহ করা
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const address = addressInput ? addressInput.value.trim() : "";
+    const trnxId = trnxInput ? trnxInput.value.trim() : "";
 
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    // বর্তমান পেমেন্ট মেথড চেক করা
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
 
-    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
-    let isPaymentValid = (paymentMethod === 'COD') ? true : trnxId.length >= 8;
+    // বেসিক ইনফরমেশন ভ্যালিডেশন (নাম, ফোন অন্তত ১১ ডিজিট, এবং ঠিকানা)
+    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
 
-    if (isInfoValid && isPaymentValid && cart.length > 0) {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.add('bg-[#25D366]'); 
-        btn.style.opacity = "1";
-    } else {
-        btn.disabled = true;
-        btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.remove('bg-[#25D366]');
-        btn.style.opacity = "0.5";
-    }
+    // পেমেন্ট ভ্যালিডেশন লজিক
+    let isPaymentValid = false;
+    if (paymentMethod === 'COD') {
+        // ক্যাশ অন ডেলিভারি হলে পেমেন্ট সবসময় ভ্যালিড
+        isPaymentValid = true; 
+    } else {
+        // অনলাইন পেমেন্ট হলে ট্রানজেকশন আইডি অন্তত ৮ ডিজিট হতে হবে
+        isPaymentValid = trnxId.length >= 8; 
+    }
+
+    // বাটন একটিভ বা ডিঅ্যাক্টিভ করা
+    if (isInfoValid && isPaymentValid) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.add('bg-[#25D366]'); // হোয়াটসঅ্যাপ সবুজ রঙ
+        btn.style.opacity = "1";
+
+        // কার্টে ফুল পেইড স্ট্যাটাস আপডেট
+        if (typeof updateCartUI === "function") {
+            // যদি অনলাইন পেমেন্ট হয় তবে "Full Paid" স্ট্যাটাস যাবে
+            updateCartUI(paymentMethod !== 'COD' ? "Full Paid" : "Unpaid");
+        }
+    } else {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.remove('bg-[#25D366]');
+        btn.style.opacity = "0.5";
+
+        if (typeof updateCartUI === "function") updateCartUI("Unpaid");
+    }
 }
-
-// ৪. হোয়াটসঅ্যাপে অর্ডার পাঠানোর ফাংশন
 function confirmOrderWhatsApp() {
-    const name = document.getElementById('final-name')?.value.trim();
-    const phone = document.getElementById('final-phone')?.value.trim();
-    const address = document.getElementById('final-address')?.value.trim();
-    const trnxId = document.getElementById('trnx-id')?.value.trim() || "N/A";
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
-    
-    if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
-        return;
-    }
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
+    const trnxIdInput = document.getElementById('trnx-id');
+    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
 
-    let itemsText = ""; 
-    let subtotal = 0;
-    cart.forEach((item) => {
-        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
-        subtotal += item.price * item.qty;
-    });
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
-    const totalBill = subtotal + deliveryCharge;
+    if (!name || !phone || !address || cart.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
+        return;
+    }
 
-    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
-    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+    if (paymentMethod !== 'COD' && trnxId.length < 8) {
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'সঠিক Transaction ID দিন।' });
+        return;
+    }
 
-    let message = `*NEW ORDER - REDAMS*%0A---------------------------%0A*CUSTOMER DETAILS*%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A---------------------------%0A*ORDER SUMMARY*%0A${itemsText}---------------------------%0A*Subtotal:* ৳${subtotal}%0A*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A*Total Bill:* ৳${totalBill}%0A---------------------------%0A*PAYMENT INFO*%0A*Method:* ${paymentMethod}%0A*Status:* ${paymentStatus}%0A*TRXID:* ${trnxId}%0A*Due Amount:* ৳${finalPayable}%0A---------------------------%0A_Order confirmed via Redams Website_`;
+    let itemsText = ""; 
+    let subtotal = 0;
+    cart.forEach((item, index) => {
+        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
+        subtotal += item.price * item.qty;
+    });
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+    const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
+    const totalBill = subtotal + deliveryCharge;
+
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
+    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+
+    let message = `*NEW ORDER - REDAMS*%0A---------------------------%0A*CUSTOMER DETAILS*%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A---------------------------%0A*ORDER SUMMARY*%0A${itemsText}---------------------------%0A*Subtotal:* ৳${subtotal}%0A*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A*Total Bill:* ৳${totalBill}%0A---------------------------%0A*PAYMENT INFO*%0A*Method:* ${paymentMethod}%0A*Status:* ${paymentStatus}%0A*TRXID:* ${trnxId}%0A*Due Amount:* ৳${finalPayable}%0A---------------------------%0A_Order confirmed via Redams Website_`;
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+}
+// হেল্পার ফাংশন এবং ইভেন্ট লিসেনার
+function removeFromCart(index) { 
+    cart.splice(index, 1); 
+    updateCartUI(); 
+    validateOrder(); // আইটেম রিমুভ করলে বাটন চেক করবে
 }
 
-// ৫. অটো-স্ক্রল ফাংশন (New Arrivals Slider)
-function setupAutoScroll(slider) {
-    if (!slider) return;
-
-    let scrollSpeed = 0.6;
-    let isPaused = false;
-    let animationId;
-
-    const step = () => {
-        if (!isPaused) {
-            slider.scrollLeft += scrollSpeed;
-            if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) {
-                slider.scrollLeft = 0;
-            }
-        }
-        animationId = requestAnimationFrame(step);
-    };
-
-    slider.addEventListener('mouseenter', () => isPaused = true);
-    slider.addEventListener('mouseleave', () => isPaused = false);
-    slider.addEventListener('touchstart', () => isPaused = true);
-    slider.addEventListener('touchend', () => isPaused = false);
-
-    animationId = requestAnimationFrame(step);
+function toggleCart(open = false) { 
+    const d = document.getElementById('cart-drawer'); 
+    if(open) d.classList.remove('translate-x-full'); 
+    else d.classList.toggle('translate-x-full'); 
 }
 
-// ৬. অন্যান্য হেল্পার ফাংশন
-function removeFromCart(index) { 
-    cart.splice(index, 1); 
-    if (typeof updateCartUI === "function") updateCartUI(); 
-    validateOrder();
+function closeModal() { 
+    document.getElementById('product-modal').classList.replace('flex', 'hidden'); 
 }
 
-function toggleCart(open = false) { 
-    const d = document.getElementById('cart-drawer'); 
-    if(!d) return;
-    if(open) d.classList.remove('translate-x-full'); 
-    else d.classList.toggle('translate-x-full'); 
-}
-
-function closeModal() { 
-    const modal = document.getElementById('product-modal');
-    if (modal) modal.classList.replace('flex', 'hidden'); 
-}
-
-// ৭. পেজ লোড ইভেন্ট
+// পেজ লোড হওয়ার সময় ইভেন্ট লিসেনার সেট করা
 document.addEventListener('DOMContentLoaded', () => {
-    // ইনপুট লিসেনার সেটআপ
-    const inputIds = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
-    inputIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', validateOrder);
-    });
+    // সব ইনপুট ফিল্ডে লিসেনার অ্যাড করা যাতে টাইপ করলেই বাটন চেক হয়
+    const inputs = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', validateOrder);
+    });
 
-    // স্লাইডার সেটআপ
-    const arrivalSlider = document.getElementById('new-arrivals-slider');
-    if (arrivalSlider) {
-        setupAutoScroll(arrivalSlider);
-    }
-
-    // প্রোডাক্ট লোড (আপনার বিদ্যমান ফাংশন)
-    if (typeof loadProducts === "function") loadProducts();
+    loadProducts();
 });
+function setupAutoScroll(slider) {
+    if (!slider) return;
+
+    let scrollSpeed = 0.6;
+    let isPaused = false;
+    let animationId;
+
+    const step = () => {
+        if (!isPaused) {
+            slider.scrollLeft += scrollSpeed;
+            
+            // লুপ শেষ হলে শুরুতে ফিরে আসা
+            if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) {
+                slider.scrollLeft = 0;
+            }
+        }
+        animationId = requestAnimationFrame(step);
+    };
+
+    // ইউজার মাউস বা টাচ করলে স্ক্রল থামিয়ে দেওয়া (User Experience ভালো করার জন্য)
+    slider.addEventListener('mouseenter', () => isPaused = true);
+    slider.addEventListener('mouseleave', () => isPaused = false);
+    slider.addEventListener('touchstart', () => isPaused = true);
+    slider.addEventListener('touchend', () => isPaused = false);
+
+    // প্রথমবার ফাংশনটি চালু করা
+    animationId = requestAnimationFrame(step);  
+}
