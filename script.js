@@ -285,107 +285,102 @@ function updateCartUI(isPaidOverride = null) {
     const countEls = ['cart-count', 'cart-count-drawer', 'cart-count-float'];
     countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
 }
-// ৯. আপডেট করা পেমেন্ট ভ্যালিডেশন (বিকাশ ও নগদের আলাদা নম্বরসহ)
+let selectedSubMethod = ""; // ইউজার বিকাশ না নগদ সিলেক্ট করল তা মনে রাখার জন্য
+
+// প্রধান পেমেন্ট অপশন পরিবর্তনের ফাংশন
 function updatePaymentUI(method) {
+    const onlineSubOptions = document.getElementById('online-sub-options');
+    const instructionBox = document.getElementById('payment-instruction');
+    const trnxInput = document.getElementById('trnx-id');
+
+    if (method === 'COD') {
+        onlineSubOptions.classList.add('hidden');
+        instructionBox.classList.add('hidden');
+        trnxInput.value = ''; 
+        selectedSubMethod = "";
+    } else {
+        onlineSubOptions.classList.remove('hidden');
+    }
+    validateOrder();
+}
+
+// বিকাশ বা নগদ বাটন সিলেক্ট করার ফাংশন
+function setOnlineMethod(method) {
+    selectedSubMethod = method;
     const instructionBox = document.getElementById('payment-instruction');
     const methodHeader = document.getElementById('method-header');
     const methodName = document.getElementById('method-name');
     const displayNumber = document.getElementById('display-number');
-    const trnxInput = document.getElementById('trnx-id');
-    const instructionContent = document.getElementById('instruction-content'); // যদি আগে এই আইডি থাকে
+    const instructionContent = document.getElementById('instruction-content');
     
-    // কার্টে মোট আইটেম সংখ্যা বের করা
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    
-    // ডেলিভারি চার্জ কত সিলেক্ট করা আছে
-    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
-    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
-    
-    // লজিক: ৩টি প্রোডাক্ট হলে ১০০ টাকা, নাহলে ফুল ডেলিভারি চার্জ
-    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
-
-    // আপনার বিকাশ ও নগদ নম্বর
     const bkashNumber = "01740550559"; 
     const nagadNumber = "01894357549"; 
-
-    trnxInput.value = ''; 
     
-    if (method === 'COD') {
-        instructionBox.style.display = 'none';
-    } else {
-        instructionBox.style.display = 'flex';
-        
-        if (method === 'bKash') {
-            methodName.innerText = "Payment via bKash";
-            methodHeader.style.backgroundColor = "#e2136e";
-            displayNumber.innerText = bkashNumber;
-            
-            // ইনস্ট্রাকশন টেক্সট আপডেট
-            if (instructionContent) {
-                instructionContent.innerHTML = `
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-                    <p class="text-[11px] font-bold text-black leading-tight mt-1">
-                        ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
-                        অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
-                    </p>`;
-            }
-        } else if (method === 'Nagad') {
-            methodName.innerText = "Payment via Nagad";
-            methodHeader.style.backgroundColor = "#f7941d";
-            displayNumber.innerText = nagadNumber;
+    // কার্ট লজিক (আপনার আগের কোড অনুযায়ী)
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
+    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
 
-            if (instructionContent) {
-                instructionContent.innerHTML = `
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-                    <p class="text-[11px] font-bold text-black leading-tight mt-1">
-                        ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
-                        অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
-                    </p>`;
-            }
-        }
+    instructionBox.classList.remove('hidden');
+    instructionBox.style.display = 'flex';
+
+    if (method === 'bKash') {
+        methodName.innerText = "Payment with bKash";
+        methodHeader.style.backgroundColor = "#e2136e";
+        displayNumber.innerText = bkashNumber;
+        instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
+    } else if (method === 'Nagad') {
+        methodName.innerText = "Payment with Nagad";
+        methodHeader.style.backgroundColor = "#f7941d";
+        displayNumber.innerText = nagadNumber;
+        instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
+                অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
     }
-    validateOrder(); // বাটন চেক করা
+    validateOrder();
 }
 
+// ভ্যালিডেশন ফাংশন
 function validateOrder() {
-    // সব ইনপুট ফিল্ডের ভ্যালু নেওয়া
     const name = document.getElementById('final-name').value.trim();
     const phone = document.getElementById('final-phone').value.trim();
     const address = document.getElementById('final-address').value.trim();
-    const trnxId = document.getElementById('trnx-id').value.trim();
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-    
-    // কনফার্ম বাটনটি খুঁজে বের করা
-    const btn = document.getElementById('confirm-order-btn'); 
-    if (!btn) return;
+    const trnxId = document.getElementById('trnx-id').value.trim();
+    const btn = document.getElementById('confirm-order-btn');
 
-    // বেসিক ইনফরমেশন ভ্যালিডেশন
     let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
-    
-    // পেমেন্ট মেথড অনুযায়ী লজিক
     let isPaymentValid = false;
+
     if (paymentMethod === 'COD') {
-        isPaymentValid = true; // COD এর জন্য TRXID লাগবে না
+        isPaymentValid = true; // ক্যাশ অন ডেলিভারিতে TRXID লাগবে না
     } else {
-        isPaymentValid = trnxId.length >= 8; // অনলাইন পেমেন্টে TRXID অন্তত ৮ ডিজিট
+        // অনলাইন পেমেন্টে অবশ্যই মেথড সিলেক্ট থাকতে হবে এবং TRXID অন্তত ৮ ডিজিট হতে হবে
+        isPaymentValid = selectedSubMethod !== "" && trnxId.length >= 8;
     }
 
     if (isInfoValid && isPaymentValid) {
         btn.disabled = false;
         btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.add('bg-[#25D366]'); // হোয়াটসঅ্যাপ গ্রিন কালার
-        
-        // ডেলিভারি চার্জ আপডেট করা (True মানে পেড হিসেবে দেখাবে)
+        btn.classList.add('bg-[#25D366]');
+        btn.style.opacity = "1";
         if (typeof updateCartUI === "function") updateCartUI(paymentMethod !== 'COD'); 
     } else {
         btn.disabled = true;
         btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
         btn.classList.remove('bg-[#25D366]');
-        
         if (typeof updateCartUI === "function") updateCartUI(false);
     }
 }
-
 // ১০. হোয়াটসঅ্যাপ অর্ডার (Final Output)
 function confirmOrderWhatsApp() {
     const name = document.getElementById('final-name').value.trim();
