@@ -399,100 +399,46 @@ function validateOrder() {
         if (typeof updateCartUI === "function") updateCartUI("Unpaid");
     }
 }
-// ১০. হোয়াটসঅ্যাপ অর্ডার (Final Output)
 function confirmOrderWhatsApp() {
-    const name = document.getElementById('final-name').value.trim();
-    const phone = document.getElementById('final-phone').value.trim();
-    const address = document.getElementById('final-address').value.trim();
-    const trnxId = document.getElementById('trnx-id').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
     const trnxIdInput = document.getElementById('trnx-id');
     const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
 
-    // কার্টে মোট কয়টি আইটেম আছে (কোয়ান্টিটিসহ)
     const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
-    
-    // কার্টে মোট আইটেম সংখ্যা
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    if (!name || !phone || !address || !trnxId || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে নাম, ঠিকানা এবং TRXID প্রদান করুন।' });
-    // বেসিক ভ্যালিডেশন
     if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে আপনার নাম, মোবাইল নম্বর এবং ঠিকানা প্রদান করুন।' });
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
         return;
     }
 
-    // অনলাইন পেমেন্ট হলে TRXID বাধ্যতামূলক
     if (paymentMethod !== 'COD' && trnxId.length < 8) {
-        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID প্রদান করুন।' });
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'সঠিক Transaction ID দিন।' });
         return;
     }
 
     let itemsText = ""; 
     let subtotal = 0;
-
     cart.forEach((item, index) => {
-        itemsText += `${index + 1}. ${item.name} (${item.selectedSize}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
         itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
         subtotal += item.price * item.qty;
     });
 
-    // ডেলিভারি চার্জ লজিক (৩টি বা তার বেশি হলে ০)
-    // ডেলিভারি চার্জ লজিক
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    const deliveryCharge = totalQty >= 3 ? 0 : parseInt(deliveryOption.value);
     const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
     const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
-    
     const totalBill = subtotal + deliveryCharge;
 
-    // যেহেতু কাস্টমার ডেলিভারি চার্জ আগে দিয়ে দিচ্ছে, তাই টোটাল থেকে সেটা বাদ যাবে
-    // ফাইনাল টোটাল হবে শুধু সাবটোটাল
-    const finalTotal = subtotal;
-    // পেমেন্ট স্ট্যাটাস নির্ধারণ
-    let paymentStatus = "";
-    let finalPayable = 0;
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
+    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
-    if (paymentMethod === 'COD') {
-        paymentStatus = "CASH ON DELIVERY (UNPAID)";
-        finalPayable = totalBill; // কাস্টমার ডেলিভারি ম্যানকে পুরো টাকা দিবে
-    } else {
-        paymentStatus = "ONLINE PAID (FULL AMOUNT)";
-        finalPayable = 0; // কাস্টমার অলরেডি অনলাইনে ফুল পেমেন্ট করে দিয়েছে
-    }
-
-    let message = `*NEW ORDER - REDAMS*%0A` +
-                  `---------------------------%0A` +
-                  `*CUSTOMER DETAILS*%0A` +
-                  `*Name:* ${name}%0A` +
-                  `*Phone:* ${phone}%0A` +
-                  `*Address:* ${address}%0A` +
-                  `*Payment:* ${paymentMethod}%0A` +
-                  `*TRXID:* ${trnxId}%0A` +
-                  `---------------------------%0A` +
-                  `*Items:*%0A${itemsText}` +
-                  `*ORDER SUMMARY*%0A` +
-                  `${itemsText}` +
-                  `---------------------------%0A` +
-                  `*Subtotal:* ৳${subtotal}%0A` +
-                  `*Delivery:* ${deliveryCharge === 0 ? "FREE" : "Paid Advance"}%0A` +
-                  `*Total Payable:* ৳${finalTotal}%0A` +
-                  `*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A` +
-                  `*Total Bill:* ৳${totalBill}%0A` +
-                  `---------------------------%0A` +
-                  `*PAYMENT INFO*%0A` +
-                  `*Method:* ${paymentMethod}%0A` +
-                  `*Status:* ${paymentStatus}%0A` +
-                  `*TRXID:* ${trnxId}%0A` +
-                  `*Due Amount:* ৳${finalPayable}%0A` +
-                  `---------------------------%0A` +
-                  `_Order confirmed via Redams Website_`;
+    let message = `*NEW ORDER - REDAMS*%0A---------------------------%0A*CUSTOMER DETAILS*%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A---------------------------%0A*ORDER SUMMARY*%0A${itemsText}---------------------------%0A*Subtotal:* ৳${subtotal}%0A*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A*Total Bill:* ৳${totalBill}%0A---------------------------%0A*PAYMENT INFO*%0A*Method:* ${paymentMethod}%0A*Status:* ${paymentStatus}%0A*TRXID:* ${trnxId}%0A*Due Amount:* ৳${finalPayable}%0A---------------------------%0A_Order confirmed via Redams Website_`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
 }
-
 // হেল্পার ফাংশন এবং ইভেন্ট লিসেনার
 function removeFromCart(index) { 
     cart.splice(index, 1); 
