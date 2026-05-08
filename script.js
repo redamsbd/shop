@@ -399,6 +399,9 @@ function validateOrder() {
         if (typeof updateCartUI === "function") updateCartUI("Unpaid");
     }
 }
+// এই ভেরিয়েবলটি নিশ্চিত করুন আপনার কোডের ওপরের দিকে আছে
+let selectedSubMethod = ""; 
+
 function confirmOrderWhatsApp() {
     const name = document.getElementById('final-name').value.trim();
     const phone = document.getElementById('final-phone').value.trim();
@@ -406,50 +409,37 @@ function confirmOrderWhatsApp() {
     const trnxIdInput = document.getElementById('trnx-id');
     const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
     
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    const mainMethod = document.querySelector('input[name="payment-method"]:checked').value;
     
-    // কার্টে মোট আইটেম সংখ্যা
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-
-    // বেসিক ভ্যালিডেশন
-    if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে আপনার নাম, মোবাইল নম্বর এবং ঠিকানা প্রদান করুন।' });
-        return;
+    // পেমেন্ট মেথড নির্ধারণ (বিকাশ, নগদ নাকি ক্যাশ অন ডেলিভারি)
+    let finalMethodDisplay = "";
+    if (mainMethod === 'COD') {
+        finalMethodDisplay = "Cash On Delivery";
+    } else {
+        // অনলাইন পেমেন্ট হলে আমরা selectedSubMethod থেকে মেথডটি নিব
+        finalMethodDisplay = selectedSubMethod ? selectedSubMethod : "Online Payment";
     }
 
-    // অনলাইন পেমেন্ট হলে TRXID বাধ্যতামূলক
-    if (paymentMethod !== 'COD' && trnxId.length < 8) {
-        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID প্রদান করুন।' });
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    if (!name || !phone || !address || cart.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে নাম, মোবাইল নম্বর এবং ঠিকানা প্রদান করুন।' });
         return;
     }
 
     let itemsText = ""; 
     let subtotal = 0;
-    
     cart.forEach((item, index) => {
-        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
+        itemsText += `• ${item.name} (${item.selectedSize}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
         subtotal += item.price * item.qty;
     });
 
-    // ডেলিভারি চার্জ লজিক
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
-    
+    const deliveryCharge = totalQty >= 3 ? 0 : parseInt(deliveryOption.value);
     const totalBill = subtotal + deliveryCharge;
-    
-    // পেমেন্ট স্ট্যাটাস নির্ধারণ
-    let paymentStatus = "";
-    let finalPayable = 0;
 
-    if (paymentMethod === 'COD') {
-        paymentStatus = "CASH ON DELIVERY (UNPAID)";
-        finalPayable = totalBill; // কাস্টমার ডেলিভারি ম্যানকে পুরো টাকা দিবে
-    } else {
-        paymentStatus = "ONLINE PAID (FULL AMOUNT)";
-        finalPayable = 0; // কাস্টমার অলরেডি অনলাইনে ফুল পেমেন্ট করে দিয়েছে
-    }
+    let paymentStatus = (mainMethod === 'COD') ? "UNPAID" : "PAID (FULL)";
+    let dueAmount = (mainMethod === 'COD') ? totalBill : 0;
 
     let message = `*NEW ORDER - REDAMS*%0A` +
                   `---------------------------%0A` +
@@ -466,10 +456,10 @@ function confirmOrderWhatsApp() {
                   `*Total Bill:* ৳${totalBill}%0A` +
                   `---------------------------%0A` +
                   `*PAYMENT INFO*%0A` +
-                  `*Method:* ${paymentMethod}%0A` +
+                  `*Method:* ${finalMethodDisplay}%0A` + // এখানে বিকাশ/নগদ দেখাবে
                   `*Status:* ${paymentStatus}%0A` +
                   `*TRXID:* ${trnxId}%0A` +
-                  `*Due Amount:* ৳${finalPayable}%0A` +
+                  `*Due Amount:* ৳${dueAmount}%0A` +
                   `---------------------------%0A` +
                   `_Order confirmed via Redams Website_`;
 
