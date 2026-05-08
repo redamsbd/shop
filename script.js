@@ -349,35 +349,54 @@ function setOnlineMethod(method) {
     validateOrder();
 }
 
-// ভ্যালিডেশন ফাংশন
 function validateOrder() {
-    const name = document.getElementById('final-name').value.trim();
-    const phone = document.getElementById('final-phone').value.trim();
-    const address = document.getElementById('final-address').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-    const trnxId = document.getElementById('trnx-id').value.trim();
+    // ইনপুট ফিল্ডগুলো খুঁজে বের করা
+    const nameInput = document.getElementById('final-name');
+    const phoneInput = document.getElementById('final-phone');
+    const addressInput = document.getElementById('final-address');
+    const trnxInput = document.getElementById('trnx-id');
     const btn = document.getElementById('confirm-order-btn');
 
-    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
-    let isPaymentValid = false;
+    if (!btn) return;
 
+    // মানগুলো সংগ্রহ করা
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const address = addressInput ? addressInput.value.trim() : "";
+    const trnxId = trnxInput ? trnxInput.value.trim() : "";
+    
+    // বর্তমান পেমেন্ট মেথড চেক করা
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+
+    // বেসিক ইনফরমেশন ভ্যালিডেশন (নাম, ফোন ১১ ডিজিট, এবং ঠিকানা)
+    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
+    
+    // পেমেন্ট ভ্যালিডেশন লজিক
+    let isPaymentValid = false;
     if (paymentMethod === 'COD') {
-        isPaymentValid = true; // ক্যাশ অন ডেলিভারিতে TRXID লাগবে না
+        // ক্যাশ অন ডেলিভারি হলে পেমেন্ট সবসময় ভ্যালিড
+        isPaymentValid = true; 
     } else {
-        // অনলাইন পেমেন্টে অবশ্যই মেথড সিলেক্ট থাকতে হবে এবং TRXID অন্তত ৮ ডিজিট হতে হবে
-        isPaymentValid = selectedSubMethod !== "" && trnxId.length >= 8;
+        // অনলাইন পেমেন্ট হলে ট্রানজেকশন আইডি অন্তত ৮ ডিজিট হতে হবে
+        isPaymentValid = trnxId.length >= 8; 
     }
 
+    // বাটন একটিভ বা ডিঅ্যাক্টিভ করা
     if (isInfoValid && isPaymentValid) {
         btn.disabled = false;
         btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.add('bg-[#25D366]');
+        btn.classList.add('bg-[#25D366]'); // হোয়াটসঅ্যাপ সবুজ রঙ
         btn.style.opacity = "1";
+        
+        // কার্টে পেড স্ট্যাটাস আপডেট (যদি আপনার সিস্টেমে থাকে)
         if (typeof updateCartUI === "function") updateCartUI(paymentMethod !== 'COD'); 
     } else {
         btn.disabled = true;
         btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
         btn.classList.remove('bg-[#25D366]');
+        btn.style.opacity = "0.5";
+        
         if (typeof updateCartUI === "function") updateCartUI(false);
     }
 }
