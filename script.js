@@ -399,86 +399,73 @@ function validateOrder() {
         if (typeof updateCartUI === "function") updateCartUI("Unpaid");
     }
 }
-// ১০. হোয়াটসঅ্যাপ অর্ডার (Final Output)
+// ১০. হোয়াটসঅ্যাপ অর্ডার (Final Output - Fixed)
 function confirmOrderWhatsApp() {
+    // ১. ডাটা সংগ্রহ (একবারই ডিক্লেয়ার করা হয়েছে)
     const name = document.getElementById('final-name').value.trim();
     const phone = document.getElementById('final-phone').value.trim();
     const address = document.getElementById('final-address').value.trim();
-    const trnxId = document.getElementById('trnx-id').value.trim();
-    const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+    
     const trnxIdInput = document.getElementById('trnx-id');
     const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
 
-    // কার্টে মোট কয়টি আইটেম আছে (কোয়ান্টিটিসহ)
     const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
     
-    // কার্টে মোট আইটেম সংখ্যা
+    // ২. কার্টে মোট আইটেম সংখ্যা
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    if (!name || !phone || !address || !trnxId || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে নাম, ঠিকানা এবং TRXID প্রদান করুন।' });
-    // বেসিক ভ্যালিডেশন
+    // ৩. বেসিক ভ্যালিডেশন
     if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে আপনার নাম, মোবাইল নম্বর এবং ঠিকানা প্রদান করুন।' });
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'দয়া করে আপনার নাম, মোবাইল নম্বর এবং ঠিকানা প্রদান করুন।' });
         return;
     }
 
-    // অনলাইন পেমেন্ট হলে TRXID বাধ্যতামূলক
-    if (paymentMethod !== 'COD' && trnxId.length < 8) {
-        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID প্রদান করুন।' });
+    // ৪. অনলাইন পেমেন্ট হলে TRXID বাধ্যতামূলক
+    if (paymentMethod !== 'COD' && (!trnxId || trnxId.length < 8)) {
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID প্রদান করুন।' });
         return;
     }
 
+    // ৫. প্রোডাক্ট টেক্সট জেনারেশন (ডুপ্লিকেট লাইন রিমুভ করা হয়েছে)
     let itemsText = ""; 
     let subtotal = 0;
 
     cart.forEach((item, index) => {
-        itemsText += `${index + 1}. ${item.name} (${item.selectedSize}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
-        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
+        itemsText += `${index + 1}. ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
         subtotal += item.price * item.qty;
     });
 
-    // ডেলিভারি চার্জ লজিক (৩টি বা তার বেশি হলে ০)
-    // ডেলিভারি চার্জ লজিক
+    // ৬. ডেলিভারি চার্জ লজিক
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    const deliveryCharge = totalQty >= 3 ? 0 : parseInt(deliveryOption.value);
     const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
     const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
-    
     const totalBill = subtotal + deliveryCharge;
 
-    // যেহেতু কাস্টমার ডেলিভারি চার্জ আগে দিয়ে দিচ্ছে, তাই টোটাল থেকে সেটা বাদ যাবে
-    // ফাইনাল টোটাল হবে শুধু সাবটোটাল
-    const finalTotal = subtotal;
-    // পেমেন্ট স্ট্যাটাস নির্ধারণ
+    // ৭. পেমেন্ট স্ট্যাটাস নির্ধারণ
     let paymentStatus = "";
     let finalPayable = 0;
 
     if (paymentMethod === 'COD') {
         paymentStatus = "CASH ON DELIVERY (UNPAID)";
-        finalPayable = totalBill; // কাস্টমার ডেলিভারি ম্যানকে পুরো টাকা দিবে
+        finalPayable = totalBill; 
     } else {
         paymentStatus = "ONLINE PAID (FULL AMOUNT)";
-        finalPayable = 0; // কাস্টমার অলরেডি অনলাইনে ফুল পেমেন্ট করে দিয়েছে
+        finalPayable = 0; 
     }
 
+    // ৮. ফাইনাল মেসেজ ফরম্যাট
     let message = `*NEW ORDER - REDAMS*%0A` +
                   `---------------------------%0A` +
                   `*CUSTOMER DETAILS*%0A` +
                   `*Name:* ${name}%0A` +
                   `*Phone:* ${phone}%0A` +
                   `*Address:* ${address}%0A` +
-                  `*Payment:* ${paymentMethod}%0A` +
-                  `*TRXID:* ${trnxId}%0A` +
                   `---------------------------%0A` +
-                  `*Items:*%0A${itemsText}` +
+                  `*ITEMS:*%0A${itemsText}` +
+                  `---------------------------%0A` +
                   `*ORDER SUMMARY*%0A` +
-                  `${itemsText}` +
-                  `---------------------------%0A` +
                   `*Subtotal:* ৳${subtotal}%0A` +
-                  `*Delivery:* ${deliveryCharge === 0 ? "FREE" : "Paid Advance"}%0A` +
-                  `*Total Payable:* ৳${finalTotal}%0A` +
                   `*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A` +
                   `*Total Bill:* ৳${totalBill}%0A` +
                   `---------------------------%0A` +
