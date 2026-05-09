@@ -503,37 +503,70 @@ async function loadReviews() {
 
         if (!wrapper) return;
 
-        // রিভিউ কার্ড তৈরির ফাংশন
         const createReviewCard = (review) => `
-            <div class="w-[300px] md:w-[350px] bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-5 shrink-0">
-                <div class="flex justify-between items-start">
-                    <div class="flex text-yellow-400 text-[10px] gap-0.5">
-                        ${'<i class="fa-solid fa-star"></i>'.repeat(review.rating)}
+            <div class="w-[320px] bg-white border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between shrink-0">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex text-yellow-400 text-[10px]">
+                            ${'<i class="fa-solid fa-star"></i>'.repeat(review.rating)}
+                            ${'<i class="fa-regular fa-star text-gray-300"></i>'.repeat(5 - review.rating)}
+                        </div>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${review.date}</span>
                     </div>
-                    <span class="text-[9px] font-black text-gray-300 uppercase tracking-widest">${review.date || 'Recent'}</span>
+                    <p class="text-gray-700 text-sm leading-relaxed mb-6 italic">"${review.text}"</p>
                 </div>
-                <p class="text-gray-800 text-sm leading-relaxed font-medium">"${review.text}"</p>
-                <div class="flex items-center gap-4 mt-2">
-                    <div class="w-11 h-11 ${review.color || 'bg-black'} text-white rounded-full flex items-center justify-center font-black text-xs shadow-inner">
+                
+                <div class="flex items-center gap-3 pt-4 border-t border-gray-50">
+                    <div class="w-10 h-10 ${review.color} text-white flex items-center justify-center font-black text-xs">
                         ${review.initials}
                     </div>
                     <div>
-                        <h4 class="text-[11px] font-black uppercase tracking-tight text-black">${review.name}</h4>
-                        <div class="flex items-center gap-1 text-[9px] text-green-600 font-bold uppercase">
-                            <i class="fa-solid fa-circle-check"></i> Verified Buyer
-                        </div>
+                        <h4 class="text-[11px] font-black uppercase text-black tracking-tight">${review.name}</h4>
+                        <p class="text-[9px] text-green-600 font-bold uppercase flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Verified
+                        </p>
                     </div>
                 </div>
             </div>
         `;
 
-        // লুপ তৈরি করতে রিভিউগুলোকে দুইবার সেট করা হচ্ছে
         const content = reviews.map(review => createReviewCard(review)).join('');
-        wrapper.innerHTML = content + content; 
+        wrapper.innerHTML = content + content; // লুপের জন্য ডাবল করা হয়েছে
+
+        // ড্র্যাগিং ফাংশনালিটি (Manual Slide)
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        wrapper.addEventListener('mousedown', (e) => {
+            isDown = true;
+            wrapper.style.animationPlayState = 'paused';
+            startX = e.pageX - wrapper.offsetLeft;
+            scrollLeft = wrapper.scrollLeft;
+        });
+
+        wrapper.addEventListener('mouseleave', () => {
+            isDown = false;
+            wrapper.style.animationPlayState = 'running';
+        });
+
+        wrapper.addEventListener('mouseup', () => {
+            isDown = false;
+            wrapper.style.animationPlayState = 'running';
+        });
+
+        wrapper.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - wrapper.offsetLeft;
+            const walk = (x - startX) * 2; 
+            wrapper.scrollLeft = scrollLeft - walk;
+        });
 
     } catch (error) {
-        console.error("Reviews load failed:", error);
+        console.error("Error loading reviews:", error);
     }
 }
 
 document.addEventListener('DOMContentLoaded', loadReviews);
+
