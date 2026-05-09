@@ -362,64 +362,52 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     input:checked + div .check-dot { opacity: 1; }
 </style>
    
-    <!-- Overall Rating & Review Section -->
+   <!-- Review Slider Section -->
 <section class="container mx-auto px-4 py-20 border-t border-gray-100 overflow-hidden">
-    <!-- ১. প্রিমিয়াম রেটিং ড্যাশবোর্ড -->
-    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between mb-16 p-8 bg-white rounded-[2.5rem] shadow-sm border border-gray-100 gap-8">
-        <div class="text-center md:text-left">
-            <h2 class="text-5xl font-black text-black">4.9<span class="text-xl text-gray-400">/5</span></h2>
-            <div class="flex text-yellow-400 text-sm mt-2 justify-center md:justify-start">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-            </div>
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-3">Based on 500+ Reviews</p>
+    <!-- Section Heading -->
+    <div class="flex justify-between items-end mb-12">
+        <div>
+            <h2 class="text-3xl font-black uppercase tracking-tighter text-gray-900">Community Feedback</h2>
+            <div class="h-1 w-20 bg-black mt-2"></div>
         </div>
-        
-        <div class="hidden md:block h-16 w-[1px] bg-gray-100"></div>
-
-        <div class="flex-1 w-full max-w-xs space-y-2">
-            <!-- ৫ স্টার বার -->
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] font-bold w-4">5</span>
-                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="w-[95%] h-full bg-black"></div></div>
-            </div>
-            <!-- ৪ স্টার বার -->
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] font-bold w-4">4</span>
-                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="w-[5%] h-full bg-gray-300"></div></div>
-            </div>
-        </div>
-
-        <button class="px-8 py-4 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-all">Write A Review</button>
+        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest hidden md:block italic">Drag or scroll to explore</p>
     </div>
 
-    <!-- ২. অটো-স্ক্রলিং রিভিউ কন্টেইনার -->
-    <div class="relative group">
-        <div id="reviews-wrapper" class="flex gap-6 animate-marquee group-hover:pause-scroll">
-            <!-- জাভাস্ক্রিপ্ট এখানে ২ বার রিভিউ লোড করবে লুপ তৈরির জন্য -->
+    <!-- scrolling Container -->
+    <div class="relative overflow-hidden group">
+        <!-- 'overflow-x-auto' এবং 'cursor-grab' যোগ করা হয়েছে ম্যানুয়াল স্ক্রলিংয়ের জন্য -->
+        <div id="reviews-wrapper" class="flex gap-6 overflow-x-auto pb-8 animate-marquee group-hover:pause-scroll cursor-grab active:cursor-grabbing">
+            <!-- Reviews injected here -->
         </div>
     </div>
 </section>
 
 <style>
-    /* প্রিমিয়াম অটো-স্ক্রল এনিমেশন */
+    /* স্ক্রলিং স্পিড কমানো হয়েছে (50s থেকে 80s করা হয়েছে) */
     @keyframes marquee {
         0% { transform: translateX(0); }
         100% { transform: translateX(-50%); }
     }
+    
     .animate-marquee {
         display: flex;
         width: max-content;
-        animation: marquee 40s linear infinite;
+        animation: marquee 80s linear infinite; /* স্পিড আরও ধীর করা হয়েছে */
     }
-    .group-hover\:pause-scroll:hover {
+
+    /* হোভার করলে বা টাচ করলে স্ক্রলিং থেমে যাবে */
+    .group:hover .animate-marquee, 
+    .group:active .animate-marquee {
         animation-play-state: paused;
     }
-    /* কাস্টমার যাতে ম্যানুয়ালিও স্ক্রল করতে পারে মোবাইলে */
-    #reviews-wrapper {
-        cursor: grab;
+
+    /* স্ক্রলবার হাইড করা কিন্তু স্ক্রলিং ফাংশন রাখা */
+    #reviews-wrapper::-webkit-scrollbar {
+        display: none;
     }
-    #reviews-wrapper:active {
-        cursor: grabbing;
+    #reviews-wrapper {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 </style>
 
