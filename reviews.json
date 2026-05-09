@@ -12,5 +12,287 @@
     "rating": 5,
     "text": "Delivery was super fast within Dhaka. Packaging is great!",
     "color": "bg-red-600"
+  },
+  [
+  {
+    "name": "Ariful Islam",
+    "initials": "AI",
+    "rating": 5,
+    "text": "The drop shoulder t-shirt quality is outstanding. Fabric টা অনেক প্রিমিয়াম মনে হচ্ছে।",
+    "color": "bg-black",
+    "date": "2 days ago"
+  },
+  {
+    "name": "Tanvir Ahmed",
+    "initials": "TA",
+    "rating": 5,
+    "text": "Best streetwear brand in Bangladesh right now! Redams এর ফিটিং জাস্ট অসাধারণ।",
+    "color": "bg-red-600",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Sumaiya Akter",
+    "initials": "SA",
+    "rating": 5,
+    "text": "কাপড়টা অনেক আরামদায়ক। Highly recommended for summer!",
+    "color": "bg-blue-600",
+    "date": "3 days ago"
+  },
+  {
+    "name": "Rakibul Hasan",
+    "initials": "RH",
+    "rating": 4,
+    "text": "Delivery was a bit late, but product quality compensates for it. জোস কালেকশন!",
+    "color": "bg-gray-800",
+    "date": "5 days ago"
+  },
+  {
+    "name": "Mahedi Zaman",
+    "initials": "MZ",
+    "rating": 5,
+    "text": "Premium packaging and fast delivery. এক কথায় সেরা!",
+    "color": "bg-black",
+    "date": "Yesterday"
+  },
+  {
+    "name": "Fahim Shahriar",
+    "initials": "FS",
+    "rating": 5,
+    "text": "Acid wash t-shirt টা জাস্ট আগুন! নিখুঁত ফিনিশিং।",
+    "color": "bg-zinc-700",
+    "date": "2 weeks ago"
+  },
+  {
+    "name": "Nusrat Jahan",
+    "initials": "NJ",
+    "rating": 5,
+    "text": "Ordered for my brother, he loved it. কালারটা একদম ছবির মতো।",
+    "color": "bg-pink-600",
+    "date": "4 days ago"
+  },
+  {
+    "name": "Imtiaz Bin Nasir",
+    "initials": "IB",
+    "rating": 5,
+    "text": "Authentic streetwear vibe. Redams never disappoints!",
+    "color": "bg-black",
+    "date": "6 days ago"
+  },
+  {
+    "name": "Sabbir Hossain",
+    "initials": "SH",
+    "rating": 5,
+    "text": "বাজেটের মধ্যে বেস্ট প্রিমিয়াম কোয়ালিটি। বারবার নিতে ইচ্ছে করে।",
+    "color": "bg-red-700",
+    "date": "10 days ago"
+  },
+  {
+    "name": "Zahidul Islam",
+    "initials": "ZI",
+    "rating": 4,
+    "text": "Size chart টা ফলো করলে পারফেক্ট ফিটিং পাওয়া যায়। Good job Redams!",
+    "color": "bg-indigo-600",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Anik Rahman",
+    "initials": "AR",
+    "rating": 5,
+    "text": "Excellent customer service and top quality fabric.",
+    "color": "bg-black",
+    "date": "8 days ago"
+  },
+  {
+    "name": "Mehedi Hasan",
+    "initials": "MH",
+    "rating": 5,
+    "text": "এই প্রাইসে এত ভালো কাপড় পাবো ভাবিনি। অবিশ্বাস্য!",
+    "color": "bg-teal-600",
+    "date": "Yesterday"
+  },
+  {
+    "name": "Farhan Ahmed",
+    "initials": "FA",
+    "rating": 5,
+    "text": "The minimalist design is what I liked most. Simple but premium.",
+    "color": "bg-slate-800",
+    "date": "3 weeks ago"
+  },
+  {
+    "name": "Rashed Khan",
+    "initials": "RK",
+    "rating": 5,
+    "text": "সাভার থেকে অর্ডার করেছিলাম, ১ দিনেই পেয়েছি। সুপার ফাস্ট সার্ভিস!",
+    "color": "bg-black",
+    "date": "2 days ago"
+  },
+  {
+    "name": "Nabil Ittihad",
+    "initials": "NI",
+    "rating": 5,
+    "text": "Great color variants and soft fabric. Worth every penny.",
+    "color": "bg-red-600",
+    "date": "4 days ago"
+  },
+    [
+  {
+    "name": "Siam Ahmed",
+    "initials": "SA",
+    "rating": 4,
+    "text": "কাপড় অনেক ভালো কিন্তু ডেলিভারি দিতে ৩ দিন সময় লেগেছে। সাভারের ভেতরে আরও ফাস্ট হওয়া উচিত ছিল।",
+    "color": "bg-slate-600",
+    "date": "2 days ago"
+  },
+  {
+    "name": "Zubayer Khan",
+    "initials": "ZK",
+    "rating": 3,
+    "text": "Fabric quality is okay, but size is a bit tight for me. এক্সচেঞ্জ পলিসি আছে কি?",
+    "color": "bg-zinc-500",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Niloy Das",
+    "initials": "ND",
+    "rating": 4,
+    "text": "টি-শার্টের প্রিন্টটা সুন্দর, তবে কাপড়ের থিকনেস আরেকটু বেশি হলে প্রিমিয়াম মনে হতো। ওভারঅল ভালো।",
+    "color": "bg-gray-700",
+    "date": "4 days ago"
+  },
+  {
+    "name": "Farhan Zami",
+    "initials": "FZ",
+    "rating": 5,
+    "text": "আমি নিয়মিত কাস্টমার, সবসময়ই ভালো সার্ভিস পাই। রেকমেন্ডেড!",
+    "color": "bg-black",
+    "date": "Yesterday"
+  },
+  {
+    "name": "Muntasir Billah",
+    "initials": "MB",
+    "rating": 3,
+    "text": "The color looks slightly different from the photo. Light এ ছবি তোলা মনে হয়। কোয়ালিটি নিয়ে অভিযোগ নেই।",
+    "color": "bg-amber-700",
+    "date": "5 days ago"
+  },
+  {
+    "name": "Rashedul Haque",
+    "initials": "RH",
+    "rating": 4,
+    "text": "প্যাকেজিংটা সাধারণ ছিল, কিন্তু প্রোডাক্ট কোয়ালিটি অনেক জোস। আরও ভালো বক্স ইউজ করা উচিত।",
+    "color": "bg-blue-800",
+    "date": "3 days ago"
+  },
+  {
+    "name": "Tanvir Chowdhury",
+    "initials": "TC",
+    "rating": 5,
+    "text": "Best drop shoulder tee I've ever owned. Redams is on fire! 🔥",
+    "color": "bg-black",
+    "date": "6 days ago"
+  },
+  {
+    "name": "Ismail Hossain",
+    "initials": "IH",
+    "rating": 2,
+    "text": "স্টক শেষ হওয়ার কথা আগে বললে ভালো হতো। পেমেন্ট করার পর মেসেজ আসলো যে প্রোডাক্ট নেই।",
+    "color": "bg-red-900",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Mahmudul Hasan",
+    "initials": "MH",
+    "rating": 4,
+    "text": "দামটা একটু বেশি মনে হয় অন্যদের তুলনায়, তবে কাপড়টা অনেক সফট। ডিসকাউন্ট দিলে ভালো হতো।",
+    "color": "bg-teal-800",
+    "date": "2 weeks ago"
+  },
+  {
+    "name": "Sabbir Ahmed",
+    "initials": "SA",
+    "rating": 5,
+    "text": "Fast delivery in Saidpur. ৩ দিনের মাথায় পেয়েছি, ধন্যবাদ!",
+    "color": "bg-indigo-600",
+    "date": "3 days ago"
+  },
+  {
+    "name": "Ariful Islam",
+    "initials": "AI",
+    "rating": 4,
+    "text": "সাদা টি-শার্টটা একটু পাতলা মনে হয়েছে, তবে ডিজাইনটা অসাম। গরমে পরে আরাম পাওয়া যাবে।",
+    "color": "bg-slate-400",
+    "date": "4 days ago"
+  },
+  {
+    "name": "Faisal Mahmood",
+    "initials": "FM",
+    "rating": 5,
+    "text": "Everything is perfect. Customer support was very helpful during order.",
+    "color": "bg-black",
+    "date": "1 day ago"
+  },
+  {
+    "name": "Imtiaz Shuvo",
+    "initials": "IS",
+    "rating": 3,
+    "text": "Delivery man was rude, though Redams products are great. কুরিয়ার সার্ভিস নিয়ে ভাবা উচিত।",
+    "color": "bg-orange-800",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Nazmul Huda",
+    "initials": "NH",
+    "rating": 4,
+    "text": "Wash করার পর হালকা একটু ছোট হয়েছে মনে হলো। তবে কালার ঠিক আছে।",
+    "color": "bg-zinc-800",
+    "date": "5 days ago"
+  },
+  {
+    "name": "Rakib Hasan",
+    "initials": "RH",
+    "rating": 5,
+    "text": "একদম ব্রান্ডের ভাইব পাইছি। পকেট প্রিন্টিং টা জাস্ট অসাম।",
+    "color": "bg-red-700",
+    "date": "2 days ago"
+  },
+  {
+    "name": "Amanullah",
+    "initials": "AM",
+    "rating": 4,
+    "text": "Order process was smooth. Quality meets expectations.",
+    "color": "bg-gray-600",
+    "date": "6 days ago"
+  },
+  {
+    "name": "Sumon Sharkar",
+    "initials": "SS",
+    "rating": 3,
+    "text": "নিয়েছিলাম L সাইজ, কিন্তু অনেক বড় হয়ে গেছে। মনে হয় সাইজ চার্টে একটু ভুল আছে।",
+    "color": "bg-stone-500",
+    "date": "9 days ago"
+  },
+  {
+    "name": "Yasin Arafat",
+    "initials": "YA",
+    "rating": 5,
+    "text": "Highly recommended for students. Budget premium collection!",
+    "color": "bg-black",
+    "date": "3 days ago"
+  },
+  {
+    "name": "Mehedi Bin Jalal",
+    "initials": "MJ",
+    "rating": 4,
+    "text": "স্টিকারগুলো অনেক কিউট ছিল। কালেকশন আরও বাড়ানো দরকার।",
+    "color": "bg-blue-600",
+    "date": "1 week ago"
+  },
+  {
+    "name": "Kamrul Hassan",
+    "initials": "KH",
+    "rating": 2,
+    "text": "কাপড় ভালো কিন্তু পকেটের সেলাই এক জায়গায় খুলে গিয়েছিল। পরে অবশ্য রিটার্ন নিয়েছে।",
+    "color": "bg-rose-900",
+    "date": "10 days ago"
   }
 ]
