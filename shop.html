@@ -129,10 +129,13 @@
 <!-- মোবাইল ওভারলে (এটি একবারই থাকবে) -->
 <div id="menu-overlay" onclick="toggleMobileMenu()"></div>
     
-    <div class="container mx-auto px-4 py-10">
-        <h2 id="page-title" class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">Our Collection</h2>
-        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-    </div>
+    <!-- pt-32 বা mt-24 যোগ করলে টাইটেলটি নেভিগেশন বারের নিচ থেকে বের হয়ে আসবে -->
+<div class="container mx-auto px-4 pt-32 pb-10"> 
+    <h2 id="page-title" class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">
+        Our Collection
+    </h2>
+    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+</div>
 
    <div id="product-modal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
         <div class="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-10 shadow-2xl">
