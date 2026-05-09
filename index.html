@@ -361,60 +361,67 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <style>
     input:checked + div .check-dot { opacity: 1; }
 </style>
-    <!-- Customer Review Section -->
-<section class="container mx-auto px-4 py-20 border-t border-gray-100">
-    <div class="text-center mb-12">
-        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-gray-900">What Our Community Says</h2>
-        <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-2">Real Reviews from Real Customers</p>
+   
+    <!-- Overall Rating & Review Section -->
+<section class="container mx-auto px-4 py-20 border-t border-gray-100 overflow-hidden">
+    <!-- ১. প্রিমিয়াম রেটিং ড্যাশবোর্ড -->
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between mb-16 p-8 bg-white rounded-[2.5rem] shadow-sm border border-gray-100 gap-8">
+        <div class="text-center md:text-left">
+            <h2 class="text-5xl font-black text-black">4.9<span class="text-xl text-gray-400">/5</span></h2>
+            <div class="flex text-yellow-400 text-sm mt-2 justify-center md:justify-start">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-3">Based on 500+ Reviews</p>
+        </div>
+        
+        <div class="hidden md:block h-16 w-[1px] bg-gray-100"></div>
+
+        <div class="flex-1 w-full max-w-xs space-y-2">
+            <!-- ৫ স্টার বার -->
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-bold w-4">5</span>
+                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="w-[95%] h-full bg-black"></div></div>
+            </div>
+            <!-- ৪ স্টার বার -->
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-bold w-4">4</span>
+                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="w-[5%] h-full bg-gray-300"></div></div>
+            </div>
+        </div>
+
+        <button class="px-8 py-4 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 transition-all">Write A Review</button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Review 1 -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
-            <div class="flex text-yellow-400 text-xs">
-                <i class="fa-solid fa-star"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i>
-            </div>
-            <p class="text-gray-700 text-sm leading-relaxed italic">"The quality of the drop shoulder t-shirt is top-notch. The fabric feels premium and the fit is perfect for street style."</p>
-            <div class="flex items-center gap-3 mt-2">
-                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-xs">AS</div>
-                <div>
-                    <h4 class="text-xs font-black uppercase">Ariful Shuvo</h4>
-                    <p class="text-[10px] text-green-600 font-bold uppercase">Verified Buyer</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Review 2 -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
-            <div class="flex text-yellow-400 text-xs">
-                <i class="fa-solid fa-star"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i>
-            </div>
-            <p class="text-gray-700 text-sm leading-relaxed italic">"Delivery was super fast within Dhaka. I'm impressed with the packaging and the Redams branding details."</p>
-            <div class="flex items-center gap-3 mt-2">
-                <div class="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xs">RN</div>
-                <div>
-                    <h4 class="text-xs font-black uppercase">Riya Nahar</h4>
-                    <p class="text-[10px] text-green-600 font-bold uppercase">Verified Buyer</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Review 3 -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
-            <div class="flex text-yellow-400 text-xs">
-                <i class="fa-solid fa-star"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i><i class="fa-star fa-solid"></i>
-            </div>
-            <p class="text-gray-700 text-sm leading-relaxed italic">"Finally a Bangladeshi brand that understands minimalist design. Looking forward to more collections!"</p>
-            <div class="flex items-center gap-3 mt-2">
-                <div class="w-10 h-10 bg-gray-200 text-black rounded-full flex items-center justify-center font-bold text-xs">TK</div>
-                <div>
-                    <h4 class="text-xs font-black uppercase">Tanvir Khan</h4>
-                    <p class="text-[10px] text-green-600 font-bold uppercase">Verified Buyer</p>
-                </div>
-            </div>
+    <!-- ২. অটো-স্ক্রলিং রিভিউ কন্টেইনার -->
+    <div class="relative group">
+        <div id="reviews-wrapper" class="flex gap-6 animate-marquee group-hover:pause-scroll">
+            <!-- জাভাস্ক্রিপ্ট এখানে ২ বার রিভিউ লোড করবে লুপ তৈরির জন্য -->
         </div>
     </div>
 </section>
+
+<style>
+    /* প্রিমিয়াম অটো-স্ক্রল এনিমেশন */
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+        display: flex;
+        width: max-content;
+        animation: marquee 40s linear infinite;
+    }
+    .group-hover\:pause-scroll:hover {
+        animation-play-state: paused;
+    }
+    /* কাস্টমার যাতে ম্যানুয়ালিও স্ক্রল করতে পারে মোবাইলে */
+    #reviews-wrapper {
+        cursor: grab;
+    }
+    #reviews-wrapper:active {
+        cursor: grabbing;
+    }
+</style>
 
    <footer class="bg-[#050505] text-gray-300 py-20 mt-20 border-t border-gray-900">
     <div class="container mx-auto px-6">
