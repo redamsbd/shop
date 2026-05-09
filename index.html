@@ -362,52 +362,60 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     input:checked + div .check-dot { opacity: 1; }
 </style>
    
-   <!-- Review Slider Section -->
-<section class="container mx-auto px-4 py-20 border-t border-gray-100 overflow-hidden">
-    <!-- Section Heading -->
-    <div class="flex justify-between items-end mb-12">
-        <div>
-            <h2 class="text-3xl font-black uppercase tracking-tighter text-gray-900">Community Feedback</h2>
-            <div class="h-1 w-20 bg-black mt-2"></div>
+ <!-- Review Section -->
+<section class="container mx-auto px-4 py-20 border-t border-gray-100">
+    <!-- ১. রেটিং ড্যাশবোর্ড (ফিরিয়ে আনা হয়েছে) -->
+    <div class="max-w-5xl mx-auto mb-16 p-8 bg-white rounded-[2rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center gap-10">
+        <div class="text-center md:border-r md:pr-10 border-gray-100">
+            <h2 class="text-6xl font-black">4.9</h2>
+            <div class="flex text-yellow-400 text-sm mt-2 justify-center">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-3">500+ VERIFIED REVIEWS</p>
         </div>
-        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest hidden md:block italic">Drag or scroll to explore</p>
+        
+        <div class="flex-1 w-full space-y-3">
+            <div class="flex items-center gap-4">
+                <span class="text-[10px] font-bold w-3">5</span>
+                <div class="flex-1 h-2 bg-gray-50 rounded-full overflow-hidden"><div class="w-[92%] h-full bg-black"></div></div>
+                <span class="text-[10px] text-gray-400 font-bold">92%</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-[10px] font-bold w-3">4</span>
+                <div class="flex-1 h-2 bg-gray-50 rounded-full overflow-hidden"><div class="w-[6%] h-full bg-gray-300"></div></div>
+                <span class="text-[10px] text-gray-400 font-bold">6%</span>
+            </div>
+        </div>
+
+        <button class="px-10 py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 transition-all duration-500">Share Your Story</button>
     </div>
 
-    <!-- scrolling Container -->
-    <div class="relative overflow-hidden group">
-        <!-- 'overflow-x-auto' এবং 'cursor-grab' যোগ করা হয়েছে ম্যানুয়াল স্ক্রলিংয়ের জন্য -->
-        <div id="reviews-wrapper" class="flex gap-6 overflow-x-auto pb-8 animate-marquee group-hover:pause-scroll cursor-grab active:cursor-grabbing">
+    <!-- ২. প্রিমিয়াম স্লাইডার কন্টেইনার -->
+    <div class="relative group">
+        <!-- 'overflow-x-auto' এবং 'snap-x' প্রিমিয়াম স্ক্রলিং নিশ্চিত করে -->
+        <div id="reviews-wrapper" class="flex gap-6 overflow-x-auto pb-10 scroll-smooth snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none">
             <!-- Reviews injected here -->
         </div>
     </div>
 </section>
 
 <style>
-    /* স্ক্রলিং স্পিড কমানো হয়েছে (50s থেকে 80s করা হয়েছে) */
-    @keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-    
-    .animate-marquee {
-        display: flex;
-        width: max-content;
-        animation: marquee 80s linear infinite; /* স্পিড আরও ধীর করা হয়েছে */
-    }
-
-    /* হোভার করলে বা টাচ করলে স্ক্রলিং থেমে যাবে */
-    .group:hover .animate-marquee, 
-    .group:active .animate-marquee {
-        animation-play-state: paused;
-    }
-
-    /* স্ক্রলবার হাইড করা কিন্তু স্ক্রলিং ফাংশন রাখা */
-    #reviews-wrapper::-webkit-scrollbar {
-        display: none;
-    }
+    /* কাস্টম স্ক্রলবার হাইড করা */
+    #reviews-wrapper::-webkit-scrollbar { display: none; }
     #reviews-wrapper {
         -ms-overflow-style: none;
         scrollbar-width: none;
+        scroll-behavior: smooth;
+    }
+    
+    /* কার্ডগুলো যাতে স্ক্রিন অনুযায়ী স্ন্যাপ হয় */
+    .review-card {
+        flex: 0 0 auto;
+        width: 340px;
+        snap-align: start;
+    }
+    @media (max-width: 768px) {
+        .review-card { width: 280px; }
     }
 </style>
 
