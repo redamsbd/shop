@@ -495,3 +495,45 @@ function setupAutoScroll(slider) {
     // প্রথমবার ফাংশনটি চালু করা
     animationId = requestAnimationFrame(step);  
 }
+async function loadReviews() {
+    try {
+        const response = await fetch('reviews.json');
+        const reviews = await response.json();
+        const wrapper = document.getElementById('reviews-wrapper');
+
+        if (!wrapper) return;
+
+        // রিভিউ কার্ড তৈরির ফাংশন
+        const createReviewCard = (review) => `
+            <div class="w-[300px] md:w-[350px] bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-5 shrink-0">
+                <div class="flex justify-between items-start">
+                    <div class="flex text-yellow-400 text-[10px] gap-0.5">
+                        ${'<i class="fa-solid fa-star"></i>'.repeat(review.rating)}
+                    </div>
+                    <span class="text-[9px] font-black text-gray-300 uppercase tracking-widest">${review.date || 'Recent'}</span>
+                </div>
+                <p class="text-gray-800 text-sm leading-relaxed font-medium">"${review.text}"</p>
+                <div class="flex items-center gap-4 mt-2">
+                    <div class="w-11 h-11 ${review.color || 'bg-black'} text-white rounded-full flex items-center justify-center font-black text-xs shadow-inner">
+                        ${review.initials}
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black uppercase tracking-tight text-black">${review.name}</h4>
+                        <div class="flex items-center gap-1 text-[9px] text-green-600 font-bold uppercase">
+                            <i class="fa-solid fa-circle-check"></i> Verified Buyer
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // লুপ তৈরি করতে রিভিউগুলোকে দুইবার সেট করা হচ্ছে
+        const content = reviews.map(review => createReviewCard(review)).join('');
+        wrapper.innerHTML = content + content; 
+
+    } catch (error) {
+        console.error("Reviews load failed:", error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadReviews);
