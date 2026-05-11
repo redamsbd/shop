@@ -238,7 +238,66 @@
 <style>
     input:checked + div .check-dot { opacity: 1; }
 </style>
+        <section class="container mx-auto px-4 py-24 border-t border-gray-100">
+    
+    <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-black mb-4">Our Community Says</h2>
+        <div class="flex items-center justify-center gap-2">
+            <div class="h-[1px] w-12 bg-gray-200"></div>
+            <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Verified Feedback</p>
+            <div class="h-[1px] w-12 bg-gray-200"></div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto mb-20 p-10 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-center gap-12">
+        <div class="text-center">
+            <h2 class="text-7xl font-black leading-none">4.9</h2>
+            <div class="flex text-yellow-400 text-sm mt-3 justify-center">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-300 mt-4">Based on 500+ Orders</p>
+        </div>
         
+        <div class="hidden md:block h-20 w-[1px] bg-gray-100"></div>
+
+        <div class="flex-1 w-full max-w-xs space-y-4">
+            <div class="flex items-center gap-4">
+                <span class="text-[9px] font-black w-3">5</span>
+                <div class="flex-1 h-1.5 bg-gray-50 rounded-full overflow-hidden">
+                    <div class="w-[94%] h-full bg-black"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-[9px] font-black w-3">4</span>
+                <div class="flex-1 h-1.5 bg-gray-50 rounded-full overflow-hidden">
+                    <div class="w-[6%] h-full bg-gray-200"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative group">
+        <div id="reviews-wrapper" class="flex gap-8 overflow-x-auto pb-10 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide">
+            </div>
+    </div>
+</section>
+
+<style>
+    /* স্লাইডার লুকানোর জন্য কাস্টম সিএসএস */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .review-card {
+        flex: 0 0 auto;
+        width: 360px;
+        snap-align: center;
+    }
+    
+    @media (max-width: 768px) {
+        .review-card { width: 300px; }
+    }
+</style>
+
     <footer class="bg-[#050505] text-gray-300 py-20 mt-20 border-t border-gray-900">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
