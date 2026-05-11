@@ -576,3 +576,34 @@ async function loadReviews() {
 }
 
 document.addEventListener('DOMContentLoaded', loadReviews);
+
+function showPopup() {
+    const popup = document.getElementById('entry-popup');
+    const box = document.getElementById('popup-box');
+    
+    popup.classList.remove('hidden');
+    popup.classList.add('flex');
+    
+    // এনিমেশনের জন্য সামান্য ডিলে
+    setTimeout(() => {
+        box.classList.remove('scale-90', 'translate-y-10', 'opacity-0');
+        box.classList.add('scale-100', 'translate-y-0', 'opacity-100');
+    }, 100);
+}
+
+function closePopup() {
+    const popup = document.getElementById('entry-popup');
+    const box = document.getElementById('popup-box');
+    
+    box.classList.add('scale-90', 'translate-y-10', 'opacity-0');
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+        popup.classList.remove('flex');
+    }, 500);
+}
+
+// সাইটে আসার ২ সেকেন্ড পর পপ-আপ দেখাবে
+window.addEventListener('load', () => {
+    setTimeout(showPopup, 2000); 
+});
