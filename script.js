@@ -503,79 +503,76 @@ async function loadReviews() {
         if (!wrapper) return;
 
         const createCard = (r) => `
-            <div class="review-card bg-white border border-gray-100 p-8 transition-all duration-500 hover:border-black flex flex-col justify-between group/card">
+            <div class="review-card bg-white border border-gray-100 p-10 transition-all duration-700 hover:border-black flex flex-col justify-between min-h-[250px]">
                 <div>
                     <div class="flex justify-between items-center mb-6">
-                        <div class="flex text-yellow-400 text-[10px] gap-0.5">
+                        <div class="flex text-yellow-400 text-[9px] gap-1">
                             ${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}
-                            ${'<i class="fa-regular fa-star text-gray-200"></i>'.repeat(5 - r.rating)}
                         </div>
-                        <span class="text-[9px] font-bold text-gray-300 uppercase tracking-widest">${r.date}</span>
+                        <span class="text-[9px] font-black text-gray-200 uppercase tracking-widest">${r.date}</span>
                     </div>
-                    <p class="text-gray-800 text-sm leading-[1.8] font-medium mb-8">"${r.text}"</p>
+                    <p class="text-gray-800 text-[13px] leading-[1.8] font-medium mb-10 italic">"${r.text}"</p>
                 </div>
-                <div class="flex items-center gap-4 pt-6 border-t border-gray-50">
-                    <div class="w-12 h-12 ${r.color} text-white flex items-center justify-center font-black text-xs rounded-full">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 ${r.color || 'bg-black'} text-white flex items-center justify-center font-black text-[10px] rounded-full shadow-inner">
                         ${r.initials}
                     </div>
                     <div>
-                        <h4 class="text-[11px] font-black uppercase text-black tracking-tight">${r.name}</h4>
-                        <p class="text-[9px] text-green-600 font-bold uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-certificate"></i> Verified Buyer
-                        </p>
+                        <h4 class="text-[10px] font-black uppercase text-black tracking-widest">${r.name}</h4>
+                        <div class="flex items-center gap-1.5 text-[8px] text-green-600 font-black uppercase mt-0.5">
+                            <i class="fa-solid fa-shield-check"></i> Verified Purchase
+                        </div>
                     </div>
                 </div>
             </div>`;
 
+        // কন্টেন্ট লোড করা
         wrapper.innerHTML = reviews.map(r => createCard(r)).join('');
 
-        // --- প্রিমিয়াম স্ক্রলিং লজিক ---
+        // --- স্মার্ট স্ক্রলিং লজিক ---
         let isDown = false;
         let startX;
         let scrollLeft;
-        let autoScrollTimer;
+        let timer;
 
-        // অটো-স্ক্রলিং শুরু
-        const startAutoScroll = () => {
-            autoScrollTimer = setInterval(() => {
+        const startAuto = () => {
+            timer = setInterval(() => {
                 if (wrapper.scrollLeft + wrapper.offsetWidth >= wrapper.scrollWidth) {
                     wrapper.scrollTo({ left: 0, behavior: 'smooth' });
                 } else {
-                    wrapper.scrollBy({ left: 364, behavior: 'smooth' }); // ১টি কার্ডের দূরত্ব
+                    wrapper.scrollBy({ left: 380, behavior: 'smooth' });
                 }
-            }, 4000); // প্রতি ৪ সেকেন্ড পর পর স্লাইড হবে
+            }, 5000);
         };
 
-        const stopAutoScroll = () => clearInterval(autoScrollTimer);
+        const stopAuto = () => clearInterval(timer);
 
-        // মাউস ও টাচ ড্র্যাগ লজিক
+        // মাউস ইভেন্ট
         wrapper.addEventListener('mousedown', (e) => {
             isDown = true;
-            stopAutoScroll();
+            stopAuto();
             startX = e.pageX - wrapper.offsetLeft;
             scrollLeft = wrapper.scrollLeft;
         });
 
-        wrapper.addEventListener('mouseup', () => {
-            isDown = false;
-            startAutoScroll();
-        });
-
+        wrapper.addEventListener('mouseup', () => { isDown = false; startAuto(); });
+        wrapper.addEventListener('mouseleave', () => { isDown = false; startAuto(); });
+        
         wrapper.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - wrapper.offsetLeft;
-            const walk = (x - startX) * 2; // স্ক্রলিং স্পিড সেনসিটিভিটি
+            const walk = (x - startX) * 1.5;
             wrapper.scrollLeft = scrollLeft - walk;
         });
 
-        // মোবাইলের জন্য টাচ সাপোর্ট
-        wrapper.addEventListener('touchstart', stopAutoScroll);
-        wrapper.addEventListener('touchend', startAutoScroll);
+        // মোবাইল টাচ ইভেন্ট
+        wrapper.addEventListener('touchstart', stopAuto);
+        wrapper.addEventListener('touchend', startAuto);
 
-        startAutoScroll(); // ইনিশিয়াল স্টার্ট
+        startAuto();
 
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Review Loading Error:", e); }
 }
 
 document.addEventListener('DOMContentLoaded', loadReviews);
