@@ -12,7 +12,13 @@ function getCategoryFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('cat'); 
 }
-
+// আপনার স্ক্রিপ্ট ফাইলের একদম উপরে এই গ্লোবাল ভেরিয়েবল দুটি রাখুন
+let activePromo = null;
+const promoList = {
+    "FREESHIP": { type: "delivery", value: 0 },
+    "REDAMS10": { type: "percent", value: 10 },
+    "SAVE50": { type: "fixed", value: 50 }
+};
 // ২. প্রোডাক্ট লোড এবং ফিল্টার (Original Logic)
 function loadProducts() {
     fetch('products.json')
@@ -206,13 +212,28 @@ function addToCart(id) {
     updateCartUI(); closeModal(); toggleCart(true);
 }
 
+function applyPromoCode() {
+    const input = document.getElementById('promo-input').value.toUpperCase().trim();
+    const msg = document.getElementById('promo-msg');
+
+    if (promoList[input]) {
+        activePromo = input;
+        msg.innerText = `Promo "${input}" Applied!`;
+        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-green-600 block";
+    } else {
+        activePromo = null;
+        msg.innerText = "Invalid Promo Code";
+        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
+    }
+    updateCartUI(); 
+}
+
 function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
     const freeDeliveryMsg = document.getElementById('free-delivery-msg');
     const paymentSection = document.getElementById('payment-options-wrapper');
 
-    // "Full Paid" অথবা Boolean ভ্যালু হ্যান্ডেল করা
     if (isPaidOverride !== null) {
         isPaymentVerified = (isPaidOverride === true || isPaidOverride === "Full Paid");
     }
@@ -235,14 +256,13 @@ function updateCartUI(isPaidOverride = null) {
     }).join('');
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-
     if (deliveryOption && paymentSection) {
         paymentSection.classList.remove('hidden');
     }
 
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
-    // ৩টি বা তার বেশি আইটেম হলে ডেলিভারি চার্জ ০ (ফ্রি)
+    // ১. অটো ফ্রি ডেলিভারি লজিক (৩টি আইটেমে)
     if (itemCount >= 3) {
         baseDeliveryCharge = 0;
         if (freeDeliveryMsg) { 
@@ -256,23 +276,44 @@ function updateCartUI(isPaidOverride = null) {
         }
     }
 
-    // পেমেন্ট ভেরিফাইড (Online Payment) হলে ডেলিভারি চার্জ PAID দেখাবে
-    let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
-    let finalTotal = subtotal + finalDeliveryCharge;
+    // ২. প্রোমো কোড ক্যালকুলেশন (নতুন অংশ)
+    let discount = 0;
+    if (activePromo) {
+        const promo = promoList[activePromo];
+        if (promo.type === "delivery") {
+            baseDeliveryCharge = 0; // প্রোমো দিয়ে ডেলিভারি ফ্রি
+        } else if (promo.type === "percent") {
+            discount = (subtotal * promo.value) / 100;
+        } else if (promo.type === "fixed") {
+            discount = promo.value;
+        }
+    }
 
-    // ডেলিভারি ডিসপ্লে লজিক
-    const deliveryDisplay = isPaymentVerified ? '<span class="text-green-600 font-black">PAID</span>' : (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
+    // ৩. পেমেন্ট ভেরিফাইড এবং ফাইনাল ডেলিভারি ক্যালকুলেশন
+    let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
+    let finalTotal = subtotal + finalDeliveryCharge - discount;
+
+    // ৪. ডেলিভারি ডিসপ্লে টেক্সট
+    const deliveryDisplay = isPaymentVerified ? 
+        '<span class="text-green-600 font-black">PAID</span>' : 
+        (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
 
     if (totalElement) {
         totalElement.innerHTML = `
             <div class="space-y-1 mb-3 pt-4 border-t">
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold"><span>Subtotal</span><span>৳${subtotal}</span></div>
+                
+                ${discount > 0 ? `
+                <div class="flex justify-between text-[10px] text-red-600 uppercase font-bold italic">
+                    <span>Promo Discount</span><span>- ৳${discount.toFixed(0)}</span>
+                </div>` : ''}
+
                 <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery Charge</span><span>${deliveryDisplay}</span></div>
                 
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
                     <span class="text-2xl font-black ${isPaymentVerified ? 'text-green-600' : 'text-black'}">
-                        ৳${finalTotal} ${isPaymentVerified ? '<span class="text-[10px] block text-right font-black">[ FULL PAID ]</span>' : ''}
+                        ৳${finalTotal.toFixed(0)} ${isPaymentVerified ? '<span class="text-[10px] block text-right font-black">[ FULL PAID ]</span>' : ''}
                     </span>
                 </div>
             </div>`;
@@ -281,7 +322,6 @@ function updateCartUI(isPaidOverride = null) {
     const countEls = ['cart-count', 'cart-count-drawer', 'cart-count-float'];
     countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
 }
-let selectedSubMethod = ""; // ইউজার বিকাশ না নগদ সিলেক্ট করল তা মনে রাখার জন্য
 
 // প্রধান পেমেন্ট অপশন পরিবর্তনের ফাংশন
 function updatePaymentUI(method) {
