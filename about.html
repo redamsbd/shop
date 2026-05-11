@@ -5,66 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - REDAMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-white">
-
-    <nav class="bg-black text-white py-6">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-black tracking-tighter italic">REDAMS</a>
-            <a href="index.html" class="text-xs font-bold uppercase tracking-widest hover:text-gray-400 transition">Back to Home</a>
+<body class="bg-[#fafafa] text-gray-900">
+    <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black tracking-tighter uppercase">RED<span class="text-red-600">AMS</span></a>
+            <a href="index.html" class="text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 rounded-full hover:bg-black hover:text-white transition">Home</a>
         </div>
-    </nav>
+    </header>
 
-    <main class="container mx-auto px-4 py-20 max-w-4xl">
-        <div class="mb-16">
-            <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-6">Our Story</h1>
-            <p class="text-gray-500 text-lg leading-relaxed">
-                REDAMS is more than just a clothing brand. It's a statement of identity for those who believe in premium quality and minimalist streetwear.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-            <div>
-                <h3 class="text-xl font-black uppercase mb-4">The Vision</h3>
-                <p class="text-gray-600 leading-relaxed text-sm">
-                    ২০২৫ সালে যাত্রা শুরু করা REDAMS এর মূল লক্ষ্য হলো বাংলাদেশের তরুণ প্রজন্মের কাছে আন্তর্জাতিক মানের স্ট্রিটওয়্যার পৌঁছে দেওয়া। আমরা বিশ্বাস করি স্টাইল এবং কমফোর্ট একে অপরের পরিপূরক।
+   <main class="container mx-auto px-6 pt-32 pb-20 max-w-4xl">
+    <div class="bg-white p-8 md:p-16 rounded-[2.5rem] shadow-sm border border-gray-100">
+        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 italic text-center md:text-left">
+            Behind The <span class="text-red-600">Brand</span>
+        </h1>
+        <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 text-center md:text-left border-b border-gray-50 pb-8">
+            Est. 2026 • Premium Streetwear
+        </p>
+        
+        <div class="space-y-16 text-gray-600 leading-relaxed">
+            
+            <section>
+                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight flex items-center gap-3">
+                    <span class="w-8 h-[2px] bg-red-600"></span> আমাদের পরিচয়
+                </h2>
+                <p class="text-sm md:text-base">
+                    <span class="font-bold text-black italic">REDAMS</span> শুধুমাত্র একটি পোশাকের নাম নয়, এটি একটি মডার্ন মুভমেন্ট। আমরা বিশ্বাস করি স্ট্রিটওয়্যার মানেই অগোছালো কিছু নয়; বরং এটি হলো আভিজাত্য এবং আরামের এক অনন্য সংমিশ্রণ। বাংলাদেশের ফ্যাশন সচেতন তরুণ প্রজন্মের জন্য প্রিমিয়াম ড্রেসিং কালচার তৈরি করতেই আমাদের এই পথচলা।
                 </p>
-            </div>
-            <div>
-                <h3 class="text-xl font-black uppercase mb-4">The Quality</h3>
-                <p class="text-gray-600 leading-relaxed text-sm">
-                    আমাদের প্রতিটি ড্রপ সোল্ডার টি-শার্ট এবং হুডি তৈরি হয় উচ্চমানের কটন ফেব্রিক দিয়ে। নিখুঁত সেলাই এবং ইউনিক ডিজাইন আমাদের ব্র্যান্ডের মূল পরিচয়।
+            </section>
+
+            <section class="bg-gray-50 p-8 rounded-[2rem]">
+                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight">Our Philosophy</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-[11px] font-black uppercase text-red-600 mb-2 italic">Minimalism</h3>
+                        <p class="text-xs leading-relaxed">আমরা "Less is More" তত্ত্বে বিশ্বাসী। অতিরিক্ত ডিজাইন নয়, বরং সঠিক কালার এবং স্ট্রাকচারের মাধ্যমে আমরা প্রতিটি পোশাকে আভিজাত্য ফুটিয়ে তুলি।</p>
+                    </div>
+                    <div>
+                        <h3 class="text-[11px] font-black uppercase text-red-600 mb-2 italic">Ethical Production</h3>
+                        <p class="text-xs leading-relaxed">আমাদের প্রতিটি পণ্য শতভাগ স্থানীয় কারিগরদের নিপুণ হাতের স্পর্শে তৈরি। আমরা টেকসই ফ্যাশন এবং স্থানীয় কর্মসংস্থানে বিশ্বাস করি।</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight flex items-center gap-3">
+                    <span class="w-8 h-[2px] bg-red-600"></span> কারিগরি উৎকর্ষতা
+                </h2>
+                <div class="space-y-6">
+                    <div class="border-l-4 border-black pl-5">
+                        <h4 class="text-black font-black uppercase text-xs mb-1 italic">The Fabric</h4>
+                        <p class="text-sm">আমরা ব্যবহার করি <span class="font-bold text-black uppercase">Heavyweight Premium Cotton</span>। আমাদের কাপড়গুলো বিশেষভাবে জিএসএম (GSM) কন্ট্রোল করা হয় যাতে এটি গরমে আরামদায়ক এবং দীর্ঘস্থায়ী হয়।</p>
+                    </div>
+                    <div class="border-l-4 border-gray-200 pl-5">
+                        <h4 class="text-black font-black uppercase text-xs mb-1 italic">The Fit</h4>
+                        <p class="text-sm">ড্রপ শোল্ডার থেকে শুরু করে বক্সি ফিট—প্রতিটি প্যাটার্ন তৈরি করা হয়েছে আমাদের দেশের মানুষের শারীরিক গঠন এবং মডার্ন স্ট্রিট স্টাইল মাথায় রেখে।</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="text-center py-10 border-t border-b border-gray-50">
+                <h2 class="text-xl font-bold text-black uppercase mb-4 tracking-tighter">"Clothing that speaks for you"</h2>
+                <p class="text-sm italic text-gray-500 max-w-lg mx-auto">
+                    আমাদের লক্ষ্য হলো আগামী ৫ বছরের মধ্যে REDAMS-কে বাংলাদেশের সেরা প্রিমিয়াম স্ট্রিটওয়্যার ব্র্যান্ড হিসেবে প্রতিষ্ঠিত করা এবং আন্তর্জাতিক বাজারে মেইড ইন বাংলাদেশ ট্যাগটিকে গর্বের সাথে উপস্থাপন করা।
                 </p>
-            </div>
-        </div>
+            </section>
 
-        <div class="bg-gray-50 p-10 rounded-[2rem] border border-gray-100">
-            <h2 class="text-2xl font-black uppercase mb-6">Why Redams?</h2>
-            <ul class="space-y-4">
-                <li class="flex items-start gap-4">
-                    <span class="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">01</span>
-                    <p class="text-gray-700 text-sm"><strong>Premium Fabric:</strong> আমরা সেরা মানের কটন ফেব্রিক ব্যবহার করি যা দীর্ঘস্থায়ী এবং আরামদায়ক।</p>
-                </li>
-                <li class="flex items-start gap-4">
-                    <span class="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">02</span>
-                    <p class="text-gray-700 text-sm"><strong>Unique Designs:</strong> আমাদের ডিজাইনগুলো মিনিমালিস্ট এবং মডার্ন স্ট্রিটওয়্যার দ্বারা অনুপ্রাণিত।</p>
-                </li>
-                <li class="flex items-start gap-4">
-                    <span class="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">03</span>
-                    <p class="text-gray-700 text-sm"><strong>Made in BD:</strong> আমরা গর্বের সাথে বাংলাদেশে আমাদের পণ্য উৎপাদন করি।</p>
-                </li>
-            </ul>
-        </div>
-    </main>
+            <section>
+                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight">Community & Loyalty</h2>
+                <p class="text-sm">
+                    REDAMS এর প্রতিটি কাস্টমার আমাদের পরিবারের সদস্য। আপনার ফিডব্যাক আমাদের প্রতিটি ডিজাইন উন্নত করতে সাহায্য করে। আমরা শুধু পোশাক বিক্রি করি না, আমরা একটি আস্থার সম্পর্ক তৈরি করি।
+                </p>
+            </section>
 
-    <footer class="py-10 border-t border-gray-100 text-center">
-        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.5em]">&copy; 2026 REDAMS. ALL RIGHTS RESERVED.</p>
+        </div>
+    </div>
+</main>
+    <footer class="py-10 text-center text-gray-400 text-[10px] uppercase tracking-widest">
+        &copy; 2026 REDAMS. All rights reserved.
     </footer>
-
 </body>
 </html>
