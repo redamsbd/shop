@@ -225,6 +225,19 @@
         </div>
     </div>
 
+    <div class="mt-4 p-4 bg-gray-50 rounded-[2rem] border border-gray-100 text-left">
+    <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-3 ml-2">Promo Code</p>
+    <div class="flex gap-2">
+        <input type="text" id="promo-input" placeholder="ENTER THE CODE" 
+            class="flex-1 p-3 text-[10px] font-black uppercase border rounded-xl outline-none bg-white focus:border-black transition">
+        <button onclick="applyPromoCode()" 
+            class="px-4 py-3 bg-black text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-600 transition-all">
+            Apply
+        </button>
+    </div>
+    <p id="promo-msg" class="mt-2 ml-2 text-[9px] font-bold uppercase hidden"></p>
+</div>
+    
     <div id="cart-total" class="pt-2 text-left"></div>
 
     <button id="confirm-order-btn" onclick="confirmOrderWhatsApp()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
