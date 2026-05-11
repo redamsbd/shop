@@ -440,44 +440,92 @@ function validateOrder() {
     }
 }
 function confirmOrderWhatsApp() {
-    const name = document.getElementById('final-name')?.value.trim();
-    const phone = document.getElementById('final-phone')?.value.trim();
-    const address = document.getElementById('final-address')?.value.trim();
-    const trnxIdInput = document.getElementById('trnx-id');
-    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
+    const trnxIdInput = document.getElementById('trnx-id');
+    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
 
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
-        return;
-    }
+    if (!name || !phone || !address || cart.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
+        return;
+    }
 
-    if (paymentMethod !== 'COD' && trnxId.length < 8) {
-        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'সঠিক Transaction ID দিন।' });
-        return;
-    }
+    if (paymentMethod !== 'COD' && trnxId.length < 8) {
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'সঠিক Transaction ID দিন।' });
+        return;
+    }
 
-    let itemsText = ""; 
-    let subtotal = 0;
-    cart.forEach((item, index) => {
-        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
-        subtotal += item.price * item.qty;
-    });
+    // ১. আইটেম এবং সাবটোটাল ক্যালকুলেশন
+    let itemsText = ""; 
+    let subtotal = 0;
+    cart.forEach((item) => {
+        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
+        subtotal += item.price * item.qty;
+    });
 
-    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    const baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    const deliveryCharge = totalQty >= 3 ? 0 : baseCharge;
-    const totalBill = subtotal + deliveryCharge;
+    // ২. ডেলিভারি চার্জ ক্যালকুলেশন (প্রোমো কোড এবং অটো ফ্রি ডেলিভারি সহ)
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+    
+    // ৩টি বা তার বেশি হলে অটো ফ্রি
+    if (totalQty >= 3) baseCharge = 0;
 
-    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
-    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+    // ৩. প্রোমো ডিসকাউন্ট ক্যালকুলেশন
+    let discount = 0;
+    let promoInfo = "NONE";
+    
+    if (activePromo) {
+        const promo = promoList[activePromo];
+        promoInfo = activePromo; // কোন কোড ইউজ করেছে
+        
+        if (promo.type === "delivery") {
+            baseCharge = 0;
+        } else if (promo.type === "percent") {
+            discount = (subtotal * promo.value) / 100;
+        } else if (promo.type === "fixed") {
+            discount = promo.value;
+        }
+    }
 
-    let message = `*NEW ORDER - REDAMS*%0A---------------------------%0A*CUSTOMER DETAILS*%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Address:* ${address}%0A---------------------------%0A*ORDER SUMMARY*%0A${itemsText}---------------------------%0A*Subtotal:* ৳${subtotal}%0A*Delivery:* ${deliveryCharge === 0 ? "FREE" : "৳" + deliveryCharge}%0A*Total Bill:* ৳${totalBill}%0A---------------------------%0A*PAYMENT INFO*%0A*Method:* ${paymentMethod}%0A*Status:* ${paymentStatus}%0A*TRXID:* ${trnxId}%0A*Due Amount:* ৳${finalPayable}%0A---------------------------%0A_Order confirmed via Redams Website_`;
+    const totalBill = subtotal + baseCharge - discount;
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+    // ৪. পেমেন্ট স্ট্যাটাস নির্ধারণ
+    // যদি পেমেন্ট মেথড Online হয়, তবে Due Amount হবে ০
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
+    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+
+    // ৫. হোয়াটসঅ্যাপ মেসেজ ফরমেটিং (Premium Layout)
+    let message = `*NEW ORDER - REDAMS*%0A`;
+    message += `---------------------------%0A`;
+    message += `*CUSTOMER DETAILS*%0A`;
+    message += `*Name:* ${name}%0A`;
+    message += `*Phone:* ${phone}%0A`;
+    message += `*Address:* ${address}%0A`;
+    message += `---------------------------%0A`;
+    message += `*ORDER SUMMARY*%0A`;
+    message += `${itemsText}`;
+    message += `---------------------------%0A`;
+    message += `*BILLING DETAILS*%0A`;
+    message += `*Subtotal:* ৳${subtotal}%0A`;
+    message += `*Promo Used:* ${promoInfo}%0A`;
+    if (discount > 0) message += `*Discount:* - ৳${discount.toFixed(0)}%0A`;
+    message += `*Delivery:* ${baseCharge === 0 ? "FREE" : "৳" + baseCharge}%0A`;
+    message += `*TOTAL BILL:* ৳${totalBill.toFixed(0)}%0A`;
+    message += `---------------------------%0A`;
+    message += `*PAYMENT INFO*%0A`;
+    message += `*Method:* ${paymentMethod}%0A`;
+    message += `*Status:* ${paymentStatus}%0A`;
+    message += `*TRXID:* ${trnxId}%0A`;
+    message += `*DUE AMOUNT:* ৳${finalPayable.toFixed(0)}%0A`;
+    message += `---------------------------%0A`;
+    message += `_Order confirmed via Redams Website_`;
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
 }
 // হেল্পার ফাংশন এবং ইভেন্ট লিসেনার
 function removeFromCart(index) { 
