@@ -168,12 +168,26 @@ function displayProducts(products, showAll = false) {
     if (viewAllBtn) viewAllBtn.style.display = (showAll || products.length <= 8) ? 'none' : 'block';
 }
 
-// ৭. মোডাল লজিক (Details under Thumbnails)
 function openModal(id) {
     const p = allProducts.find(item => item.id === id);
     const content = document.getElementById('modal-content');
     selectedSize = null; selectedColor = null; modalQty = 1;
     const hasDiscount = p.originalPrice && p.originalPrice > p.price;
+
+    // --- সাইজ স্টক আউট লজিক (অরিজিনাল ডিজাইন অক্ষুণ্ণ রেখে) ---
+    let sizesHTML = '';
+    p.sizes.forEach(size => {
+        // যদি সাইজ উপলব্ধ না থাকে অথবা পুরো প্রোডাক্টই আউট অব স্টক থাকে
+        const isSizeOut = !size.available || p.isOutOfStock;
+        
+        if (isSizeOut) {
+            // স্টক আউট সাইজের ডিজাইন (ক্লিক করা যাবে না, আবছা দেখাবে এবং কার্সার নট-অ্যালাউড হবে)
+            sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-100 bg-gray-50 text-gray-400 rounded-full text-[10px] font-black flex items-center justify-center cursor-not-allowed line-through opacity-50">${size.name}</button>`;
+        } else {
+            // আপনার অরিজিনাল সচল সাইজের বাটন কোড
+            sizesHTML += `<button onclick="selectFeature('size','${size.name}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black">${size.name}</button>`;
+        }
+    });
 
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -202,7 +216,7 @@ function openModal(id) {
                 </div>
                 <div class="mb-6">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Size</p>
-                    <div class="flex gap-2">${p.sizes.map(s => `<button onclick="selectFeature('size','${s}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black">${s}</button>`).join('')}</div>
+                    <div class="flex gap-2">${sizesHTML}</div>
                 </div>
                 <div class="mb-8 flex items-center gap-5">
                     <div class="flex items-center border-2 border-gray-100 rounded-2xl bg-gray-50">
@@ -216,7 +230,6 @@ function openModal(id) {
         </div>`;
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
-
 // ৮. কার্ট ও পেমেন্ট লজিক
 function addToCart(id) {
     if (!selectedSize || !selectedColor) {
