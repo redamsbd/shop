@@ -1,77 +1,72 @@
+// ===== গ্লোবাল ভেরিয়েবল =====
 let allProducts = [];
 let cart = [];
 let selectedSize = null;
 let selectedColor = null;
 let modalQty = 1;
-let isPaymentVerified = false; // পেমেন্ট স্ট্যাটাস ট্র্যাক করার জন্য
-
-const WHATSAPP_NUMBER = "8801894357549"; 
-
-// ১. ইউআরএল থেকে ক্যাটাগরি বের করা
-function getCategoryFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('cat'); 
-}
-// আপনার স্ক্রিপ্ট ফাইলের একদম উপরে এই গ্লোবাল ভেরিয়েবল দুটি রাখুন
+let isPaymentVerified = false;
 let activePromo = null;
+let selectedSubMethod = "";
+
+const WHATSAPP_NUMBER = "8801894357549";
+
+// প্রোমো কোড তালিকা
 const promoList = {
     "FREESHIP": { type: "delivery", value: 0 },
     "REDAMS10": { type: "percent", value: 10 },
     "SAVE50": { type: "fixed", value: 50 }
 };
-// ২. প্রোডাক্ট লোড এবং ফিল্টার (Original Logic)
+
+// ===== URL থেকে ক্যাটাগরি বের করা =====
+function getCategoryFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('cat');
+}
+
+// ===== প্রোডাক্ট লোড এবং ফিল্টার =====
 function loadProducts() {
     fetch('products.json')
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to load products.json');
+            return res.json();
+        })
         .then(data => {
             allProducts = data;
             const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
             const selectedCat = getCategoryFromURL();
-            // লুপের ভেতরে চেক করবেন প্রোডাক্ট স্টক আউট কি না
-const isCardOut = product.isOutOfStock;
-const cardClass = isCardOut ? "relative overflow-hidden group product-card-out" : "relative overflow-hidden group";
-
-// আপনার প্রোডাক্ট কার্ডের HTML স্ট্রাকচারে নিচের মতো ক্লাস বসান:
-`
-<div class="${cardClass}">
-    <!-- ইমেজের ট্যাগে 'product-img-blur' ক্লাস দিন -->
-    <img src="${product.image}" class="w-full h-full object-cover product-img-blur transition duration-500">
-    
-    <!-- যদি স্টক আউট হয় তবে ওপরে সুন্দর একটি ব্যাজ দেখাবে -->
-    ${isCardOut ? `<div class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
-        <span class="bg-red-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 shadow-lg">Out of Stock</span>
-    </div>` : ''}
-</div>
-`
 
             if (isShopPage) {
                 if (selectedCat) {
-                    const filtered = allProducts.filter(p => 
+                    const filtered = allProducts.filter(p =>
                         p.category.trim().toLowerCase() === selectedCat.trim().toLowerCase()
                     );
-                    displayProducts(filtered, true); 
+                    displayProducts(filtered, true);
                     const title = document.querySelector('h2');
-                    if(title) title.innerText = selectedCat.replace('-', ' ').toUpperCase();
+                    if (title) title.innerText = selectedCat.replace(/-/g, ' ').toUpperCase() + ' COLLECTION';
                 } else {
                     displayProducts(allProducts, true);
                 }
             } else {
-                displayProducts(allProducts, false); 
-                renderNewArrivals(allProducts);      
+                displayProducts(allProducts, false);
+                renderNewArrivals(allProducts);
             }
         })
-        .catch(err => console.error("Error loading products:", err));
+        .catch(err => {
+            console.error("Error loading products:", err);
+            const grid = document.getElementById('product-grid');
+            if (grid) grid.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products</p>';
+        });
 }
 
+// ===== মোবাইল মেনু টগল =====
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('menu-overlay');
 
-    // মেনু স্লাইড ইন/আউট করার জন্য
     if (menu.classList.contains('-translate-x-full')) {
         menu.classList.remove('-translate-x-full');
         menu.classList.add('translate-x-0');
-        overlay.classList.add('active'); // আমাদের নতুন CSS ক্লাস
+        overlay.classList.add('active');
     } else {
         menu.classList.remove('translate-x-0');
         menu.classList.add('-translate-x-full');
@@ -79,7 +74,7 @@ function toggleMobileMenu() {
     }
 }
 
-// ৩. কালার ও সাইজ সিলেকশন
+// ===== কালার এবং সাইজ সিলেকশন =====
 function selectFeature(type, val, el) {
     const buttons = el.parentElement.getElementsByTagName('button');
     for (let btn of buttons) {
@@ -93,27 +88,30 @@ function selectFeature(type, val, el) {
     else selectedColor = val;
 }
 
-// ৪. কোয়ান্টিটি আপডেট
+// ===== কোয়ান্টিটি আপডেট =====
 function updateQty(val) {
     modalQty = Math.max(1, modalQty + val);
     const qtyElement = document.getElementById('modal-qty');
     if (qtyElement) qtyElement.innerText = modalQty;
 }
 
-// ৫. New Arrivals স্লাইডার (Auto Scroll & Loop Fixed)
+// ===== নতুন আগমন স্��াইডার রেন্ডার =====
 function renderNewArrivals(products) {
     const slider = document.getElementById('new-arrivals-slider');
     if (!slider) return;
-    const newItems = products.slice(-10).reverse(); 
+
+    const newItems = products.slice(-10).reverse();
 
     slider.innerHTML = newItems.map(p => `
         <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer" onclick="openModal(${p.id})">
             <div class="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-[#f8f8f8]">
-                <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]">
+                <img src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]"
+                     alt="${p.name}">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-8 flex flex-col justify-end">
-                     <p class="text-white/70 text-[10px] uppercase tracking-widest">${p.category}</p>
-                     <h3 class="text-white text-lg font-black uppercase">${p.name}</h3>
-                     <p class="text-white font-bold mt-2">৳ ${p.price}</p>
+                    <p class="text-white/70 text-[10px] uppercase tracking-widest">${p.category}</p>
+                    <h3 class="text-white text-lg font-black uppercase">${p.name}</h3>
+                    <p class="text-white font-bold mt-2">৳ ${p.price}</p>
                 </div>
                 <div class="absolute top-6 right-6">
                     <div class="bg-white/10 backdrop-blur-xl text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2">
@@ -128,29 +126,27 @@ function renderNewArrivals(products) {
             </div>
         </div>
     `).join('');
+
     setupAutoScroll(slider);
 }
 
+// ===== প্রোডাক্ট গ্রিড ডিসপ্লে =====
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
 
-    // যদি কোনো কারণে products ডেটা না আসে বা খালি হয়, তাহলে গ্রিড খালি করে দেবে
-    if (!products || !Array.isArray(products)) {
-        grid.innerHTML = '';
+    if (!products || !Array.isArray(products) || products.length === 0) {
+        grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">No products found</p>';
         return;
     }
 
     const productsToShow = showAll ? products : products.slice(0, 8);
 
     grid.innerHTML = productsToShow.map(p => {
-        // সেফটি চেক: প্রোডাক্ট অবজেক্ট ঠিকঠাক আছে কিনা
         if (!p) return '';
 
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
-        
-        // প্রথম ইমেজটি সেফলি নেওয়ার জন্য চেক (ইমেজ না থাকলে ব্ল্যাঙ্ক দেখাবে, ক্র্যাশ করবে না)
         const firstImage = p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg';
 
         return `
@@ -158,11 +154,13 @@ function displayProducts(products, showAll = false) {
                 ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
                 
                 <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="openModal(${p.id})">
-                    <img src="${firstImage}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                    <img src="${firstImage}" 
+                         class="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                         alt="${p.name}">
                 </div>
 
                 <div class="p-3 text-center">
-                    <h3 class="font-bold text-gray-800 text-[11px] uppercase tracking-tighter mb-1">${p.name}</h3>
+                    <h3 class="font-bold text-gray-800 text-[11px] uppercase tracking-tighter mb-1 line-clamp-2">${p.name}</h3>
                     <div class="flex items-center justify-center gap-2 mb-3">
                         <span class="font-black text-black text-sm">৳ ${p.price}</span>
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
@@ -179,40 +177,55 @@ function displayProducts(products, showAll = false) {
     if (viewAllBtn) viewAllBtn.style.display = (showAll || products.length <= 8) ? 'none' : 'block';
 }
 
+// ===== মোডাল খোলা =====
 function openModal(id) {
     const p = allProducts.find(item => item.id === id);
+    if (!p) return;
+
     const content = document.getElementById('modal-content');
-    selectedSize = null; selectedColor = null; modalQty = 1;
+    selectedSize = null;
+    selectedColor = null;
+    modalQty = 1;
+
     const hasDiscount = p.originalPrice && p.originalPrice > p.price;
 
-    // --- সাইজ স্টক আউট লজিক (অরিজিনাল ডিজাইন অক্ষুণ্ণ রেখে) ---
+    // সাইজ বোতাম তৈরি
     let sizesHTML = '';
-    p.sizes.forEach(size => {
-        // যদি সাইজ উপলব্ধ না থাকে অথবা পুরো প্রোডাক্টই আউট অব স্টক থাকে
-        const isSizeOut = !size.available || p.isOutOfStock;
-        
-        if (isSizeOut) {
-            // স্টক আউট সাইজের ডিজাইন (ক্লিক করা যাবে না, আবছা দেখাবে এবং কার্সার নট-অ্যালাউড হবে)
-            sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-100 bg-gray-50 text-gray-400 rounded-full text-[10px] font-black flex items-center justify-center cursor-not-allowed line-through opacity-50">${size.name}</button>`;
-        } else {
-            // আপনার অরিজিনাল সচল সাইজের বাটন কোড
-            sizesHTML += `<button onclick="selectFeature('size','${size.name}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black">${size.name}</button>`;
-        }
-    });
+    if (p.sizes && Array.isArray(p.sizes)) {
+        p.sizes.forEach(size => {
+            const sizeStr = typeof size === 'string' ? size : (size.name || '');
+            sizesHTML += `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`;
+        });
+    }
+
+    // রঙ বোতাম তৈরি
+    let colorsHTML = '';
+    if (p.colors && Array.isArray(p.colors)) {
+        p.colors.forEach(color => {
+            colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black hover:border-black transition">${color}</button>`;
+        });
+    }
+
+    // ইমেজ থাম্বনেইল তৈরি
+    let imagesHTML = '';
+    if (p.images && Array.isArray(p.images)) {
+        imagesHTML = p.images.map(img => `<img src="${img}" onclick="document.getElementById('main-view').src='${img}'" class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition" alt="Product image">`).join('');
+    }
 
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-4">
                 <div class="relative overflow-hidden rounded-2xl bg-gray-50 aspect-[3/4]">
-                    <img id="main-view" src="${p.images[0]}" class="w-full h-full object-cover transition duration-500">
+                    <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
+                         class="w-full h-full object-cover transition duration-500"
+                         alt="${p.name}">
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                    ${p.images.map(img => `<img src="${img}" onclick="document.getElementById('main-view').src='${img}'" class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition-all">`).join('')}
+                    ${imagesHTML}
                 </div>
                 <div class="mt-8 border-t pt-6 space-y-4">
                     <h3 class="text-xs font-black uppercase tracking-widest">Description</h3>
                     <p class="text-[11px] text-gray-500 leading-relaxed">${p.description || "Premium quality streetwear designed for style and comfort."}</p>
-                    <img src="images/size-chart.png" class="w-full rounded-2xl border border-gray-100">
                 </div>
             </div>
             <div class="flex flex-col">
@@ -223,11 +236,11 @@ function openModal(id) {
                 </div>
                 <div class="mb-4">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Color</p>
-                    <div class="flex gap-2">${p.colors.map(c => `<button onclick="selectFeature('color','${c}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black uppercase hover:border-black">${c}</button>`).join('')}</div>
+                    <div class="flex gap-2 flex-wrap">${colorsHTML}</div>
                 </div>
                 <div class="mb-6">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Size</p>
-                    <div class="flex gap-2">${sizesHTML}</div>
+                    <div class="flex gap-2 flex-wrap">${sizesHTML}</div>
                 </div>
                 <div class="mb-8 flex items-center gap-5">
                     <div class="flex items-center border-2 border-gray-100 rounded-2xl bg-gray-50">
@@ -236,54 +249,79 @@ function openModal(id) {
                         <button onclick="updateQty(1)" class="px-5 py-3 font-bold">+</button>
                     </div>
                 </div>
-                <button onclick="addToCart(${p.id})" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">Add To Cart</button>
+                <button onclick="addToCart(${p.id})" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">
+                    Add To Cart
+                </button>
             </div>
         </div>`;
+
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
+
+// ===== কার্টে যোগ করা =====
 function addToCart(id) {
     if (!selectedSize || !selectedColor) {
-        Swal.fire({ title: 'Attention!', text: 'Please select both Color and Size.', icon: 'warning', confirmButtonColor: '#000' });
+        Swal.fire({
+            title: 'Attention!',
+            text: 'Please select both Color and Size.',
+            icon: 'warning',
+            confirmButtonColor: '#000'
+        });
         return;
     }
-    const p = allProducts.find(item => item.id === id);
-    if (!p) return; // সেফটি চেক: প্রোডাক্ট না পাওয়া গেলে যাতে এরর না আসে
 
-    // কার্টে পুশ করার সময় আমরা sizes-এর ঝামেলা এড়াতে শুধুমাত্র সিলেক্টেড সাইজের নাম পাঠিয়ে দিচ্ছি
-    // এতে updateCartUI ফাংশনটি কোনো এরর ছাড়াই আগের মতো ঠিকঠাক কাজ করবে
-    cart.push({ 
+    const p = allProducts.find(item => item.id === id);
+    if (!p) return;
+
+    cart.push({
         id: p.id,
         name: p.name,
         price: p.price,
         originalPrice: p.originalPrice,
         category: p.category,
-        selectedSize: selectedSize, // এখানে সিলেক্টেড সাইজের স্ট্রিং চলে যাবে (যেমন: "M")
-        selectedColor: selectedColor, 
-        qty: modalQty, 
+        selectedSize: selectedSize,
+        selectedColor: selectedColor,
+        qty: modalQty,
         image: p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'
     });
 
-    updateCartUI(); 
-    closeModal(); 
+    updateCartUI();
+    closeModal();
     toggleCart(true);
+
+    Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Added to cart!',
+        showConfirmButton: false,
+        timer: 1500
+    });
 }
 
+// ===== প্রোমো কোড প্রয়োগ করা =====
 function applyPromoCode() {
-    const input = document.getElementById('promo-input').value.toUpperCase().trim();
+    const input = document.getElementById('promo-input');
     const msg = document.getElementById('promo-msg');
 
-    if (promoList[input]) {
-        activePromo = input;
-        msg.innerText = `Promo "${input}" Applied!`;
+    if (!input) return;
+
+    const code = input.value.toUpperCase().trim();
+
+    if (promoList[code]) {
+        activePromo = code;
+        msg.innerText = `✓ Promo "${code}" Applied!`;
         msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-green-600 block";
+        input.value = '';
     } else {
         activePromo = null;
-        msg.innerText = "Invalid Promo Code";
+        msg.innerText = "✗ Invalid Promo Code";
         msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
     }
-    updateCartUI(); 
+
+    updateCartUI();
 }
 
+// ===== কার্ট UI আপডেট =====
 function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
@@ -294,22 +332,31 @@ function updateCartUI(isPaidOverride = null) {
         isPaymentVerified = (isPaidOverride === true || isPaidOverride === "Full Paid");
     }
 
+    if (!cartContainer) return;
+
     let subtotal = 0, itemCount = 0;
+
     cartContainer.innerHTML = cart.map((item, index) => {
-        subtotal += item.price * item.qty; itemCount += item.qty;
+        subtotal += item.price * item.qty;
+        itemCount += item.qty;
+
         return `
             <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 mb-2">
                 <div class="flex items-center gap-3">
-                    <img src="${item.image}" class="w-12 h-12 object-cover rounded shadow-sm">
+                    <img src="${item.image}" class="w-12 h-12 object-cover rounded shadow-sm" alt="${item.name}">
                     <div>
                         <h4 class="text-[10px] font-bold uppercase">${item.name}</h4>
                         <p class="text-[9px] text-gray-500">${item.selectedSize} | ${item.selectedColor}</p>
                         <p class="text-xs font-black">৳${item.price} x ${item.qty}</p>
                     </div>
                 </div>
-                <button onclick="removeFromCart(${index})" class="text-red-500 text-lg">&times;</button>
+                <button onclick="removeFromCart(${index})" class="text-red-500 text-lg font-bold">&times;</button>
             </div>`;
     }).join('');
+
+    if (cart.length === 0) {
+        cartContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Your cart is empty</p>';
+    }
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     if (deliveryOption && paymentSection) {
@@ -318,26 +365,26 @@ function updateCartUI(isPaidOverride = null) {
 
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
-    // ১. অটো ফ্রি ডেলিভারি লজিক (৩টি আইটেমে)
+    // অটো ফ্রি ডেলিভারি (৩ টি আইটেমে)
     if (itemCount >= 3) {
         baseDeliveryCharge = 0;
-        if (freeDeliveryMsg) { 
-            freeDeliveryMsg.classList.add('text-green-600', 'opacity-100'); 
-            freeDeliveryMsg.innerHTML = "FREE DELIVERY UNLOCKED! 🚚✅"; 
+        if (freeDeliveryMsg) {
+            freeDeliveryMsg.classList.add('text-green-600', 'opacity-100');
+            freeDeliveryMsg.innerHTML = "✓ FREE DELIVERY UNLOCKED! 🚚";
         }
     } else {
-        if (freeDeliveryMsg) { 
-            freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100'); 
-            freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚"; 
+        if (freeDeliveryMsg) {
+            freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100');
+            freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚";
         }
     }
 
-    // ২. প্রোমো কোড ক্যালকুলেশন (নতুন অংশ)
+    // প্রোমো কোড ডিসকাউন্ট
     let discount = 0;
     if (activePromo) {
         const promo = promoList[activePromo];
         if (promo.type === "delivery") {
-            baseDeliveryCharge = 0; // প্রোমো দিয়ে ডেলিভারি ফ্রি
+            baseDeliveryCharge = 0;
         } else if (promo.type === "percent") {
             discount = (subtotal * promo.value) / 100;
         } else if (promo.type === "fixed") {
@@ -345,13 +392,11 @@ function updateCartUI(isPaidOverride = null) {
         }
     }
 
-    // ৩. পেমেন্ট ভেরিফাইড এবং ফাইনাল ডেলিভারি ক্যালকুলেশন
     let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
     let finalTotal = subtotal + finalDeliveryCharge - discount;
 
-    // ৪. ডেলিভারি ডিসপ্লে টেক্সট
-    const deliveryDisplay = isPaymentVerified ? 
-        '<span class="text-green-600 font-black">PAID</span>' : 
+    const deliveryDisplay = isPaymentVerified ?
+        '<span class="text-green-600 font-black">PAID</span>' :
         (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
 
     if (totalElement) {
@@ -364,137 +409,134 @@ function updateCartUI(isPaidOverride = null) {
                     <span>Promo Discount</span><span>- ৳${discount.toFixed(0)}</span>
                 </div>` : ''}
 
-                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery Charge</span><span>${deliveryDisplay}</span></div>
+                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery</span><span>${deliveryDisplay}</span></div>
                 
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
                     <span class="text-2xl font-black ${isPaymentVerified ? 'text-green-600' : 'text-black'}">
-                        ৳${finalTotal.toFixed(0)} ${isPaymentVerified ? '<span class="text-[10px] block text-right font-black">[ FULL PAID ]</span>' : ''}
+                        ৳${finalTotal.toFixed(0)} ${isPaymentVerified ? '<span class="text-[10px] block text-right font-black">[ PAID ]</span>' : ''}
                     </span>
                 </div>
             </div>`;
     }
 
     const countEls = ['cart-count', 'cart-count-drawer', 'cart-count-float'];
-    countEls.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = itemCount; });
+    countEls.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = itemCount;
+    });
 }
 
-// প্রধান পেমেন্ট অপশন পরিবর্তনের ফাংশন
+// ===== পেমেন্ট পদ্ধতি আপডেট =====
 function updatePaymentUI(method) {
-    const onlineSubOptions = document.getElementById('online-sub-options');
-    const instructionBox = document.getElementById('payment-instruction');
-    const trnxInput = document.getElementById('trnx-id');
+    const onlineSubOptions = document.getElementById('online-sub-options');
+    const instructionBox = document.getElementById('payment-instruction');
+    const trnxInput = document.getElementById('trnx-id');
 
-    if (method === 'COD') {
-        onlineSubOptions.classList.add('hidden');
-        instructionBox.classList.add('hidden');
-        trnxInput.value = ''; 
-        selectedSubMethod = "";
-    } else {
-        onlineSubOptions.classList.remove('hidden');
-    }
-    validateOrder();
+    if (method === 'COD') {
+        if (onlineSubOptions) onlineSubOptions.classList.add('hidden');
+        if (instructionBox) instructionBox.classList.add('hidden');
+        if (trnxInput) trnxInput.value = '';
+        selectedSubMethod = "";
+    } else {
+        if (onlineSubOptions) onlineSubOptions.classList.remove('hidden');
+    }
+
+    validateOrder();
 }
 
-// বিকাশ বা নগদ বাটন সিলেক্ট করার ফাংশন
+// ===== অনলাইন পেমেন্ট পদ্ধতি সেট করা =====
 function setOnlineMethod(method) {
-    selectedSubMethod = method;
-    const instructionBox = document.getElementById('payment-instruction');
-    const methodHeader = document.getElementById('method-header');
-    const methodName = document.getElementById('method-name');
-    const displayNumber = document.getElementById('display-number');
-    const instructionContent = document.getElementById('instruction-content');
+    selectedSubMethod = method;
+    const instructionBox = document.getElementById('payment-instruction');
+    const methodHeader = document.getElementById('method-header');
+    const methodName = document.getElementById('method-name');
+    const displayNumber = document.getElementById('display-number');
+    const instructionContent = document.getElementById('instruction-content');
 
-    const bkashNumber = "01740550559"; 
-    const nagadNumber = "01894357549"; 
+    if (!instructionBox) return;
 
-    // কার্ট লজিক (আপনার আগের কোড অনুযায়ী)
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
-    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
-    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
+    const bkashNumber = "01740550559";
+    const nagadNumber = "01894357549";
 
-    instructionBox.classList.remove('hidden');
-    instructionBox.style.display = 'flex';
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
+    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
 
-    if (method === 'bKash') {
-        methodName.innerText = "Payment with bKash";
-        methodHeader.style.backgroundColor = "#e2136e";
-        displayNumber.innerText = bkashNumber;
-        instructionContent.innerHTML = `
-            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-            <p class="text-[11px] font-bold text-black leading-tight mt-1">
-                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
-                অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
-            </p>`;
-    } else if (method === 'Nagad') {
-        methodName.innerText = "Payment with Nagad";
-        methodHeader.style.backgroundColor = "#f7941d";
-        displayNumber.innerText = nagadNumber;
-        instructionContent.innerHTML = `
-            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-            <p class="text-[11px] font-bold text-black leading-tight mt-1">
-                ${totalQty >= 3 ? 'ফ্রি ডেলিভারি পেতে' : 'অর্ডার কনফার্ম করতে'} 
-                অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
-            </p>`;
-    }
-    validateOrder();
+    instructionBox.classList.remove('hidden');
+    instructionBox.style.display = 'flex';
+
+    if (method === 'bKash') {
+        if (methodName) methodName.innerText = "Payment with bKash";
+        if (methodHeader) methodHeader.style.backgroundColor = "#e2136e";
+        if (displayNumber) displayNumber.innerText = bkashNumber;
+        if (instructionContent) instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠান (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
+    } else if (method === 'Nagad') {
+        if (methodName) methodName.innerText = "Payment with Nagad";
+        if (methodHeader) methodHeader.style.backgroundColor = "#f7941d";
+        if (displayNumber) displayNumber.innerText = nagadNumber;
+        if (instructionContent) instructionContent.innerHTML = `
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠান (Personal)</p>
+            <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+            </p>`;
+    }
+
+    validateOrder();
 }
 
+// ===== অর্ডার ভ্যালিডেশন =====
 function validateOrder() {
-    // ইনপুট ফিল্ডগুলো খুঁজে বের করা
-    const nameInput = document.getElementById('final-name');
-    const phoneInput = document.getElementById('final-phone');
-    const addressInput = document.getElementById('final-address');
-    const trnxInput = document.getElementById('trnx-id');
-    const btn = document.getElementById('confirm-order-btn');
+    const nameInput = document.getElementById('final-name');
+    const phoneInput = document.getElementById('final-phone');
+    const addressInput = document.getElementById('final-address');
+    const trnxInput = document.getElementById('trnx-id');
+    const btn = document.getElementById('confirm-order-btn');
 
-    if (!btn) return;
+    if (!btn) return;
 
-    // মানগুলো সংগ্রহ করা
-    const name = nameInput ? nameInput.value.trim() : "";
-    const phone = phoneInput ? phoneInput.value.trim() : "";
-    const address = addressInput ? addressInput.value.trim() : "";
-    const trnxId = trnxInput ? trnxInput.value.trim() : "";
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const address = addressInput ? addressInput.value.trim() : "";
+    const trnxId = trnxInput ? trnxInput.value.trim() : "";
 
-    // বর্তমান পেমেন্ট মেথড চেক করা
-    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
 
-    // বেসিক ইনফরমেশন ভ্যালিডেশন (নাম, ফোন অন্তত ১১ ডিজিট, এবং ঠিকানা)
-    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
+    let isInfoValid = name !== "" && phone.length >= 11 && address !== "";
+    let isPaymentValid = false;
 
-    // পেমেন্ট ভ্যালিডেশন লজিক
-    let isPaymentValid = false;
-    if (paymentMethod === 'COD') {
-        // ক্যাশ অন ডেলিভারি হলে পেমেন্ট সবসময় ভ্যালিড
-        isPaymentValid = true; 
-    } else {
-        // অনলাইন পেমেন্ট হলে ট্রানজেকশন আইডি অন্তত ৮ ডিজিট হতে হবে
-        isPaymentValid = trnxId.length >= 8; 
-    }
+    if (paymentMethod === 'COD') {
+        isPaymentValid = true;
+    } else {
+        isPaymentValid = trnxId.length >= 8;
+    }
 
-    // বাটন একটিভ বা ডিঅ্যাক্টিভ করা
-    if (isInfoValid && isPaymentValid) {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.add('bg-[#25D366]'); // হোয়াটসঅ্যাপ সবুজ রঙ
-        btn.style.opacity = "1";
+    if (isInfoValid && isPaymentValid) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.add('bg-[#25D366]');
+        btn.style.opacity = "1";
 
-        // কার্টে ফুল পেইড স্ট্যাটাস আপডেট
-        if (typeof updateCartUI === "function") {
-            // যদি অনলাইন পেমেন্ট হয় তবে "Full Paid" স্ট্যাটাস যাবে
-            updateCartUI(paymentMethod !== 'COD' ? "Full Paid" : "Unpaid");
-        }
-    } else {
-        btn.disabled = true;
-        btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.remove('bg-[#25D366]');
-        btn.style.opacity = "0.5";
+        if (typeof updateCartUI === "function") {
+            updateCartUI(paymentMethod !== 'COD' ? "Full Paid" : "Unpaid");
+        }
+    } else {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.remove('bg-[#25D366]');
+        btn.style.opacity = "0.5";
 
-        if (typeof updateCartUI === "function") updateCartUI("Unpaid");
-    }
+        if (typeof updateCartUI === "function") updateCartUI("Unpaid");
+    }
 }
+
+// ===== হোয়াটসঅ্যাপে অর্ডার কনফার্ম করা =====
 function confirmOrderWhatsApp() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
@@ -507,38 +549,45 @@ function confirmOrderWhatsApp() {
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
     if (!name || !phone || !address || cart.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।' });
+        Swal.fire({
+            icon: 'warning',
+            title: 'অসম্পূর্ণ তথ্য!',
+            text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।'
+        });
         return;
     }
 
     if (paymentMethod !== 'COD' && trnxId.length < 8) {
-        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'সঠিক Transaction ID দিন।' });
+        Swal.fire({
+            icon: 'warning',
+            title: 'TRXID প্রয়োজন!',
+            text: 'সঠিক Transaction ID দিন।'
+        });
         return;
     }
 
-    // ১. আইটেম এবং সাবটোটাল ক্যালকুলেশন
-    let itemsText = ""; 
+    // আইটেম এবং সাবটোটাল
+    let itemsText = "";
     let subtotal = 0;
     cart.forEach((item) => {
         itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
         subtotal += item.price * item.qty;
     });
 
-    // ২. ডেলিভারি চার্জ ক্যালকুলেশন (প্রোমো কোড এবং অটো ফ্রি ডেলিভারি সহ)
+    // ডেলিভারি চার্জ
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    
-    // ৩টি বা তার বেশি হলে অটো ফ্রি
+
     if (totalQty >= 3) baseCharge = 0;
 
-    // ৩. প্রোমো ডিসকাউন্ট ক্যালকুলেশন
+    // প্রোমো ডিসকাউন্ট
     let discount = 0;
     let promoInfo = "NONE";
-    
+
     if (activePromo) {
         const promo = promoList[activePromo];
-        promoInfo = activePromo; // কোন কোড ইউজ করেছে
-        
+        promoInfo = activePromo;
+
         if (promo.type === "delivery") {
             baseCharge = 0;
         } else if (promo.type === "percent") {
@@ -549,111 +598,120 @@ function confirmOrderWhatsApp() {
     }
 
     const totalBill = subtotal + baseCharge - discount;
-
-    // ৪. পেমেন্ট স্ট্যাটাস নির্ধারণ
-    // যদি পেমেন্ট মেথড Online হয়, তবে Due Amount হবে ০
     let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
-    // ৫. হোয়াটসঅ্যাপ মেসেজ ফরমেটিং (Premium Layout)
-    let message = `*NEW ORDER - REDAMS*%0A`;
+    // হোয়াটসঅ্যাপ মেসেজ
+    let message = `*🛍️ NEW ORDER - REDAMS*%0A`;
     message += `---------------------------%0A`;
-    message += `*CUSTOMER DETAILS*%0A`;
+    message += `*📋 CUSTOMER DETAILS*%0A`;
     message += `*Name:* ${name}%0A`;
     message += `*Phone:* ${phone}%0A`;
     message += `*Address:* ${address}%0A`;
     message += `---------------------------%0A`;
-    message += `*ORDER SUMMARY*%0A`;
+    message += `*📦 ORDER SUMMARY*%0A`;
     message += `${itemsText}`;
     message += `---------------------------%0A`;
-    message += `*BILLING DETAILS*%0A`;
+    message += `*💰 BILLING DETAILS*%0A`;
     message += `*Subtotal:* ৳${subtotal}%0A`;
     message += `*Promo Used:* ${promoInfo}%0A`;
     if (discount > 0) message += `*Discount:* - ৳${discount.toFixed(0)}%0A`;
     message += `*Delivery:* ${baseCharge === 0 ? "FREE" : "৳" + baseCharge}%0A`;
     message += `*TOTAL BILL:* ৳${totalBill.toFixed(0)}%0A`;
     message += `---------------------------%0A`;
-    message += `*PAYMENT INFO*%0A`;
+    message += `*💳 PAYMENT INFO*%0A`;
     message += `*Method:* ${paymentMethod}%0A`;
     message += `*Status:* ${paymentStatus}%0A`;
     message += `*TRXID:* ${trnxId}%0A`;
     message += `*DUE AMOUNT:* ৳${finalPayable.toFixed(0)}%0A`;
     message += `---------------------------%0A`;
-    message += `_Order confirmed via Redams Website_`;
+    message += `_✅ Order confirmed via Redams Website_`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-}
-// হেল্পার ফাংশন এবং ইভেন্ট লিসেনার
-function removeFromCart(index) { 
-    cart.splice(index, 1); 
-    updateCartUI(); 
-    validateOrder(); // আইটেম রিমুভ করলে বাটন চেক করবে
-}
 
-function toggleCart(open = false) { 
-    const d = document.getElementById('cart-drawer'); 
-    if(open) d.classList.remove('translate-x-full'); 
-    else d.classList.toggle('translate-x-full'); 
-}
-
-function closeModal() { 
-    document.getElementById('product-modal').classList.replace('flex', 'hidden'); 
+    // অর্ডার ক্লিয়ার করা
+    setTimeout(() => {
+        cart = [];
+        updateCartUI();
+        toggleCart(false);
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Sent!',
+            text: 'Your order has been sent to WhatsApp. Our team will contact you soon!'
+        });
+    }, 500);
 }
 
-// পেজ লোড হওয়ার সময় ইভেন্ট লিসেনার সেট করা
-document.addEventListener('DOMContentLoaded', () => {
-    // সব ইনপুট ফিল্ডে লিসেনার অ্যাড করা যাতে টাইপ করলেই বাটন চেক হয়
-    const inputs = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
-    inputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', validateOrder);
-    });
+// ===== কার্ট থেকে আইটেম রিমুভ করা =====
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartUI();
+    validateOrder();
+}
 
-    loadProducts();
-});
+// ===== কার্ট ড্রয়ার টগল করা =====
+function toggleCart(open = false) {
+    const d = document.getElementById('cart-drawer');
+    if (!d) return;
+
+    if (open) {
+        d.classList.remove('translate-x-full');
+    } else {
+        d.classList.toggle('translate-x-full');
+    }
+}
+
+// ===== মোডাল বন্ধ করা =====
+function closeModal() {
+    const modal = document.getElementById('product-modal');
+    if (modal) modal.classList.replace('flex', 'hidden');
+}
+
+// ===== স্বয়ংক্রিয় স্ক্রল সেটআপ =====
 function setupAutoScroll(slider) {
-    if (!slider) return;
+    if (!slider) return;
 
-    let scrollSpeed = 0.6;
-    let isPaused = false;
-    let animationId;
+    let scrollSpeed = 0.6;
+    let isPaused = false;
+    let animationId;
 
-    const step = () => {
-        if (!isPaused) {
-            slider.scrollLeft += scrollSpeed;
-            
-            // লুপ শেষ হলে শুরুতে ফিরে আসা
-            if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) {
-                slider.scrollLeft = 0;
-            }
-        }
-        animationId = requestAnimationFrame(step);
-    };
+    const step = () => {
+        if (!isPaused) {
+            slider.scrollLeft += scrollSpeed;
 
-    // ইউজার মাউস বা টাচ করলে স্ক্রল থামিয়ে দেওয়া (User Experience ভালো করার জন্য)
-    slider.addEventListener('mouseenter', () => isPaused = true);
-    slider.addEventListener('mouseleave', () => isPaused = false);
-    slider.addEventListener('touchstart', () => isPaused = true);
-    slider.addEventListener('touchend', () => isPaused = false);
+            if (slider.scrollLeft >= (slider.scrollWidth - slider.offsetWidth - 1)) {
+                slider.scrollLeft = 0;
+            }
+        }
+        animationId = requestAnimationFrame(step);
+    };
 
-    // প্রথমবার ফাংশনটি চালু করা
-    animationId = requestAnimationFrame(step);  
+    slider.addEventListener('mouseenter', () => isPaused = true);
+    slider.addEventListener('mouseleave', () => isPaused = false);
+    slider.addEventListener('touchstart', () => isPaused = true);
+    slider.addEventListener('touchend', () => isPaused = false);
+
+    animationId = requestAnimationFrame(step);
 }
+
+// ===== রিভিউ লোড করা =====
 async function loadReviews() {
     try {
         const response = await fetch('reviews.json');
+        if (!response.ok) throw new Error('Failed to load reviews');
+
         const reviews = await response.json();
         const wrapper = document.getElementById('reviews-wrapper');
         if (!wrapper) return;
 
         const createCard = (r) => `
-            <div class="review-card bg-white border border-gray-100 p-10 transition-all duration-700 hover:border-black flex flex-col justify-between min-h-[250px]">
+            <div class="review-card bg-white border border-gray-100 p-10 transition-all duration-700 hover:border-black flex flex-col justify-between min-h-[250px] rounded-xl">
                 <div>
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex text-yellow-400 text-[9px] gap-1">
                             ${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}
                         </div>
-                        <span class="text-[9px] font-black text-gray-200 uppercase tracking-widest">${r.date}</span>
+                        <span class="text-[9px] font-black text-gray-200 uppercase tracking-widest">${r.date || 'Recent'}</span>
                     </div>
                     <p class="text-gray-800 text-[13px] leading-[1.8] font-medium mb-10 italic">"${r.text}"</p>
                 </div>
@@ -664,16 +722,15 @@ async function loadReviews() {
                     <div>
                         <h4 class="text-[10px] font-black uppercase text-black tracking-widest">${r.name}</h4>
                         <div class="flex items-center gap-1.5 text-[8px] text-green-600 font-black uppercase mt-0.5">
-                            <i class="fa-solid fa-shield-check"></i> Verified Purchase
+                            <i class="fa-solid fa-shield-check"></i> Verified
                         </div>
                     </div>
                 </div>
             </div>`;
 
-        // কন্টেন্ট লোড করা
         wrapper.innerHTML = reviews.map(r => createCard(r)).join('');
 
-        // --- স্মার্ট স্ক্রলিং লজিক ---
+        // স্মার্ট স্ক্রলিং
         let isDown = false;
         let startX;
         let scrollLeft;
@@ -691,7 +748,6 @@ async function loadReviews() {
 
         const stopAuto = () => clearInterval(timer);
 
-        // মাউস ইভেন্ট
         wrapper.addEventListener('mousedown', (e) => {
             isDown = true;
             stopAuto();
@@ -701,7 +757,7 @@ async function loadReviews() {
 
         wrapper.addEventListener('mouseup', () => { isDown = false; startAuto(); });
         wrapper.addEventListener('mouseleave', () => { isDown = false; startAuto(); });
-        
+
         wrapper.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
@@ -710,44 +766,65 @@ async function loadReviews() {
             wrapper.scrollLeft = scrollLeft - walk;
         });
 
-        // মোবাইল টাচ ইভেন্ট
         wrapper.addEventListener('touchstart', stopAuto);
         wrapper.addEventListener('touchend', startAuto);
 
         startAuto();
-
-    } catch (e) { console.error("Review Loading Error:", e); }
+    } catch (e) {
+        console.error("Review Loading Error:", e);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', loadReviews);
-
+// ===== পপআপ শো করা =====
 function showPopup() {
     const popup = document.getElementById('entry-popup');
     const box = document.getElementById('popup-box');
-    
+
+    if (!popup) return;
+
     popup.classList.remove('hidden');
     popup.classList.add('flex');
-    
-    // এনিমেশনের জন্য সামান্য ডিলে
+
     setTimeout(() => {
-        box.classList.remove('scale-90', 'translate-y-10', 'opacity-0');
-        box.classList.add('scale-100', 'translate-y-0', 'opacity-100');
+        if (box) {
+            box.classList.remove('scale-90', 'translate-y-10', 'opacity-0');
+            box.classList.add('scale-100', 'translate-y-0', 'opacity-100');
+        }
     }, 100);
 }
 
+// ===== পপআপ বন্ধ করা =====
 function closePopup() {
     const popup = document.getElementById('entry-popup');
     const box = document.getElementById('popup-box');
-    
-    box.classList.add('scale-90', 'translate-y-10', 'opacity-0');
-    
+
+    if (!popup) return;
+
+    if (box) {
+        box.classList.add('scale-90', 'translate-y-10', 'opacity-0');
+    }
+
     setTimeout(() => {
         popup.classList.add('hidden');
         popup.classList.remove('flex');
     }, 500);
 }
 
-// সাইটে আসার ২ সেকেন্ড পর পপ-আপ দেখাবে
+// ===== ইভেন্ট লিসেনার এবং ইনিশিয়ালাইজেশন =====
+document.addEventListener('DOMContentLoaded', () => {
+    // ইনপুট ফিল্ডে লিসেনার
+    const inputs = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', validateOrder);
+    });
+
+    // প্রোডাক্ট এবং রিভিউ লোড
+    loadProducts();
+    loadReviews();
+});
+
+// পেজ লোড হওয়ার পর পপআপ দেখানো
 window.addEventListener('load', () => {
-    setTimeout(showPopup, 2000); 
+    setTimeout(showPopup, 2000);
 });
