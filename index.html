@@ -21,6 +21,57 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    <style>
+       /* পুরো প্রোডাক্ট স্টক আউট হলে ইমেজ কন্টেইনারের জন্য */
+.product-card-out {
+    position: relative;
+}
+
+/* ইমেজ স্মুথ ব্লার এবং ব্ল্যাকিশ ডার্ক টোন ইফেক্ট */
+.product-card-out .product-img-blur {
+    filter: blur(6px) brightness(60%) grayscale(20%);
+    transform: scale(1.02);
+    transition: all 0.5s ease;
+}
+
+/* প্রিমিয়াম লাক্সারি আউফ অব স্টক ব্যাজ (Premium Glassmorphism & Neon Glow) */
+.premium-out-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.65); /* ডার্ক গ্লাস ইফেক্ট */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
+    padding: 10px 22px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(239, 68, 68, 0.2); /* হালকা রেড গ্লো */
+    white-space: nowrap;
+    z-index: 30;
+    pointer-events: none;
+}
+
+/* নির্দিষ্ট সাইজ স্টক আউট হলে লাল ক্রস ইফেক্ট (আগের মতোই থাকবে) */
+.disabled-size-option {
+    position: relative;
+    opacity: 0.25;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+.disabled-size-option::before {
+    content: "";
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 2px;
+    background: #ef4444;
+    transform: rotate(-45deg);
+    z-index: 10;
+}
     /* মেনু ওভারলে ডিফল্টভাবে পুরোপুরি ইনঅ্যাক্টিভ থাকবে */
     #menu-overlay {
         position: fixed;
