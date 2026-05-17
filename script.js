@@ -241,15 +241,31 @@ function openModal(id) {
         </div>`;
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
-// ৮. কার্ট ও পেমেন্ট লজিক
 function addToCart(id) {
     if (!selectedSize || !selectedColor) {
         Swal.fire({ title: 'Attention!', text: 'Please select both Color and Size.', icon: 'warning', confirmButtonColor: '#000' });
         return;
     }
     const p = allProducts.find(item => item.id === id);
-    cart.push({ ...p, selectedSize, selectedColor, qty: modalQty, image: p.images[0] });
-    updateCartUI(); closeModal(); toggleCart(true);
+    if (!p) return; // সেফটি চেক: প্রোডাক্ট না পাওয়া গেলে যাতে এরর না আসে
+
+    // কার্টে পুশ করার সময় আমরা sizes-এর ঝামেলা এড়াতে শুধুমাত্র সিলেক্টেড সাইজের নাম পাঠিয়ে দিচ্ছি
+    // এতে updateCartUI ফাংশনটি কোনো এরর ছাড়াই আগের মতো ঠিকঠাক কাজ করবে
+    cart.push({ 
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        category: p.category,
+        selectedSize: selectedSize, // এখানে সিলেক্টেড সাইজের স্ট্রিং চলে যাবে (যেমন: "M")
+        selectedColor: selectedColor, 
+        qty: modalQty, 
+        image: p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'
+    });
+
+    updateCartUI(); 
+    closeModal(); 
+    toggleCart(true);
 }
 
 function applyPromoCode() {
