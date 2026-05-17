@@ -95,15 +95,17 @@ function updateQty(val) {
     if (qtyElement) qtyElement.innerText = modalQty;
 }
 
-// ===== নতুন আগমন স্��াইডার রেন্ডার =====
+// ===== নতুন আগমন স্লাইডার রেন্ডার =====
 function renderNewArrivals(products) {
     const slider = document.getElementById('new-arrivals-slider');
     if (!slider) return;
 
-    const newItems = products.slice(-10).reverse();
+    // Stock out products exclude করা
+    const availableProducts = products.filter(p => !p.isOutOfStock);
+    const newItems = availableProducts.slice(-10).reverse();
 
     slider.innerHTML = newItems.map(p => `
-        <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer" onclick="openModal(${p.id})">
+        <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer relative" onclick="openModal(${p.id})">
             <div class="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-[#f8f8f8]">
                 <img src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
                      class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]"
@@ -148,14 +150,19 @@ function displayProducts(products, showAll = false) {
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
         const firstImage = p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg';
+        const isOutOfStock = p.isOutOfStock === true;
 
         return `
-            <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative">
+            <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative ${isOutOfStock ? 'opacity-60' : ''}">
                 ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
                 
-                <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="openModal(${p.id})">
+                ${isOutOfStock ? `<div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center z-20 top-3 left-3 right-3 bottom-3">
+                    <span class="bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-full border border-white/20">Out of Stock</span>
+                </div>` : ''}
+                
+                <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="${isOutOfStock ? 'return false;' : `openModal(${p.id})`}" style="${isOutOfStock ? 'cursor: not-allowed;' : ''}">
                     <img src="${firstImage}" 
-                         class="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                         class="w-full h-full object-cover ${isOutOfStock ? '' : 'group-hover:scale-110'} transition duration-700"
                          alt="${p.name}">
                 </div>
 
@@ -166,8 +173,10 @@ function displayProducts(products, showAll = false) {
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
                     </div>
                     
-                    <button onclick="openModal(${p.id})" class="w-full bg-black text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 hover:bg-red-600 transition">
-                        Order Now
+                    <button onclick="${isOutOfStock ? 'alert("This product is out of stock"); return false;' : `openModal(${p.id})`}" 
+                            class="w-full ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-red-600'} text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 transition" 
+                            ${isOutOfStock ? 'disabled' : ''}>
+                        ${isOutOfStock ? 'Out of Stock' : 'Order Now'}
                     </button>
                 </div>
             </div>`;
@@ -182,6 +191,17 @@ function openModal(id) {
     const p = allProducts.find(item => item.id === id);
     if (!p) return;
 
+    // Stock Out check করা
+    if (p.isOutOfStock === true) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Out of Stock!',
+            text: 'This product is currently out of stock. Please check back later.',
+            confirmButtonColor: '#000'
+        });
+        return;
+    }
+
     const content = document.getElementById('modal-content');
     selectedSize = null;
     selectedColor = null;
@@ -189,12 +209,18 @@ function openModal(id) {
 
     const hasDiscount = p.originalPrice && p.originalPrice > p.price;
 
-    // সাইজ বোতাম তৈরি
+    // সাইজ বোতাম তৈরি (individual size availability check করা)
     let sizesHTML = '';
     if (p.sizes && Array.isArray(p.sizes)) {
         p.sizes.forEach(size => {
             const sizeStr = typeof size === 'string' ? size : (size.name || '');
-            sizesHTML += `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`;
+            const isAvailable = typeof size === 'string' ? true : (size.available !== false);
+            
+            if (isAvailable) {
+                sizesHTML += `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`;
+            } else {
+                sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed line-through">${sizeStr}</button>`;
+            }
         });
     }
 
@@ -241,6 +267,7 @@ function openModal(id) {
                 <div class="mb-6">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Size</p>
                     <div class="flex gap-2 flex-wrap">${sizesHTML}</div>
+                    <p class="text-[9px] text-gray-400 mt-2">Disabled sizes are out of stock</p>
                 </div>
                 <div class="mb-8 flex items-center gap-5">
                     <div class="flex items-center border-2 border-gray-100 rounded-2xl bg-gray-50">
