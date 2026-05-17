@@ -67,7 +67,7 @@
     "price": 299,
     "originalPrice": 350,
     "category": "regular-tshirt",
-    "isOutOfStock": false,
+    "isOutOfStock": true,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/regular t shirt.jpg",
@@ -664,9 +664,9 @@
     ],
     "colors": ["Chocolate"],
     "sizes": [
-      { "name": "M", "available": true },
+      { "name": "M", "available": false },
       { "name": "L", "available": true },
-      { "name": "XL", "available": true }
+      { "name": "XL", "available": false }
     ]
   },
   {
