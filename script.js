@@ -131,23 +131,34 @@ function renderNewArrivals(products) {
     setupAutoScroll(slider);
 }
 
-// ৬. প্রোডাক্ট গ্রিড এবং ডিসকাউন্ট ক্যালকুলেশন (Fixed)
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
 
+    // যদি কোনো কারণে products ডেটা না আসে বা খালি হয়, তাহলে গ্রিড খালি করে দেবে
+    if (!products || !Array.isArray(products)) {
+        grid.innerHTML = '';
+        return;
+    }
+
     const productsToShow = showAll ? products : products.slice(0, 8);
 
     grid.innerHTML = productsToShow.map(p => {
+        // সেফটি চেক: প্রোডাক্ট অবজেক্ট ঠিকঠাক আছে কিনা
+        if (!p) return '';
+
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
+        
+        // প্রথম ইমেজটি সেফলি নেওয়ার জন্য চেক (ইমেজ না থাকলে ব্ল্যাঙ্ক দেখাবে, ক্র্যাশ করবে না)
+        const firstImage = p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg';
 
         return `
             <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative">
                 ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
                 
                 <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="openModal(${p.id})">
-                    <img src="${p.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                    <img src="${firstImage}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                 </div>
 
                 <div class="p-3 text-center">
