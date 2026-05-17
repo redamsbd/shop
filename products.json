@@ -5,6 +5,7 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/cosmic front.png",
@@ -12,7 +13,13 @@
       "images/size chart drop.jpeg"
     ],
     "colors": ["White"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 2,
@@ -20,11 +27,19 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Premium Organic Cotton.<br><b>Style:</b> Streetwear Drop Shoulder.<br><b>Detail:</b>High-quality DTF .<br>Perfect for your everyday casual look.",
-    "images": ["images/drop shoulder- Pirates Tee.jpg",
-     "images/size chart drop.jpeg"],
+    "images": [
+      "images/drop shoulder- Pirates Tee.jpg",
+      "images/size chart drop.jpeg"
+    ],
     "colors": ["Black"],
-    "sizes": ["M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 3,
@@ -32,11 +47,19 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Combed Cotton.<br><b>Fit:</b> Relaxed Drop Shoulder.<br>Classic Spider-Man themed design with high quality print.",
-    "images": ["images/Spider man 01.jpg",
-     "images/size chart drop.jpeg"],
+    "images": [
+      "images/Spider man 01.jpg",
+      "images/size chart drop.jpeg"
+    ],
     "colors": ["White", "Black"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 4,
@@ -44,6 +67,7 @@
     "price": 299,
     "originalPrice": 350,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/regular t shirt.jpg",
@@ -51,7 +75,12 @@
       "images/size chart regular.jpeg"
     ],
     "colors": ["Red", "White"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 5,
@@ -59,11 +88,20 @@
     "price": 299,
     "originalPrice": 399,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Heavyweight Cotton (200+GSM).<br><b>Style:</b> Deep Black Aesthetic.<br>Minimalist drop shoulder tee for a clean, sharp look.",
-    "images": ["images/DROP BLACK.jpg",
-     "images/size chart drop.jpeg"],
+    "images": [
+      "images/DROP BLACK.jpg",
+      "images/size chart drop.jpeg"
+    ],
     "colors": ["Black"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 6,
@@ -71,11 +109,20 @@
     "price": 399,
     "originalPrice": 520,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Premium 100%Cotton Fabric.<br><b>Theme:</b> Biker/Lifestyle.<br>Durability meets style. Designed for those who live on the edge.",
-    "images": ["images/born live ride.jpg",
-     "images/size chart drop.jpeg"],
+    "images": [
+      "images/born live ride.jpg",
+      "images/size chart drop.jpeg"
+    ],
     "colors": ["Black"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 7,
@@ -83,11 +130,20 @@
     "price": 399,
     "originalPrice": 550,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Anime Collection:</b> DBZ Special Edition.<br><b>Fabric:</b> Soft Hand-feel Cotton.<br>Oversized fit with iconic anime graphics.",
-    "images": ["images/dragon ball z.jpg",
-     "images/size chart drop.jpeg"],
+    "images": [
+      "images/dragon ball z.jpg",
+      "images/size chart drop.jpeg"
+    ],
     "colors": ["Black", "White"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 8,
@@ -95,14 +151,21 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Premium Dyed Cotton.<br><b>Fit:</b> Oversized Comfort.<br>Typography based streetwear design for the modern generation.",
     "images": [
       "images/❝LIBERAL❞ bottle green.jpg",
       "images/❝LIBERAL❞ black.jpg",
-       "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
     "colors": ["Bottle Green", "Black"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 9,
@@ -110,20 +173,28 @@
     "price": 299,
     "originalPrice": 399,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton.<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
       "images/regular solid baby pink.jpg",
       "images/w1-side.jpg"
     ],
     "colors": ["Baby Pink"],
-    "sizes": ["S", "M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 10,
     "name": "Primium Acid Wash",
     "price": 450,
     "originalPrice": 520,
     "category": "acid-wash",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Acid wash Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b>Can be customized with High Quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/ACID WASH mock up.jpg",
@@ -131,22 +202,31 @@
       "images/size chart drop.jpeg"
     ],
     "colors": ["Black"],
-    "sizes": ["M", "L", "XL", "XXL"]
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   
   {
     "id": 11,
     "name": "LOST BOY",
     "price": 399,
     "originalPrice": 499,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton(180+ GSM)<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
-     "images/LOST BOY.jpg",
-     "images/size chart regular.jpeg"
+      "images/LOST BOY.jpg",
+      "images/size chart regular.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 12,
@@ -154,13 +234,18 @@
     "price": 399,
     "originalPrice": 499,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton(180+ GSM)<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
-     "images/DROPS.jpg",
-     "images/size chart regular.jpeg"
+      "images/DROPS.jpg",
+      "images/size chart regular.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 13,
@@ -168,127 +253,180 @@
     "price": 399,
     "originalPrice": 499,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton(180+ GSM)<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
-     "images/redams red.jpg",
-       "images/REDAMS BLACK.jpg",
-     "images/size chart regular.jpeg"
+      "images/redams red.jpg",
+      "images/REDAMS BLACK.jpg",
+      "images/size chart regular.jpeg"
     ],
-    "colors": ["Maroon","Black"],
-    "sizes": [ "M", "L", "XL"]
+    "colors": ["Maroon", "Black"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
-    {
+  {
     "id": 14,
     "name": "Relax",
     "price": 399,
     "originalPrice": 499,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton(180+ GSM)<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
-     "images/Relax.jpg",
-     "images/size chart regular.jpeg"
+      "images/Relax.jpg",
+      "images/size chart regular.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "s","M", "L", "XL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "s", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
-   {
+  {
     "id": 15,
     "name": "Silent. Ruthless. Unstoppable",
     "price": 399,
     "originalPrice": 499,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Soft-touch Cotton(180+ GSM)<br><b>Fit:</b> Feminine / Regular Fit.<br>Essential summer colors with a soft and stretchy feel.",
     "images": [
-     "images/Silent. Ruthless. Unstoppable..jpg",
-     "images/size chart regular.jpeg"
+      "images/Silent. Ruthless. Unstoppable..jpg",
+      "images/size chart regular.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "s","M", "L", "XL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "s", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
-    {
+  {
     "id": 16,
     "name": "Authentic",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/Authentic.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-     {
+  {
     "id": 17,
     "name": "BOOM BOX",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/BOOM BOX.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 18,
     "name": "Death Note",
     "price": 399,
     "originalPrice": 520,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/Death Note.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 19,
     "name": "GIVE UP ON YOUR DREAMS AND DIE",
     "price": 399,
     "originalPrice": 520,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/GIVE UP ON YOUR DREAMS AND DIE.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 20,
     "name": "Keep Moving Forward",
     "price": 420,
     "originalPrice": 550,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/Keep Moving Forward BLACK.jpg",
-       "images/Keep Moving Forward.jpg",
- "images/size chart drop.jpeg"
+      "images/Keep Moving Forward.jpg",
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 21,
     "name": "METALLIKA",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/GIVE UP ON YOUR DREAMS AND DIE.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 22,
@@ -296,55 +434,79 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/Mickey mouse.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-    {
+  {
     "id": 23,
     "name": "NO LOVE",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/NO LOVE.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 24,
     "name": "Palestine premium",
     "price": 420,
     "originalPrice": 550,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/Palestine premium.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 25,
     "name": "THE BATMAN",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/THE BATMAN.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 26,
@@ -352,41 +514,59 @@
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/THE SHAWSHANK REDEMPTION.jpg ",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
-   {
+  {
     "id": 27,
     "name": "পড়া লেখা চাঙ্গে আমি ভাসি গাঙ্গে",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/পড়া লেখা চাঙ্গে আমি ভাসি গাঙ্গে.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 28,
-      "name": "❝DEMON SLAYER-01",
+    "name": "❝DEMON SLAYER-01",
     "price": 399,
     "originalPrice": 499,
     "category": "drop-shoulder",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium Cotton (200+ GSM).<br><b>Fit:</b> Drop Shoulder / Oversized.<br><b>Print:</b> High-quality DTF print.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/❝DEMON SLAYER-01❞.jpg",
- "images/size chart drop.jpeg"
+      "images/size chart drop.jpeg"
     ],
-    "colors": ["Black","White"],
-    "sizes": [ "M", "L", "XL", "XXL"]
+    "colors": ["Black", "White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   },
   {
     "id": 29,
@@ -394,13 +574,19 @@
     "price": 399,
     "originalPrice": 450,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/BANGLADESH 2.0.jpg",
       "images/size chart regular.jpeg"
     ],
     "colors": ["Black", "White"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 30,
@@ -408,27 +594,39 @@
     "price": 399,
     "originalPrice": 450,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/FREEDOM.jpg",
       "images/size chart regular.jpeg"
     ],
     "colors": ["Black", "White"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
-    {
+  {
     "id": 31,
     "name": "GUNS N' ROSES",
     "price": 399,
     "originalPrice": 450,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/GUNS N' ROSES.jpg",
       "images/size chart regular.jpeg"
     ],
     "colors": ["Black", "White"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 32,
@@ -436,59 +634,81 @@
     "price": 399,
     "originalPrice": 450,
     "category": "regular-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
       "images/Polaroid.jpg",
       "images/size chart regular.jpeg"
     ],
     "colors": ["Black", "White"],
-    "sizes": ["S", "M", "L", "XL"]
+    "sizes": [
+      { "name": "S", "available": true },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 33,
     "name": "Classic Zipper Polo Shirt",
     "price": 650,
-    "originalPrice":799,
+    "originalPrice": 799,
     "category": "polo-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/polo coklet model.jpeg",
-       "images/polo coklet close.jpeg",
- "images/polo coklet only tee.jpeg",
+      "images/polo coklet close.jpeg",
+      "images/polo coklet only tee.jpeg",
       "images/polo size chart.jpeg"
     ],
     "colors": ["Chocolate"],
-    "sizes": [ "M", "L", "XL"]
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   },
   {
     "id": 34,
     "name": "Classic Zipper Polo Shirt",
     "price": 650,
-    "originalPrice":799,
+    "originalPrice": 799,
     "category": "polo-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/polo blue model.jpeg",
       "images/polo blue close.jpeg",
-       "images/polo blue only tee.jpeg",
+      "images/polo blue only tee.jpeg",
       "images/polo size chart.jpeg"
     ],
     "colors": ["Blue"],
-    "sizes": [ "M", "L", "XL"]
-  },{
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
+  },
+  {
     "id": 35,
     "name": "Classic Zipper Polo Shirt",
     "price": 650,
-    "originalPrice":799,
+    "originalPrice": 799,
     "category": "polo-tshirt",
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/polo olive model.jpeg",
-       "images/polo olive close.jpeg",
- "images/polo olive only tee.jpeg",
+      "images/polo olive close.jpeg",
+      "images/polo olive only tee.jpeg",
       "images/polo size chart.jpeg"
     ],
     "colors": ["Olive"],
-    "sizes": [ "M", "L", "XL"]
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   }
 ]
