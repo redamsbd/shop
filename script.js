@@ -27,6 +27,22 @@ function loadProducts() {
             allProducts = data;
             const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
             const selectedCat = getCategoryFromURL();
+            // লুপের ভেতরে চেক করবেন প্রোডাক্ট স্টক আউট কি না
+const isCardOut = product.isOutOfStock;
+const cardClass = isCardOut ? "relative overflow-hidden group product-card-out" : "relative overflow-hidden group";
+
+// আপনার প্রোডাক্ট কার্ডের HTML স্ট্রাকচারে নিচের মতো ক্লাস বসান:
+`
+<div class="${cardClass}">
+    <!-- ইমেজের ট্যাগে 'product-img-blur' ক্লাস দিন -->
+    <img src="${product.image}" class="w-full h-full object-cover product-img-blur transition duration-500">
+    
+    <!-- যদি স্টক আউট হয় তবে ওপরে সুন্দর একটি ব্যাজ দেখাবে -->
+    ${isCardOut ? `<div class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+        <span class="bg-red-600/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-white/20 shadow-lg">Out of Stock</span>
+    </div>` : ''}
+</div>
+`
 
             if (isShopPage) {
                 if (selectedCat) {
