@@ -4,8 +4,8 @@ let adminOrders = [];
 let adminPromos = [];
 let editingProductIndex = -1;
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_USERNAME = "redamsbd";
+const ADMIN_PASSWORD = "redamsbd16";
 
 // ===== Login =====
 function adminLogin() {
@@ -18,7 +18,7 @@ function adminLogin() {
         loadAdminData();
         switchTab('dashboard');
     } else {
-        alert('❌ Invalid credentials!\nDefault: admin / admin123');
+        alert('REDAMS');
     }
 }
 
