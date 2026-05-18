@@ -710,5 +710,26 @@
       { "name": "L", "available": true },
       { "name": "XL", "available": true }
     ]
+  },
+    {
+    "id": 35,
+    "name": "Premium Old Money Polo Shirt",
+    "price": 650,
+    "originalPrice": 799,
+    "category": "polo-tshirt",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic premium polo.<br><b>Rib:</b> Premium textured rib is used.<br>Breathable fabric for maximum comfort.",
+    "images": [
+      "images/sky blue polo model.png",
+      "images/sky blue tee 1.jpg",
+      "images/sky blue tee 2.jpg",
+      "images/polo size chart.jpeg"
+    ],
+    "colors": ["Sky Blue"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true }
+    ]
   }
 ]
