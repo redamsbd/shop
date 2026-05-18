@@ -2,6 +2,7 @@
 let allProducts = [];
 let adminOrders = [];
 let adminPromos = [];
+let editingProductIndex = -1;
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "admin123";
@@ -168,8 +169,8 @@ function openAddOrderModal() {
 }
 
 function saveOrder() {
-    const name = document.getElementById('order-name').value;
-    const phone = document.getElementById('order-phone').value;
+    const name = document.getElementById('order-customer-name').value;
+    const phone = document.getElementById('order-customer-phone').value;
     const amount = document.getElementById('order-amount').value;
     const status = document.getElementById('order-status').value;
 
@@ -191,8 +192,8 @@ function saveOrder() {
     updateStats();
     closeModal('order-modal');
 
-    document.getElementById('order-name').value = '';
-    document.getElementById('order-phone').value = '';
+    document.getElementById('order-customer-name').value = '';
+    document.getElementById('order-customer-phone').value = '';
     document.getElementById('order-amount').value = '';
 }
 
@@ -201,16 +202,63 @@ function updateProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
 
-    grid.innerHTML = allProducts.map(p => `
+    grid.innerHTML = allProducts.map((p, i) => `
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <img src="${p.images?.[0] || 'images/placeholder.jpg'}" class="w-full h-48 object-cover">
             <div class="p-4">
                 <p class="font-bold text-sm line-clamp-2">${p.name}</p>
                 <p class="text-lg font-black text-red-600 mt-2">৳${p.price}</p>
                 <p class="text-xs text-gray-500 mt-1">${p.isOutOfStock ? '❌ Out of Stock' : '✓ Available'}</p>
+                <button onclick="openEditProductModal(${i})" class="w-full mt-3 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </button>
             </div>
         </div>
     `).join('');
+}
+
+function openAddProductModal() {
+    editingProductIndex = -1;
+    document.getElementById('product-modal-name').value = '';
+    document.getElementById('product-modal-stock').value = '1';
+    document.getElementById('product-modal-price').value = '';
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').classList.add('flex');
+}
+
+function openEditProductModal(index) {
+    editingProductIndex = index;
+    const product = allProducts[index];
+    document.getElementById('product-modal-name').value = product.name;
+    document.getElementById('product-modal-stock').value = product.isOutOfStock ? '0' : '1';
+    document.getElementById('product-modal-price').value = product.price;
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').classList.add('flex');
+}
+
+function saveProduct() {
+    const stock = parseInt(document.getElementById('product-modal-stock').value);
+    const price = parseInt(document.getElementById('product-modal-price').value);
+
+    if (!price || (stock !== 0 && stock !== 1)) {
+        alert('Invalid stock or price!');
+        return;
+    }
+
+    if (editingProductIndex === -1) {
+        alert('Please edit existing products first. Add new products via products.json');
+        return;
+    }
+
+    allProducts[editingProductIndex].isOutOfStock = stock === 0;
+    allProducts[editingProductIndex].price = price;
+
+    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+    updateProducts();
+    updateInventory();
+    updateStats();
+    closeModal('product-modal');
+    alert('✓ Product updated!');
 }
 
 // ===== Inventory =====
@@ -218,12 +266,12 @@ function updateInventory() {
     const tbody = document.getElementById('inventory-table');
     if (!tbody) return;
 
-    tbody.innerHTML = allProducts.map(p => `
+    tbody.innerHTML = allProducts.map((p, i) => `
         <tr>
             <td class="px-6 py-4 font-bold text-sm">${p.name}</td>
             <td class="px-6 py-4 text-sm">${p.category}</td>
-            <td class="px-6 py-4"><span class="text-xs font-bold px-3 py-1 rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out' : 'Available'}</span></td>
-            <td class="px-6 py-4"><button onclick="alert('Edit via JSON')" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-pen"></i></button></td>
+            <td class="px-6 py-4"><span class="text-xs font-bold px-3 py-1 rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out' : 'In Stock'}</span></td>
+            <td class="px-6 py-4"><button onclick="openEditProductModal(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-pen"></i></button></td>
         </tr>
     `).join('');
 }
@@ -238,6 +286,7 @@ function updatePromos() {
             <td class="px-6 py-4 font-bold text-red-600">${p.code}</td>
             <td class="px-6 py-4 text-sm">${p.type === 'delivery' ? 'Free' : (p.type === 'percent' ? '%' : '৳')}</td>
             <td class="px-6 py-4 font-bold">${p.type === 'delivery' ? 'FREE' : p.value}</td>
+            <td class="px-6 py-4"><span class="text-xs text-gray-500">${p.uses} uses</span></td>
             <td class="px-6 py-4"><button onclick="deletePromo(${i})" class="text-red-600"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
     `).join('');
@@ -263,6 +312,9 @@ function savePromo() {
     updatePromos();
     closeModal('promo-modal');
     alert('✓ Promo created!');
+    
+    document.getElementById('promo-code').value = '';
+    document.getElementById('promo-value').value = '';
 }
 
 function deletePromo(i) {
