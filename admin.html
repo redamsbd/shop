@@ -24,7 +24,7 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-bold mb-2">Username</label>
-                <input type="text" id="login-username" placeholder="admin" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-600 outline-none">
+                <input type="text" id="login-username" placeholder="redamsbd" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-600 outline-none">
             </div>
             <div>
                 <label class="block text-sm font-bold mb-2">Password</label>
@@ -33,7 +33,7 @@
             <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3 rounded-lg font-black hover:bg-red-700 transition">
                 LOGIN
             </button>
-            <p class="text-xs text-gray-500 text-center">Default: admin / admin123</p>
+            <p class="text-xs text-gray-500 text-center">Username: redamsbd | Password: redamsbd16</p>
         </div>
     </div>
 </div>
@@ -51,11 +51,11 @@
             <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="dashboard">
                 <i class="fa-solid fa-chart-line"></i> Dashboard
             </button>
-            <button onclick="switchTab('orders')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="orders">
-                <i class="fa-solid fa-shopping-bag"></i> Orders
-            </button>
             <button onclick="switchTab('products')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="products">
                 <i class="fa-solid fa-box"></i> Products
+            </button>
+            <button onclick="switchTab('orders')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="orders">
+                <i class="fa-solid fa-shopping-bag"></i> Orders
             </button>
             <button onclick="switchTab('inventory')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="inventory">
                 <i class="fa-solid fa-warehouse"></i> Inventory
@@ -137,6 +137,19 @@
                 </div>
             </div>
 
+            <!-- Products Tab -->
+            <div id="products-content" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-black">Products Management</h1>
+                    <button onclick="openAddProductModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                </div>
+            </div>
+
             <!-- Orders Tab -->
             <div id="orders-content" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-8">
@@ -161,19 +174,6 @@
                         <tbody id="orders-table" class="divide-y">
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Products Tab -->
-            <div id="products-content" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <h1 class="text-4xl font-black">Products Management</h1>
-                    <button onclick="openAddProductModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700">
-                        <i class="fa-solid fa-plus"></i> Add Product
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
                 </div>
             </div>
 
@@ -213,7 +213,7 @@
                                 <th class="px-6 py-4 text-left font-bold text-sm">Code</th>
                                 <th class="px-6 py-4 text-left font-bold text-sm">Type</th>
                                 <th class="px-6 py-4 text-left font-bold text-sm">Value</th>
-                                <th class="px-6 py-4 text-left font-bold text-sm">Usage</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Uses</th>
                                 <th class="px-6 py-4 text-left font-bold text-sm">Action</th>
                             </tr>
                         </thead>
@@ -227,7 +227,49 @@
     </div>
 </div>
 
-<!-- Add/Edit Modals -->
+<!-- Product Modal (Add/Edit) -->
+<div id="product-modal" class="modal-overlay">
+    <div class="bg-white p-8 rounded-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-black mb-6" id="product-form-title">Add New Product</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="product-name" placeholder="Product Name" class="col-span-2 w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="number" id="product-price" placeholder="Price (৳)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="number" id="product-original-price" placeholder="Original Price" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            
+            <select id="product-category" class="col-span-2 w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+                <option value="">Select Category</option>
+                <option value="drop-shoulder">Drop Shoulder</option>
+                <option value="acid-wash">Acid Wash</option>
+                <option value="regular-tshirt">Regular T-Shirt</option>
+                <option value="hoodie">Hoodie</option>
+                <option value="couple-tshirt">Couple T-Shirt</option>
+                <option value="polo-tshirt">Polo T-Shirt</option>
+            </select>
+
+            <textarea id="product-description" placeholder="Description" class="col-span-2 w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600 h-20"></textarea>
+            
+            <input type="text" id="product-colors" placeholder="Colors (comma separated: Red, Blue, Black)" class="col-span-2 w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="text" id="product-sizes" placeholder="Sizes (comma separated: S, M, L, XL)" class="col-span-2 w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            
+            <div class="col-span-2">
+                <label class="block text-sm font-bold mb-2">Product Images (URLs, one per line)</label>
+                <textarea id="product-images" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600 h-20"></textarea>
+            </div>
+
+            <select id="product-stock" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+                <option value="1">✓ In Stock</option>
+                <option value="0">✗ Out of Stock</option>
+            </select>
+        </div>
+        
+        <div class="flex gap-4 mt-6">
+            <button onclick="saveProduct()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700">Save Product</button>
+            <button onclick="closeModal('product-modal')" class="flex-1 bg-gray-300 text-black py-3 rounded-lg font-bold hover:bg-gray-400">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Order Modal -->
 <div id="order-modal" class="modal-overlay">
     <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <h2 class="text-2xl font-black mb-6">Add New Order</h2>
@@ -250,21 +292,7 @@
     </div>
 </div>
 
-<div id="product-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-black mb-6">Edit Product Stock</h2>
-        <div class="space-y-4">
-            <input type="text" id="product-modal-name" placeholder="Product Name" disabled class="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-100">
-            <input type="number" id="product-modal-stock" placeholder="Stock Status (1=Available, 0=Out)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
-            <input type="number" id="product-modal-price" placeholder="Price" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
-            <div class="flex gap-4">
-                <button onclick="saveProduct()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700">Save Changes</button>
-                <button onclick="closeModal('product-modal')" class="flex-1 bg-gray-300 text-black py-3 rounded-lg font-bold hover:bg-gray-400">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- Promo Modal -->
 <div id="promo-modal" class="modal-overlay">
     <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4">
         <h2 class="text-2xl font-black mb-6">Create Promo Code</h2>
