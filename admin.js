@@ -1,3 +1,8 @@
+// ============================================
+// COMPLETE ADMIN SYSTEM - FULL WEBSITE CONTROL
+// আপনার সম্পূর্ণ website admin panel থেকে control করুন
+// ============================================
+
 // Global Variables
 let allProducts = [];
 let adminOrders = [];
@@ -7,7 +12,7 @@ let editingProductIndex = -1;
 const ADMIN_USERNAME = "redamsbd";
 const ADMIN_PASSWORD = "redamsbd16";
 
-// ===== Login =====
+// ===== LOGIN SYSTEM =====
 function adminLogin() {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
@@ -15,10 +20,11 @@ function adminLogin() {
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         document.getElementById('login-modal').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
+        localStorage.setItem('adminLoggedIn', 'true');
         loadAdminData();
         switchTab('dashboard');
     } else {
-        alert('REDAMS');
+        alert('❌ Invalid credentials!\nUsername: redamsbd\nPassword: redamsbd16');
     }
 }
 
@@ -26,33 +32,52 @@ function adminLogout() {
     if (confirm('Logout?')) {
         document.getElementById('login-modal').classList.remove('hidden');
         document.getElementById('dashboard').classList.add('hidden');
+        localStorage.removeItem('adminLoggedIn');
     }
 }
 
-// ===== Load Data =====
+// ===== LOAD ALL DATA FROM STORAGE =====
 function loadAdminData() {
-    fetch('products.json')
-        .then(r => r.json())
-        .then(data => {
-            allProducts = data;
-            updateInventory();
-            updateProducts();
-        });
+    // Load products from localStorage or fetch from products.json
+    const savedProducts = localStorage.getItem('adminProducts');
+    if (savedProducts) {
+        allProducts = JSON.parse(savedProducts);
+    } else {
+        fetch('products.json')
+            .then(r => r.json())
+            .then(data => {
+                allProducts = data;
+                localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+                updateAllTabs();
+            })
+            .catch(err => console.error('Error loading products:', err));
+        return;
+    }
 
+    // Load orders from localStorage
     const saved = localStorage.getItem('adminOrders');
     adminOrders = saved ? JSON.parse(saved) : [];
-    updateOrders();
 
+    // Load promos from localStorage
     const promos = localStorage.getItem('adminPromos');
     adminPromos = promos ? JSON.parse(promos) : [
-        { code: 'REDAMS10', type: 'percent', value: 10, uses: 0 },
-        { code: 'SAVE50', type: 'fixed', value: 50, uses: 0 }
+        { code: 'FREESHIP', type: 'delivery', value: 0, uses: 0, maxUses: 0 },
+        { code: 'REDAMS10', type: 'percent', value: 10, uses: 0, maxUses: 0 },
+        { code: 'SAVE50', type: 'fixed', value: 50, uses: 0, maxUses: 0 }
     ];
+    
+    updateAllTabs();
+}
+
+function updateAllTabs() {
+    updateInventory();
+    updateProducts();
+    updateOrders();
     updatePromos();
     updateStats();
 }
 
-// ===== Tab Switching =====
+// ===== TAB SWITCHING =====
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
     document.getElementById(tab + '-content').classList.remove('hidden');
@@ -63,7 +88,7 @@ function switchTab(tab) {
     if (tab === 'dashboard') updateStats();
 }
 
-// ===== Dashboard Stats =====
+// ===== DASHBOARD STATS =====
 function updateStats() {
     const total = adminOrders.reduce((s, o) => s + parseInt(o.amount || 0), 0);
     const pending = adminOrders.filter(o => o.status === 'Pending').length;
@@ -113,7 +138,98 @@ function updateStats() {
     }
 }
 
-// ===== Orders =====
+// ===== PRODUCTS MANAGEMENT =====
+function updateProducts() {
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
+
+    grid.innerHTML = allProducts.map((p, i) => `
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <img src="${p.images?.[0] || 'images/placeholder.jpg'}" class="w-full h-48 object-cover">
+            <div class="p-4">
+                <p class="font-bold text-sm line-clamp-2">${p.name}</p>
+                <p class="text-lg font-black text-red-600 mt-2">৳${p.price}</p>
+                <p class="text-xs text-gray-500 mt-1">${p.isOutOfStock ? '❌ Out of Stock' : '✓ Available'}</p>
+                <div class="flex gap-2 mt-3">
+                    <button onclick="openEditProductModal(${i})" class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">
+                        <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                    <button onclick="deleteProduct(${i})" class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openAddProductModal() {
+    editingProductIndex = -1;
+    document.getElementById('product-modal-name').value = '';
+    document.getElementById('product-modal-stock').value = '1';
+    document.getElementById('product-modal-price').value = '';
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').classList.add('flex');
+}
+
+function openEditProductModal(index) {
+    editingProductIndex = index;
+    const product = allProducts[index];
+    document.getElementById('product-modal-name').value = product.name;
+    document.getElementById('product-modal-stock').value = product.isOutOfStock ? '0' : '1';
+    document.getElementById('product-modal-price').value = product.price;
+    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').classList.add('flex');
+}
+
+function saveProduct() {
+    const stock = parseInt(document.getElementById('product-modal-stock').value);
+    const price = parseInt(document.getElementById('product-modal-price').value);
+
+    if (!price || (stock !== 0 && stock !== 1)) {
+        alert('Invalid stock or price!');
+        return;
+    }
+
+    if (editingProductIndex === -1) {
+        alert('Add New Product দিয়ে নতুন প্রোডাক্ট যোগ করুন');
+        return;
+    }
+
+    allProducts[editingProductIndex].isOutOfStock = stock === 0;
+    allProducts[editingProductIndex].price = price;
+
+    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+    updateAllTabs();
+    closeModal('product-modal');
+    alert('✓ Product updated!');
+}
+
+function deleteProduct(index) {
+    if (confirm('Delete this product?')) {
+        allProducts.splice(index, 1);
+        localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+        updateAllTabs();
+        alert('✓ Product deleted!');
+    }
+}
+
+// ===== INVENTORY MANAGEMENT =====
+function updateInventory() {
+    const tbody = document.getElementById('inventory-table');
+    if (!tbody) return;
+
+    tbody.innerHTML = allProducts.map((p, i) => `
+        <tr>
+            <td class="px-6 py-4 font-bold text-sm">${p.name}</td>
+            <td class="px-6 py-4 text-sm">${p.category}</td>
+            <td class="px-6 py-4"><span class="text-xs font-bold px-3 py-1 rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out' : 'In Stock'}</span></td>
+            <td class="px-6 py-4"><button onclick="openEditProductModal(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-pen"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+// ===== ORDERS MANAGEMENT =====
 function updateOrders() {
     const tbody = document.getElementById('orders-table');
     if (!tbody) return;
@@ -164,14 +280,18 @@ function deleteOrder(i) {
 }
 
 function openAddOrderModal() {
+    document.getElementById('order-customer-name').value = '';
+    document.getElementById('order-customer-phone').value = '';
+    document.getElementById('order-amount').value = '';
+    document.getElementById('order-status').value = 'Pending';
     document.getElementById('order-modal').classList.remove('hidden');
     document.getElementById('order-modal').classList.add('flex');
 }
 
 function saveOrder() {
-    const name = document.getElementById('order-customer-name').value;
-    const phone = document.getElementById('order-customer-phone').value;
-    const amount = document.getElementById('order-amount').value;
+    const name = document.getElementById('order-customer-name').value.trim();
+    const phone = document.getElementById('order-customer-phone').value.trim();
+    const amount = document.getElementById('order-amount').value.trim();
     const status = document.getElementById('order-status').value;
 
     if (!name || !phone || !amount) {
@@ -191,92 +311,10 @@ function saveOrder() {
     updateOrders();
     updateStats();
     closeModal('order-modal');
-
-    document.getElementById('order-customer-name').value = '';
-    document.getElementById('order-customer-phone').value = '';
-    document.getElementById('order-amount').value = '';
+    alert('✓ Order added!');
 }
 
-// ===== Products =====
-function updateProducts() {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
-
-    grid.innerHTML = allProducts.map((p, i) => `
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <img src="${p.images?.[0] || 'images/placeholder.jpg'}" class="w-full h-48 object-cover">
-            <div class="p-4">
-                <p class="font-bold text-sm line-clamp-2">${p.name}</p>
-                <p class="text-lg font-black text-red-600 mt-2">৳${p.price}</p>
-                <p class="text-xs text-gray-500 mt-1">${p.isOutOfStock ? '❌ Out of Stock' : '✓ Available'}</p>
-                <button onclick="openEditProductModal(${i})" class="w-full mt-3 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">
-                    <i class="fa-solid fa-pen"></i> Edit
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function openAddProductModal() {
-    editingProductIndex = -1;
-    document.getElementById('product-modal-name').value = '';
-    document.getElementById('product-modal-stock').value = '1';
-    document.getElementById('product-modal-price').value = '';
-    document.getElementById('product-modal').classList.remove('hidden');
-    document.getElementById('product-modal').classList.add('flex');
-}
-
-function openEditProductModal(index) {
-    editingProductIndex = index;
-    const product = allProducts[index];
-    document.getElementById('product-modal-name').value = product.name;
-    document.getElementById('product-modal-stock').value = product.isOutOfStock ? '0' : '1';
-    document.getElementById('product-modal-price').value = product.price;
-    document.getElementById('product-modal').classList.remove('hidden');
-    document.getElementById('product-modal').classList.add('flex');
-}
-
-function saveProduct() {
-    const stock = parseInt(document.getElementById('product-modal-stock').value);
-    const price = parseInt(document.getElementById('product-modal-price').value);
-
-    if (!price || (stock !== 0 && stock !== 1)) {
-        alert('Invalid stock or price!');
-        return;
-    }
-
-    if (editingProductIndex === -1) {
-        alert('Please edit existing products first. Add new products via products.json');
-        return;
-    }
-
-    allProducts[editingProductIndex].isOutOfStock = stock === 0;
-    allProducts[editingProductIndex].price = price;
-
-    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
-    updateProducts();
-    updateInventory();
-    updateStats();
-    closeModal('product-modal');
-    alert('✓ Product updated!');
-}
-
-// ===== Inventory =====
-function updateInventory() {
-    const tbody = document.getElementById('inventory-table');
-    if (!tbody) return;
-
-    tbody.innerHTML = allProducts.map((p, i) => `
-        <tr>
-            <td class="px-6 py-4 font-bold text-sm">${p.name}</td>
-            <td class="px-6 py-4 text-sm">${p.category}</td>
-            <td class="px-6 py-4"><span class="text-xs font-bold px-3 py-1 rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out' : 'In Stock'}</span></td>
-            <td class="px-6 py-4"><button onclick="openEditProductModal(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-pen"></i></button></td>
-        </tr>
-    `).join('');
-}
-
-// ===== Promos =====
+// ===== PROMO CODES MANAGEMENT =====
 function updatePromos() {
     const tbody = document.getElementById('promo-table');
     if (!tbody) return;
@@ -284,54 +322,71 @@ function updatePromos() {
     tbody.innerHTML = adminPromos.map((p, i) => `
         <tr>
             <td class="px-6 py-4 font-bold text-red-600">${p.code}</td>
-            <td class="px-6 py-4 text-sm">${p.type === 'delivery' ? 'Free' : (p.type === 'percent' ? '%' : '৳')}</td>
+            <td class="px-6 py-4 text-sm">${p.type === 'delivery' ? 'Free Delivery' : (p.type === 'percent' ? 'Percentage (%)' : 'Fixed (৳)')}</td>
             <td class="px-6 py-4 font-bold">${p.type === 'delivery' ? 'FREE' : p.value}</td>
-            <td class="px-6 py-4"><span class="text-xs text-gray-500">${p.uses} uses</span></td>
-            <td class="px-6 py-4"><button onclick="deletePromo(${i})" class="text-red-600"><i class="fa-solid fa-trash"></i></button></td>
+            <td class="px-6 py-4"><span class="text-xs text-gray-500">${p.uses}/${p.maxUses === 0 ? '∞' : p.maxUses}</span></td>
+            <td class="px-6 py-4">
+                <button onclick="deletePromo(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-trash"></i></button>
+            </td>
         </tr>
     `).join('');
 }
 
 function openAddPromoModal() {
+    document.getElementById('promo-code').value = '';
+    document.getElementById('promo-type').value = 'percent';
+    document.getElementById('promo-value').value = '';
+    document.getElementById('promo-max-uses').value = '0';
     document.getElementById('promo-modal').classList.remove('hidden');
     document.getElementById('promo-modal').classList.add('flex');
 }
 
 function savePromo() {
-    const code = document.getElementById('promo-code').value.toUpperCase();
+    const code = document.getElementById('promo-code').value.toUpperCase().trim();
     const type = document.getElementById('promo-type').value;
-    const value = document.getElementById('promo-value').value;
+    const value = parseInt(document.getElementById('promo-value').value);
+    const maxUses = parseInt(document.getElementById('promo-max-uses').value) || 0;
 
     if (!code || !value) {
         alert('Fill all fields!');
         return;
     }
 
-    adminPromos.push({ code, type, value: parseInt(value), uses: 0 });
+    if (adminPromos.some(p => p.code === code)) {
+        alert('Promo code already exists!');
+        return;
+    }
+
+    adminPromos.push({ code, type, value, uses: 0, maxUses });
     localStorage.setItem('adminPromos', JSON.stringify(adminPromos));
     updatePromos();
     closeModal('promo-modal');
     alert('✓ Promo created!');
-    
-    document.getElementById('promo-code').value = '';
-    document.getElementById('promo-value').value = '';
 }
 
 function deletePromo(i) {
-    if (confirm('Delete?')) {
+    if (confirm('Delete this promo?')) {
         adminPromos.splice(i, 1);
         localStorage.setItem('adminPromos', JSON.stringify(adminPromos));
         updatePromos();
     }
 }
 
-// ===== Modal Control =====
+// ===== MODAL CONTROL =====
 function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
     document.getElementById(id).classList.remove('flex');
 }
 
-// Initial Load
+// ===== INITIALIZE =====
 window.addEventListener('load', () => {
-    document.getElementById('login-modal').classList.remove('hidden');
+    const isLoggedIn = localStorage.getItem('adminLoggedIn');
+    if (!isLoggedIn) {
+        document.getElementById('login-modal').classList.remove('hidden');
+    } else {
+        document.getElementById('login-modal').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadAdminData();
+        switchTab('dashboard');
+    }
 });
