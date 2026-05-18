@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDAMS Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-active { @apply bg-red-600 text-white; }
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; }
+        .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full mx-4">
+        <h1 class="text-3xl font-black text-center mb-6">REDAMS ADMIN</h1>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold mb-2">Username</label>
+                <input type="text" id="login-username" placeholder="admin" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-600 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2">Password</label>
+                <input type="password" id="login-password" placeholder="●●●●●●●●" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-600 outline-none">
+            </div>
+            <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3 rounded-lg font-black hover:bg-red-700 transition">
+                LOGIN
+            </button>
+            <p class="text-xs text-gray-500 text-center">Default: admin / admin123</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard -->
+<div id="dashboard" class="hidden flex h-screen bg-gray-100">
+    
+    <!-- Sidebar -->
+    <div class="w-64 bg-gray-900 text-white flex flex-col fixed h-screen">
+        <div class="p-6 border-b border-gray-800">
+            <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">ADMIN</span></h2>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="dashboard">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </button>
+            <button onclick="switchTab('orders')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="orders">
+                <i class="fa-solid fa-shopping-bag"></i> Orders
+            </button>
+            <button onclick="switchTab('products')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="products">
+                <i class="fa-solid fa-box"></i> Products
+            </button>
+            <button onclick="switchTab('inventory')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="inventory">
+                <i class="fa-solid fa-warehouse"></i> Inventory
+            </button>
+            <button onclick="switchTab('promo')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg hover:bg-gray-800 transition flex items-center gap-3 font-bold" data-tab="promo">
+                <i class="fa-solid fa-tag"></i> Promo Codes
+            </button>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-800">
+            <button onclick="adminLogout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg font-bold transition text-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 overflow-auto">
+        <div class="p-8">
+            
+            <!-- Dashboard Tab -->
+            <div id="dashboard-content" class="tab-content">
+                <h1 class="text-4xl font-black mb-8">Dashboard Overview</h1>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm font-bold">Total Revenue</p>
+                                <p class="text-3xl font-black mt-2">৳<span id="stat-revenue">0</span></p>
+                            </div>
+                            <i class="fa-solid fa-wallet text-red-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm font-bold">Total Orders</p>
+                                <p class="text-3xl font-black mt-2"><span id="stat-orders">0</span></p>
+                            </div>
+                            <i class="fa-solid fa-shopping-bag text-blue-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm font-bold">Pending Orders</p>
+                                <p class="text-3xl font-black mt-2"><span id="stat-pending">0</span></p>
+                            </div>
+                            <i class="fa-solid fa-hourglass-end text-yellow-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm font-bold">Out of Stock</p>
+                                <p class="text-3xl font-black mt-2"><span id="stat-outofstock">0</span></p>
+                            </div>
+                            <i class="fa-solid fa-triangle-exclamation text-red-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <h3 class="text-lg font-black mb-4">Sales This Month</h3>
+                        <canvas id="salesChart" height="80"></canvas>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl card-shadow">
+                        <h3 class="text-lg font-black mb-4">Top 5 Products</h3>
+                        <div id="top-products" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders-content" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-black">Orders Management</h1>
+                    <button onclick="openAddOrderModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-plus"></i> Add Order
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl card-shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Order ID</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Customer</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Amount</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Status</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Date</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table" class="divide-y">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="products-content" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-black">Products Management</h1>
+                    <button onclick="openAddProductModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                </div>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div id="inventory-content" class="tab-content hidden">
+                <h1 class="text-4xl font-black mb-8">Inventory Management</h1>
+
+                <div class="bg-white rounded-xl card-shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Product Name</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Category</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Stock Status</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table" class="divide-y">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Promo Tab -->
+            <div id="promo-content" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-black">Promo Code Management</h1>
+                    <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-plus"></i> Create Promo
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl card-shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Code</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Type</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Value</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Usage</th>
+                                <th class="px-6 py-4 text-left font-bold text-sm">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promo-table" class="divide-y">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modals -->
+<div id="order-modal" class="modal-overlay">
+    <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-black mb-6">Add New Order</h2>
+        <div class="space-y-4">
+            <input type="text" id="order-customer-name" placeholder="Customer Name" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="tel" id="order-customer-phone" placeholder="Phone Number" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <textarea id="order-items" placeholder="Items (e.g., Cosmic Wonder x2 - ৳798)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600 h-24"></textarea>
+            <input type="number" id="order-amount" placeholder="Total Amount" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <select id="order-status" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+                <option>Pending</option>
+                <option>Confirmed</option>
+                <option>Shipped</option>
+                <option>Delivered</option>
+            </select>
+            <div class="flex gap-4">
+                <button onclick="saveOrder()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700">Save Order</button>
+                <button onclick="closeModal('order-modal')" class="flex-1 bg-gray-300 text-black py-3 rounded-lg font-bold hover:bg-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="product-modal" class="modal-overlay">
+    <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-black mb-6">Edit Product Stock</h2>
+        <div class="space-y-4">
+            <input type="text" id="product-modal-name" placeholder="Product Name" disabled class="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-100">
+            <input type="number" id="product-modal-stock" placeholder="Stock Status (1=Available, 0=Out)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="number" id="product-modal-price" placeholder="Price" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <div class="flex gap-4">
+                <button onclick="saveProduct()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700">Save Changes</button>
+                <button onclick="closeModal('product-modal')" class="flex-1 bg-gray-300 text-black py-3 rounded-lg font-bold hover:bg-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="promo-modal" class="modal-overlay">
+    <div class="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4">
+        <h2 class="text-2xl font-black mb-6">Create Promo Code</h2>
+        <div class="space-y-4">
+            <input type="text" id="promo-code" placeholder="REDAMS50" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600 uppercase">
+            <select id="promo-type" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+                <option value="percent">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (৳)</option>
+                <option value="delivery">Free Delivery</option>
+            </select>
+            <input type="number" id="promo-value" placeholder="Value (e.g., 10 for 10%)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <input type="number" id="promo-max-uses" placeholder="Max Uses (0 = unlimited)" class="w-full p-3 border-2 border-gray-200 rounded-lg outline-none focus:border-red-600">
+            <div class="flex gap-4">
+                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700">Create Promo</button>
+                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-300 text-black py-3 rounded-lg font-bold hover:bg-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+
+</body>
+</html>
