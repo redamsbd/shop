@@ -664,9 +664,9 @@
     ],
     "colors": ["Chocolate"],
     "sizes": [
-      { "name": "M", "available": false },
+      { "name": "M", "available": true },
       { "name": "L", "available": true },
-      { "name": "XL", "available": false }
+      { "name": "XL", "available": true }
     ]
   },
   {
