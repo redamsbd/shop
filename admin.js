@@ -1,9 +1,8 @@
 // ============================================
-// COMPLETE ADMIN SYSTEM - FULL WEBSITE CONTROL
-// আপনার সম্পূর্ণ website admin panel থেকে control করুন
+// COMPLETE ADMIN SYSTEM - FULL PRODUCT MANAGEMENT
+// সম্পূর্ণ প্রোডাক্ট ম্যানেজমেন্ট সিস্টেম
 // ============================================
 
-// Global Variables
 let allProducts = [];
 let adminOrders = [];
 let adminPromos = [];
@@ -36,9 +35,8 @@ function adminLogout() {
     }
 }
 
-// ===== LOAD ALL DATA FROM STORAGE =====
+// ===== LOAD ALL DATA =====
 function loadAdminData() {
-    // Load products from localStorage or fetch from products.json
     const savedProducts = localStorage.getItem('adminProducts');
     if (savedProducts) {
         allProducts = JSON.parse(savedProducts);
@@ -54,11 +52,9 @@ function loadAdminData() {
         return;
     }
 
-    // Load orders from localStorage
     const saved = localStorage.getItem('adminOrders');
     adminOrders = saved ? JSON.parse(saved) : [];
 
-    // Load promos from localStorage
     const promos = localStorage.getItem('adminPromos');
     adminPromos = promos ? JSON.parse(promos) : [
         { code: 'FREESHIP', type: 'delivery', value: 0, uses: 0, maxUses: 0 },
@@ -99,7 +95,6 @@ function updateStats() {
     document.getElementById('stat-pending').innerText = pending;
     document.getElementById('stat-outofstock').innerText = outofstock;
 
-    // Top products
     const topDiv = document.getElementById('top-products');
     if (topDiv) {
         topDiv.innerHTML = allProducts.slice(0, 5).map((p, i) => `
@@ -110,7 +105,6 @@ function updateStats() {
         `).join('');
     }
 
-    // Chart
     const ctx = document.getElementById('salesChart');
     if (ctx && window.Chart) {
         const data = new Array(30).fill(0);
@@ -148,6 +142,7 @@ function updateProducts() {
             <img src="${p.images?.[0] || 'images/placeholder.jpg'}" class="w-full h-48 object-cover">
             <div class="p-4">
                 <p class="font-bold text-sm line-clamp-2">${p.name}</p>
+                <p class="text-xs text-gray-500 mb-2">${p.category}</p>
                 <p class="text-lg font-black text-red-600 mt-2">৳${p.price}</p>
                 <p class="text-xs text-gray-500 mt-1">${p.isOutOfStock ? '❌ Out of Stock' : '✓ Available'}</p>
                 <div class="flex gap-2 mt-3">
@@ -165,9 +160,16 @@ function updateProducts() {
 
 function openAddProductModal() {
     editingProductIndex = -1;
-    document.getElementById('product-modal-name').value = '';
-    document.getElementById('product-modal-stock').value = '1';
-    document.getElementById('product-modal-price').value = '';
+    document.getElementById('product-form-title').innerText = 'Add New Product';
+    document.getElementById('product-name').value = '';
+    document.getElementById('product-price').value = '';
+    document.getElementById('product-original-price').value = '';
+    document.getElementById('product-category').value = '';
+    document.getElementById('product-description').value = '';
+    document.getElementById('product-colors').value = '';
+    document.getElementById('product-sizes').value = '';
+    document.getElementById('product-images').value = '';
+    document.getElementById('product-stock').value = '1';
     document.getElementById('product-modal').classList.remove('hidden');
     document.getElementById('product-modal').classList.add('flex');
 }
@@ -175,38 +177,65 @@ function openAddProductModal() {
 function openEditProductModal(index) {
     editingProductIndex = index;
     const product = allProducts[index];
-    document.getElementById('product-modal-name').value = product.name;
-    document.getElementById('product-modal-stock').value = product.isOutOfStock ? '0' : '1';
-    document.getElementById('product-modal-price').value = product.price;
+    document.getElementById('product-form-title').innerText = 'Edit Product';
+    document.getElementById('product-name').value = product.name;
+    document.getElementById('product-price').value = product.price;
+    document.getElementById('product-original-price').value = product.originalPrice || product.price;
+    document.getElementById('product-category').value = product.category;
+    document.getElementById('product-description').value = product.description || '';
+    document.getElementById('product-colors').value = (product.colors || []).join(', ');
+    document.getElementById('product-sizes').value = (product.sizes || []).map(s => typeof s === 'string' ? s : s.name).join(', ');
+    document.getElementById('product-images').value = (product.images || []).join('\n');
+    document.getElementById('product-stock').value = product.isOutOfStock ? '0' : '1';
     document.getElementById('product-modal').classList.remove('hidden');
     document.getElementById('product-modal').classList.add('flex');
 }
 
 function saveProduct() {
-    const stock = parseInt(document.getElementById('product-modal-stock').value);
-    const price = parseInt(document.getElementById('product-modal-price').value);
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseInt(document.getElementById('product-price').value);
+    const originalPrice = parseInt(document.getElementById('product-original-price').value);
+    const category = document.getElementById('product-category').value;
+    const description = document.getElementById('product-description').value.trim();
+    const colors = document.getElementById('product-colors').value.split(',').map(c => c.trim()).filter(c => c);
+    const sizesList = document.getElementById('product-sizes').value.split(',').map(s => s.trim()).filter(s => s);
+    const images = document.getElementById('product-images').value.split('\n').map(i => i.trim()).filter(i => i);
+    const stock = parseInt(document.getElementById('product-stock').value);
 
-    if (!price || (stock !== 0 && stock !== 1)) {
-        alert('Invalid stock or price!');
+    if (!name || !price || !category) {
+        alert('Please fill Product Name, Price, and Category!');
         return;
     }
+
+    const sizes = sizesList.map(s => ({ name: s, available: true }));
+    const productData = {
+        id: editingProductIndex === -1 ? allProducts.length + 1 : allProducts[editingProductIndex].id,
+        name,
+        price,
+        originalPrice: originalPrice || price,
+        category,
+        description: description || "Premium quality product",
+        isOutOfStock: stock === 0,
+        colors,
+        sizes,
+        images: images.length > 0 ? images : ['images/placeholder.jpg']
+    };
 
     if (editingProductIndex === -1) {
-        alert('Add New Product দিয়ে নতুন প্রোডাক্ট যোগ করুন');
-        return;
+        allProducts.push(productData);
+        alert('✓ Product added successfully!');
+    } else {
+        allProducts[editingProductIndex] = productData;
+        alert('✓ Product updated successfully!');
     }
-
-    allProducts[editingProductIndex].isOutOfStock = stock === 0;
-    allProducts[editingProductIndex].price = price;
 
     localStorage.setItem('adminProducts', JSON.stringify(allProducts));
     updateAllTabs();
     closeModal('product-modal');
-    alert('✓ Product updated!');
 }
 
 function deleteProduct(index) {
-    if (confirm('Delete this product?')) {
+    if (confirm('Delete this product? This action cannot be undone.')) {
         allProducts.splice(index, 1);
         localStorage.setItem('adminProducts', JSON.stringify(allProducts));
         updateAllTabs();
@@ -282,6 +311,7 @@ function deleteOrder(i) {
 function openAddOrderModal() {
     document.getElementById('order-customer-name').value = '';
     document.getElementById('order-customer-phone').value = '';
+    document.getElementById('order-items').value = '';
     document.getElementById('order-amount').value = '';
     document.getElementById('order-status').value = 'Pending';
     document.getElementById('order-modal').classList.remove('hidden');
@@ -291,17 +321,19 @@ function openAddOrderModal() {
 function saveOrder() {
     const name = document.getElementById('order-customer-name').value.trim();
     const phone = document.getElementById('order-customer-phone').value.trim();
+    const items = document.getElementById('order-items').value.trim();
     const amount = document.getElementById('order-amount').value.trim();
     const status = document.getElementById('order-status').value;
 
     if (!name || !phone || !amount) {
-        alert('Fill all fields!');
+        alert('Fill all required fields!');
         return;
     }
 
     adminOrders.push({
         customerName: name,
         customerPhone: phone,
+        items: items,
         amount: amount,
         status: status,
         date: new Date().toISOString().split('T')[0]
@@ -314,7 +346,7 @@ function saveOrder() {
     alert('✓ Order added!');
 }
 
-// ===== PROMO CODES MANAGEMENT =====
+// ===== PROMO MANAGEMENT =====
 function updatePromos() {
     const tbody = document.getElementById('promo-table');
     if (!tbody) return;
