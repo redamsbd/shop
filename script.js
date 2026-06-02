@@ -10,32 +10,29 @@ let selectedSubMethod = "";
 
 const WHATSAPP_NUMBER = "8801894357549";
 
-// প্রোমো কোড তালিকা (এখন localStorage থেকে লোড হবে)
-let promoList = {};
-
-// ===== প্রোমো কোড লোড করা =====
-function loadPromoList() {
-    const savedPromos = localStorage.getItem('adminPromos');
-    if (savedPromos) {
-        const promos = JSON.parse(savedPromos);
-        promoList = {};
-        promos.forEach(promo => {
-            promoList[promo.code] = {
-                type: promo.type,
-                value: promo.value,
-                applicableCategories: promo.applicableCategories || []
-            };
-        });
-    } else {
-        // ডিফল্ট প্রোমো
-        promoList = {
-            "FREESHIP": { type: "delivery", value: 0, applicableCategories: [] },
-            "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
-            "SAVE50": { type: "fixed", value: 50, applicableCategories: [] },
-            "DROPDROP15": { type: "percent", value: 15, applicableCategories: ['drop-shoulder'] }
-        };
-    }
-}
+// ===== প্রোমো কোড লিস্ট (সরাসরি কোডে ডিফাইন করা) =====
+const promoList = {
+    // সব প্রোডাক্টে কাজ করে
+    "FREESHIP": { type: "delivery", value: 0, applicableCategories: [] },
+    "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
+    "SAVE50": { type: "fixed", value: 50, applicableCategories: [] },
+    "WELCOME20": { type: "percent", value: 20, applicableCategories: [] },
+    
+    // শুধু drop-shoulder এ কাজ করে
+    "DROPDROP15": { type: "percent", value: 15, applicableCategories: ['drop-shoulder'] },
+    "DROPOFF25": { type: "percent", value: 25, applicableCategories: ['drop-shoulder'] },
+    
+    // শুধু regular-tshirt এ কাজ করে
+    "REGULAR10": { type: "percent", value: 10, applicableCategories: ['regular-tshirt'] },
+    "REGULAR30": { type: "fixed", value: 30, applicableCategories: ['regular-tshirt'] },
+    
+    // শুধু polo-tshirt এ কাজ করে
+    "POLO50": { type: "fixed", value: 50, applicableCategories: ['polo-tshirt'] },
+    "POLO15": { type: "percent", value: 15, applicableCategories: ['polo-tshirt'] },
+    
+    // শুধু acid-wash এ কাজ করে
+    "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
+};
 
 // ===== URL থেকে ক্যাটাগরি বের করা =====
 function getCategoryFromURL() {
@@ -365,7 +362,7 @@ function applyPromoCode() {
             
             if (!isApplicable) {
                 activePromo = null;
-                msg.innerText = `✗ This promo only applies to: ${promo.applicableCategories.join(', ')}`;
+                msg.innerText = `✗ এই কোড শুধু ${promo.applicableCategories.join(', ')} এর জন্য কাজ করে`;
                 msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
                 input.value = '';
                 return;
@@ -908,9 +905,6 @@ function closePopup() {
 
 // ===== ইভেন্ট লিসেনার এবং ইনিশিয়ালাইজেশন =====
 document.addEventListener('DOMContentLoaded', () => {
-    // প্রোমো লিস্ট লোড করুন
-    loadPromoList();
-    
     // ইনপুট ফিল্ডে লিসেনার
     const inputs = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
     inputs.forEach(id => {
