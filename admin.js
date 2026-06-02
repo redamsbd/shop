@@ -57,9 +57,10 @@ function loadAdminData() {
 
     const promos = localStorage.getItem('adminPromos');
     adminPromos = promos ? JSON.parse(promos) : [
-        { code: 'FREESHIP', type: 'delivery', value: 0, uses: 0, maxUses: 0 },
-        { code: 'REDAMS10', type: 'percent', value: 10, uses: 0, maxUses: 0 },
-        { code: 'SAVE50', type: 'fixed', value: 50, uses: 0, maxUses: 0 }
+        { code: 'FREESHIP', type: 'delivery', value: 0, applicableCategories: [], uses: 0, maxUses: 0 },
+        { code: 'REDAMS10', type: 'percent', value: 10, applicableCategories: [], uses: 0, maxUses: 0 },
+        { code: 'SAVE50', type: 'fixed', value: 50, applicableCategories: [], uses: 0, maxUses: 0 },
+        { code: 'DROPDROP15', type: 'percent', value: 15, applicableCategories: ['drop-shoulder'], uses: 0, maxUses: 0 }
     ];
     
     updateAllTabs();
@@ -351,24 +352,42 @@ function updatePromos() {
     const tbody = document.getElementById('promo-table');
     if (!tbody) return;
 
-    tbody.innerHTML = adminPromos.map((p, i) => `
+    tbody.innerHTML = adminPromos.map((p, i) => {
+        const categoryText = p.applicableCategories && p.applicableCategories.length > 0 
+            ? p.applicableCategories.join(', ') 
+            : 'All Products';
+        
+        return `
         <tr>
             <td class="px-6 py-4 font-bold text-red-600">${p.code}</td>
             <td class="px-6 py-4 text-sm">${p.type === 'delivery' ? 'Free Delivery' : (p.type === 'percent' ? 'Percentage (%)' : 'Fixed (৳)')}</td>
             <td class="px-6 py-4 font-bold">${p.type === 'delivery' ? 'FREE' : p.value}</td>
+            <td class="px-6 py-4 text-xs text-gray-600">${categoryText}</td>
             <td class="px-6 py-4"><span class="text-xs text-gray-500">${p.uses}/${p.maxUses === 0 ? '∞' : p.maxUses}</span></td>
             <td class="px-6 py-4">
                 <button onclick="deletePromo(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
+}
+
+function getCategories() {
+    const categories = [...new Set(allProducts.map(p => p.category))];
+    return categories;
 }
 
 function openAddPromoModal() {
+    const categories = getCategories();
+    const categoryOptions = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    
     document.getElementById('promo-code').value = '';
     document.getElementById('promo-type').value = 'percent';
     document.getElementById('promo-value').value = '';
     document.getElementById('promo-max-uses').value = '0';
+    document.getElementById('promo-categories').innerHTML = `
+        <p class="text-xs font-bold mb-2">Select categories (leave empty for all products):</p>
+        <select multiple class="w-full border rounded p-2">${categoryOptions}</select>
+    `;
     document.getElementById('promo-modal').classList.remove('hidden');
     document.getElementById('promo-modal').classList.add('flex');
 }
@@ -378,6 +397,13 @@ function savePromo() {
     const type = document.getElementById('promo-type').value;
     const value = parseInt(document.getElementById('promo-value').value);
     const maxUses = parseInt(document.getElementById('promo-max-uses').value) || 0;
+    
+    // Get selected categories
+    const selects = document.getElementById('promo-categories').querySelectorAll('option:checked');
+    let applicableCategories = [];
+    selects.forEach(opt => {
+        if (opt.value) applicableCategories.push(opt.value);
+    });
 
     if (!code || !value) {
         alert('Fill all fields!');
@@ -389,7 +415,7 @@ function savePromo() {
         return;
     }
 
-    adminPromos.push({ code, type, value, uses: 0, maxUses });
+    adminPromos.push({ code, type, value, applicableCategories, uses: 0, maxUses });
     localStorage.setItem('adminPromos', JSON.stringify(adminPromos));
     updatePromos();
     closeModal('promo-modal');

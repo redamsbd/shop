@@ -10,12 +10,32 @@ let selectedSubMethod = "";
 
 const WHATSAPP_NUMBER = "8801894357549";
 
-// প্রোমো কোড তালিকা
-const promoList = {
-    "FREESHIP": { type: "delivery", value: 0 },
-    "REDAMS10": { type: "percent", value: 10 },
-    "SAVE50": { type: "fixed", value: 50 }
-};
+// প্রোমো কোড তালিকা (এখন localStorage থেকে লোড হবে)
+let promoList = {};
+
+// ===== প্রোমো কোড লোড করা =====
+function loadPromoList() {
+    const savedPromos = localStorage.getItem('adminPromos');
+    if (savedPromos) {
+        const promos = JSON.parse(savedPromos);
+        promoList = {};
+        promos.forEach(promo => {
+            promoList[promo.code] = {
+                type: promo.type,
+                value: promo.value,
+                applicableCategories: promo.applicableCategories || []
+            };
+        });
+    } else {
+        // ডিফল্ট প্রোমো
+        promoList = {
+            "FREESHIP": { type: "delivery", value: 0, applicableCategories: [] },
+            "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
+            "SAVE50": { type: "fixed", value: 50, applicableCategories: [] },
+            "DROPDROP15": { type: "percent", value: 15, applicableCategories: ['drop-shoulder'] }
+        };
+    }
+}
 
 // ===== URL থেকে ক্যাটাগরি বের করা =====
 function getCategoryFromURL() {
@@ -173,8 +193,8 @@ function displayProducts(products, showAll = false) {
                         ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
                     </div>
                     
-                    <button onclick="${isOutOfStock ? 'alert("This product is out of stock"); return false;' : `openModal(${p.id})`}" 
-                            class="w-full ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-red-600'} text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 transition" 
+                    <button onclick="${isOutOfStock ? 'alert(\"This product is out of stock\"); return false;' : `openModal(${p.id})`}" 
+                            class="w-full ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-red-600'} text-white py-2 rounded-xl font-black uppercase text-[10px] mt-3 transition"
                             ${isOutOfStock ? 'disabled' : ''}>
                         ${isOutOfStock ? 'Out of Stock' : 'Order Now'}
                     </button>
@@ -219,7 +239,7 @@ function openModal(id) {
             if (isAvailable) {
                 sizesHTML += `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`;
             } else {
-                sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed line-through">${sizeStr}</button>`;
+                sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed">${sizeStr}</button>`;
             }
         });
     }
@@ -235,7 +255,7 @@ function openModal(id) {
     // ইমেজ থাম্বনেইল তৈরি
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images)) {
-        imagesHTML = p.images.map(img => `<img src="${img}" onclick="document.getElementById('main-view').src='${img}'" class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition" alt="Product image">`).join('');
+        imagesHTML = p.images.map(img => `<img src="${img}" onclick="document.getElementById('main-view').src='${img}'" class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition">`).join('');
     }
 
     content.innerHTML = `
@@ -325,7 +345,7 @@ function addToCart(id) {
     });
 }
 
-// ===== প্রোমো কোড প্রয়োগ করা =====
+// ===== প্রোমো কোড প্রয়োগ করা (ক্যাটাগরি চেক সহ) =====
 function applyPromoCode() {
     const input = document.getElementById('promo-input');
     const msg = document.getElementById('promo-msg');
@@ -335,6 +355,23 @@ function applyPromoCode() {
     const code = input.value.toUpperCase().trim();
 
     if (promoList[code]) {
+        const promo = promoList[code];
+        
+        // কার্টের সব পণ্যের ক্যাটাগরি চেক করুন
+        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
+            const isApplicable = cart.some(item => 
+                promo.applicableCategories.includes(item.category)
+            );
+            
+            if (!isApplicable) {
+                activePromo = null;
+                msg.innerText = `✗ This promo only applies to: ${promo.applicableCategories.join(', ')}`;
+                msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
+                input.value = '';
+                return;
+            }
+        }
+        
         activePromo = code;
         msg.innerText = `✓ Promo "${code}" Applied!`;
         msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-green-600 block";
@@ -406,16 +443,33 @@ function updateCartUI(isPaidOverride = null) {
         }
     }
 
-    // প্রোমো কোড ডিসকাউন্ট
+    // প্রোমো কোড ডিসকাউন্ট (ক্যাটাগরি চেক সহ)
     let discount = 0;
     if (activePromo) {
         const promo = promoList[activePromo];
-        if (promo.type === "delivery") {
-            baseDeliveryCharge = 0;
-        } else if (promo.type === "percent") {
-            discount = (subtotal * promo.value) / 100;
-        } else if (promo.type === "fixed") {
-            discount = promo.value;
+        
+        // যদি ক্যাটাগরি নির্দিষ্ট হয়, শুধুমাত্র সেই ক্যাটাগরির পণ্যে ছাড় প্রয়োগ করুন
+        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
+            const applicableSubtotal = cart
+                .filter(item => promo.applicableCategories.includes(item.category))
+                .reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (promo.type === "delivery") {
+                baseDeliveryCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (applicableSubtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
+        } else {
+            // সব পণ্যে প্রয়োগ হয়
+            if (promo.type === "delivery") {
+                baseDeliveryCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (subtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
         }
     }
 
@@ -615,12 +669,26 @@ function confirmOrderWhatsApp() {
         const promo = promoList[activePromo];
         promoInfo = activePromo;
 
-        if (promo.type === "delivery") {
-            baseCharge = 0;
-        } else if (promo.type === "percent") {
-            discount = (subtotal * promo.value) / 100;
-        } else if (promo.type === "fixed") {
-            discount = promo.value;
+        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
+            const applicableSubtotal = cart
+                .filter(item => promo.applicableCategories.includes(item.category))
+                .reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (promo.type === "delivery") {
+                baseCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (applicableSubtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
+        } else {
+            if (promo.type === "delivery") {
+                baseCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (subtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
         }
     }
 
@@ -659,6 +727,7 @@ function confirmOrderWhatsApp() {
     // অর্ডার ক্লিয়ার করা
     setTimeout(() => {
         cart = [];
+        activePromo = null;
         updateCartUI();
         toggleCart(false);
         Swal.fire({
@@ -839,6 +908,9 @@ function closePopup() {
 
 // ===== ইভেন্ট লিসেনার এবং ইনিশিয়ালাইজেশন =====
 document.addEventListener('DOMContentLoaded', () => {
+    // প্রোমো লিস্ট লোড করুন
+    loadPromoList();
+    
     // ইনপুট ফিল্ডে লিসেনার
     const inputs = ['final-name', 'final-phone', 'final-address', 'trnx-id'];
     inputs.forEach(id => {
