@@ -249,19 +249,32 @@ function openModal(id) {
         });
     }
 
-    // ইমেজ থাম্বনেইল তৈরি
+    // [SEO UPDATE] ইমেজ থাম্বনেইল তৈরি করার সময় dynamic alt এবং loading="lazy" যোগ করা হয়েছে
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images)) {
-        imagesHTML = p.images.map(img => `<img src="${img}" onclick="document.getElementById('main-view').src='${img}'" class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition">`).join('');
+        imagesHTML = p.images.map((img, index) => {
+            const categoryText = p.category ? p.category.replace('-', ' ') : 'clothing';
+            const altText = `${p.name} - Premium ${categoryText} by REDAMS Bangladesh - View ${index + 1}`;
+            return `<img src="${img}" 
+                         alt="${altText}" 
+                         loading="lazy" 
+                         onclick="document.getElementById('main-view').src='${img}'" 
+                         class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition">`;
+        }).join('');
     }
+
+    // ক্যাটাগরি টেক্সট ফরম্যাট করা (যেমন: drop-shoulder থেকে drop shoulder)
+    const formattedCategory = p.category ? p.category.replace('-', ' ') : 'apparel';
+    const mainAltText = `${p.name} - Premium ${formattedCategory} T-Shirt by REDAMS`;
 
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-4">
                 <div class="relative overflow-hidden rounded-2xl bg-gray-50 aspect-[3/4]">
+                    <!-- [SEO UPDATE] মূল ইমেজে মিনিংফুল alt টেক্সট দেওয়া হয়েছে -->
                     <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
                          class="w-full h-full object-cover transition duration-500"
-                         alt="${p.name}">
+                         alt="${mainAltText}">
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                     ${imagesHTML}
