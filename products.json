@@ -697,7 +697,7 @@
     "altText": "REDAMS Classic Chocolate Zipper Polo Shirt Waffle Knit YKK Metal Zipper BD",
     "colors": ["Chocolate"],
     "sizes": [
-      { "name": "M", "available": true },
+      { "name": "M", "available": false },
       { "name": "L", "available": true },
       { "name": "XL", "available": true }
     ]
@@ -719,9 +719,9 @@
     "altText": "REDAMS Classic Blue Zipper Polo Shirt Textured Waffle Knit Premium Fit",
     "colors": ["Blue"],
     "sizes": [
-      { "name": "M", "available": true },
+      { "name": "M", "available": false },
       { "name": "L", "available": true },
-      { "name": "XL", "available": true }
+      { "name": "XL", "available": false }
     ]
   },
   {
@@ -763,9 +763,9 @@
     "altText": "REDAMS Premium Old Money Sky Blue Polo Shirt Luxury Textured Rib Waffle Knit",
     "colors": ["Sky Blue"],
     "sizes": [
-      { "name": "M", "available": true },
+      { "name": "M", "available": false },
       { "name": "L", "available": true },
-      { "name": "XL", "available": true }
+      { "name": "XL", "available": false }
     ]
   }
 ]
