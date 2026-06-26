@@ -724,12 +724,13 @@ function confirmOrder() {
     });
 
     // Web3Forms এ পাঠানোর জন্য ডাটা অবজেক্ট তৈরি
-    const formData = {
-        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb", // 👈 এখানে Web3Forms থেকে পাওয়া কী-টি পেস্ট করুন
+   const formData = {
+        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
         subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
-        // আপনার বাকি ২টা মেইল এখানে CC তে দিয়ে দিন
-    cc: "shamimaackerman@gmail.com,anmridwanulhassan@gmail.com",
         from_name: "REDAMS Website",
+        
+        // বাকি ২টি মেইলে কার্বন কপি (CC) পাঠানোর জন্য
+        cc: "shamimaackerman@gmail.com,anmridwanulhassan@gmail.com",
         
         // কাস্টমার ইনফো
         Customer_Name: name,
