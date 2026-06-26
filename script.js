@@ -628,8 +628,8 @@ function validateOrder() {
     }
 }
 
-// ===== হোয়াটসঅ্যাপে অর্ডার কনফার্ম করা =====
-function confirmOrderWhatsApp() {
+// ===== প্রফেশনাল উপায়ে ই-মেইলে অর্ডার কনফার্ম করা (Web3Forms) =====
+function confirmOrder() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
     const address = document.getElementById('final-address')?.value.trim();
@@ -658,11 +658,11 @@ function confirmOrderWhatsApp() {
         return;
     }
 
-    // আইটেম এবং সাবটোটাল
+    // আইটেম এবং সাবটোটাল (মেইলের জন্য টেক্সট ফরম্যাট করা হলো)
     let itemsText = "";
     let subtotal = 0;
     cart.forEach((item) => {
-        itemsText += `• ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}%0A`;
+        itemsText += `${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}\n`;
         subtotal += item.price * item.qty;
     });
 
@@ -707,48 +707,89 @@ function confirmOrderWhatsApp() {
     let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
-    // হোয়াটসঅ্যাপ মেসেজ
-    let message = `*🛍️ NEW ORDER - REDAMS*%0A`;
-    message += `---------------------------%0A`;
-    message += `*📋 CUSTOMER DETAILS*%0A`;
-    message += `*Name:* ${name}%0A`;
-    message += `*Phone:* ${phone}%0A`;
-    message += `*Address:* ${address}%0A`;
-    message += `---------------------------%0A`;
-    message += `*📦 ORDER SUMMARY*%0A`;
-    message += `${itemsText}`;
-    message += `---------------------------%0A`;
-    message += `*💰 BILLING DETAILS*%0A`;
-    message += `*Subtotal:* ৳${subtotal}%0A`;
-    message += `*Promo Used:* ${promoInfo}%0A`;
-    if (discount > 0) message += `*Discount:* - ৳${discount.toFixed(0)}%0A`;
-    message += `*Delivery:* ${baseCharge === 0 ? "FREE" : "৳" + baseCharge}%0A`;
-    message += `*TOTAL BILL:* ৳${totalBill.toFixed(0)}%0A`;
-    message += `---------------------------%0A`;
-    message += `*💳 PAYMENT INFO*%0A`;
-    message += `*Method:* ${paymentMethod}%0A`;
-    message += `*Status:* ${paymentStatus}%0A`;
-    message += `*TRXID:* ${trnxId}%0A`;
-    message += `*DUE AMOUNT:* ৳${finalPayable.toFixed(0)}%0A`;
-    message += `---------------------------%0A`;
-    message += `_✅ Order confirmed via Redams Website_`;
+    // অর্ডার কনফার্ম করার বাটনটি লোডিং মোডে নেওয়া (যাতে বারবার কাস্টমার ক্লিক না করতে পারে)
+    Swal.fire({
+        title: 'Processing Order...',
+        text: 'Please wait while we secure your order.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+    // Web3Forms এ পাঠানোর জন্য ডাটা অবজেক্ট তৈরি
+    const formData = {
+        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb", // 👈 এখানে Web3Forms থেকে পাওয়া কী-টি পেস্ট করুন
+        subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
+        from_name: "REDAMS Website",
+        
+        // কাস্টমার ইনফো
+        Customer_Name: name,
+        Customer_Phone: phone,
+        Delivery_Address: address,
+        
+        // অর্ডার ইনফো
+        Ordered_Items: itemsText,
+        
+        // বিলিং ইনফো
+        Subtotal: `৳${subtotal}`,
+        Promo_Used: promoInfo,
+        Discount: `৳${discount.toFixed(0)}`,
+        Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
+        TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
+        
+        // পেমেন্ট ইনফো
+        Payment_Method: paymentMethod,
+        Payment_Status: paymentStatus,
+        Transaction_ID: trnxId,
+        Due_Amount: `৳${finalPayable.toFixed(0)}`
+    };
 
-    // অর্ডার ক্লিয়ার করা
-    setTimeout(() => {
-        cart = [];
-        activePromo = null;
-        updateCartUI();
-        toggleCart(false);
+    // Web3Forms API-তে ডাটা পুশ করা
+    fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(async (response) => {
+        let json = await response.json();
+        if (response.status == 200) {
+            // সফলভাবে মেইল চলে গেলে কার্ট ও স্টেট ক্লিয়ার করা
+            cart = [];
+            activePromo = null;
+            if (typeof updateCartUI === "function") updateCartUI();
+            if (typeof toggleCart === "function") toggleCart(false);
+
+            // সফলতার প্রফেশনাল পপআপ
+            Swal.fire({
+                icon: 'success',
+                title: 'Order Confirmed!',
+                text: 'Thank you for shopping with REDAMS. We will review your order and contact you soon!',
+                confirmButtonColor: '#000'
+            });
+            
+            // চেকআউট ফর্ম বা ইনপুট ফিল্ডগুলো খালি করতে চাইলে এখানে কোড লিখতে পারেন
+        } else {
+            console.log(json);
+            Swal.fire({
+                icon: 'error',
+                title: 'Submission Failed',
+                text: 'Something went wrong on our server. Please try again.'
+            });
+        }
+    })
+    .catch(error => {
+        console.log(error);
         Swal.fire({
-            icon: 'success',
-            title: 'Order Sent!',
-            text: 'Your order has been sent to WhatsApp. Our team will contact you soon!'
+            icon: 'error',
+            title: 'Network Error',
+            text: 'Please check your internet connection and try again.'
         });
-    }, 500);
+    });
 }
-
 // ===== কার্ট থেকে আইটেম রিমুভ করা =====
 function removeFromCart(index) {
     cart.splice(index, 1);
