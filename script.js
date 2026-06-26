@@ -1,6 +1,7 @@
 // ===== গ্লোবাল ভেরিয়েবল =====
 let allProducts = [];
-let cart = [];
+// রিলোড হলেও যেন লোকাল স্টোরেজ থেকে আগের কার্ট ডাটা লোড হয়
+let cart = JSON.parse(localStorage.getItem('redams_cart')) || [];
 let selectedSize = null;
 let selectedColor = null;
 let modalQty = 1;
@@ -35,6 +36,10 @@ const promoList = {
     "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
 };
 
+// কার্ট আপডেট হলেই যেন তা ব্রাউজারে সেভ হয়ে যায়
+function saveCartToStorage() {
+    localStorage.setItem('redams_cart', JSON.stringify(cart));
+}
 // ===== URL থেকে ক্যাটাগরি বের করা =====
 function getCategoryFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -354,6 +359,7 @@ function addToCart(id) {
         showConfirmButton: false,
         timer: 1500
     });
+    saveCartToStorage(); // কার্ট ডাটা সেভ করো
 }
 
 // ===== প্রোমো কোড প্রয়োগ করা (ক্যাটাগরি চেক সহ) =====
@@ -759,6 +765,8 @@ function confirmOrder() {
         if (response.status == 200) {
             // সফলভাবে মেইল চলে গেলে কার্ট ও স্টেট ক্লিয়ার করা
             cart = [];
+localStorage.removeItem('redams_cart'); // অর্ডার শেষ, তাই স্টোরেজ খালি
+if (typeof updateCartUI === "function") updateCartUI();
             activePromo = null;
             if (typeof updateCartUI === "function") updateCartUI();
             if (typeof toggleCart === "function") toggleCart(false);
@@ -794,6 +802,7 @@ function confirmOrder() {
 function removeFromCart(index) {
     cart.splice(index, 1);
     updateCartUI();
+    saveCartToStorage(); // কার্ট ডাটা আপডেট করে সেভ করো
     validateOrder();
 }
 
@@ -975,4 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // পেজ লোড হওয়ার পর পপআপ দেখানো
 window.addEventListener('load', () => {
     setTimeout(showPopup, 2000);
+});
+// পেজ লোড হলেই কার্ট UI আপডেট করো
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof updateCartUI === "function") updateCartUI();
 });
