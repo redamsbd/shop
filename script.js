@@ -727,6 +727,8 @@ function confirmOrder() {
     const formData = {
         access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb", // 👈 এখানে Web3Forms থেকে পাওয়া কী-টি পেস্ট করুন
         subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
+        // আপনার বাকি ২টা মেইল এখানে CC তে দিয়ে দিন
+    cc: "shamimaackerman@gmail.com,anmridwanulhassan@gmail.com",
         from_name: "REDAMS Website",
         
         // কাস্টমার ইনফো
