@@ -28,9 +28,9 @@ const promoList = {
     "REGULAR30": { type: "fixed", value: 30, applicableCategories: ['regular-tshirt'] },
     
     // শুধু polo-tshirt এ কাজ করে
-    "": { type: "delivery", value: 0, applicableCategories: ['polo-tshirt'] },
+    "FREESHIP": { type: "delivery", value: 0, applicableCategories: ['polo-tshirt'] },
     "": { type: "percent", value: 15, applicableCategories: ['polo-tshirt'] },
-     "ARG150": { type: "fixed", value: 150, applicableCategories: ['polo-tshirt'] },
+     "": { type: "fixed", value: 150, applicableCategories: ['polo-tshirt'] },
     
     // শুধু acid-wash এ কাজ করে
     "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
