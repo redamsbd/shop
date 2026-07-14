@@ -708,7 +708,7 @@
     "price": 650,
     "originalPrice": 799,
     "category": "polo-tshirt",
-    "isOutOfStock": false,
+    "isOutOfStock": true,
     "description": "<b>Fabric:</b> 100% Premium textured Waffle Knit (220+ GSM).<br><b>Fit:</b> Classic zipper polo.<br><b>Zipper:</b> YKK metal zipper is used.<br>Breathable fabric for maximum comfort.",
     "images": [
       "images/polo blue model.jpeg",
