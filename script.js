@@ -992,3 +992,41 @@ window.addEventListener('load', () => {
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof updateCartUI === "function") updateCartUI();
 });
+
+// Azzbd Style 4:5 Campaign/Banner Slider
+const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
+    slidesPerView: 1,         // মোবাইলে ফুল স্ক্রিন জুড়ে ১টি ব্যানার দেখাবে (Azzbd এর মতো)
+    spaceBetween: 10,         // ব্যানারের মাঝের গ্যাপ
+    loop: false,
+    autoplay: {
+        delay: 4000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true
+    },
+    navigation: {
+        nextEl: '.camp-next',
+        prevEl: '.camp-prev',
+    },
+    pagination: {
+        el: '.camp-pagination',
+        clickable: true,
+        dynamicBullets: true
+    },
+    breakpoints: {
+        // ছোট মোবাইল বা বড় স্ক্রিনে (যেমন: ৫৪০ পিক্সেল এর ওপর) ১.৫ বা ২টি
+        540: {
+            slidesPerView: 1.5,
+            spaceBetween: 12,
+        },
+        // ট্যাবলেট স্ক্রিনে ২টি ব্যানার দেখাবে
+        768: {
+            slidesPerView: 2,
+            spaceBetween: 16,
+        },
+        // ডেস্কটপে হুবহু ছবির মতো একসাথে ৩টি বড় ব্যানার দেখাবে
+        1024: {
+            slidesPerView: 3,
+            spaceBetween: 20,
+        }
+    }
+});
