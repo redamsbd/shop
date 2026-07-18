@@ -780,14 +780,10 @@
     "images/couple spider.jpg"
   ],
   "altText": "REDAMS Couple Spider Collection Heavyweight Drop Shoulder Tee",
-  
-  // দুজনের জন্য আলাদা কালার কম্বিনেশন সিলেক্ট করার সুবিধা
   "colors": {
     "partner1": ["Black", "White"],
     "partner2": ["White", "Black"]
   },
-  
-  // দুজনের জন্য সম্পূর্ণ আলাদা সাইজ সিলেক্ট করার অপশন
   "sizes": {
     "partner1": [
       { "name": "M", "available": true },
