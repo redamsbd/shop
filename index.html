@@ -285,6 +285,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="swiper-pagination camp-pagination !bottom-4"></div>
     </div>
 </section>
+    <style>
+        /* ৪:৫ নিখুঁত রেশিও লক করা */
+.aspect-\[4\/5\] {
+    aspect-ratio: 4 / 5;
+}
+
+/* স্লাইডারের অ্যাক্টিভ ডটের স্টাইল */
+.camp-pagination .swiper-pagination-bullet-active {
+    background: #ffffff !important; /* ব্যানারের ওপর সাদা ডট ফুটবে ভালো */
+    width: 20px;
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* মাউস নিলে ছবির স্মুথ জুম ইফেক্ট */
+.group:hover .group-hover\:scale-105 {
+    transform: scale(1.05);
+}
+</style>        
 
     <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
