@@ -1030,20 +1030,3 @@ const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
         }
     }
 });
-/* ৪:৫ নিখুঁত রেশিও লক করা */
-.aspect-\[4\/5\] {
-    aspect-ratio: 4 / 5;
-}
-
-/* স্লাইডারের অ্যাক্টিভ ডটের স্টাইল */
-.camp-pagination .swiper-pagination-bullet-active {
-    background: #ffffff !important; /* ব্যানারের ওপর সাদা ডট ফুটবে ভালো */
-    width: 20px;
-    border-radius: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* মাউস নিলে ছবির স্মুথ জুম ইফেক্ট */
-.group:hover .group-hover\:scale-105 {
-    transform: scale(1.05);
-}
