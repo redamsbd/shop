@@ -767,5 +767,40 @@
       { "name": "L", "available": true },
       { "name": "XL", "available": false }
     ]
+  },
+ {
+  "id": 37,
+  "name": "Spider-Duo",
+  "price": 850,
+  "originalPrice": 900,
+  "category": "couple-tshirt",
+  "isOutOfStock": false,
+  "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
+  "images": [
+    "images/couple spider.jpg"
+  ],
+  "altText": "REDAMS Couple Spider Collection Heavyweight Drop Shoulder Tee",
+  
+  // দুজনের জন্য আলাদা কালার কম্বিনেশন সিলেক্ট করার সুবিধা
+  "colors": {
+    "partner1": ["Black", "White"],
+    "partner2": ["White", "Black"]
+  },
+  
+  // দুজনের জন্য সম্পূর্ণ আলাদা সাইজ সিলেক্ট করার অপশন
+  "sizes": {
+    "partner1": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ],
+    "partner2": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
   }
+}
 ]
