@@ -238,42 +238,45 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="swiper-pagination"></div>
     </section>
 
-    <!-- REDAMS Premium 4:5 Campaign Slider -->
+   <!-- REDAMS Premium 4:5 Campaign Slider (Fully Clickable) -->
 <section class="campaign-slider-section my-12 px-4 max-w-7xl mx-auto">
     <!-- Swiper Container -->
     <div class="swiper azz-campaign-swiper overflow-hidden relative rounded-2xl">
         <div class="swiper-wrapper">
             
             <!-- Slide 1 (Free Delivery Banner) -->
-            <div class="swiper-slide relative aspect-[4/5] w-full overflow-hidden group">
+            <!-- 💡 href="#shop" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#shop" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
                 <img src="images/pro-free delivery.jpeg" alt="Free Delivery" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <!-- Bottom Action Button -->
                 <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <a href="#shop" class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
                         Free Delivery ↘
-                    </a>
+                    </span>
                 </div>
-            </div>
+            </a>
 
             <!-- Slide 2 (Deshi Collection Banner) -->
-            <div class="swiper-slide relative aspect-[4/5] w-full overflow-hidden group">
+            <!-- 💡 href="#deshi" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#deshi" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
                 <img src="images/banner2.jpg" alt="Deshi Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <a href="#deshi" class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
                         Order To Wear ↘
-                    </a>
+                    </span>
                 </div>
-            </div>
+            </a>
 
             <!-- Slide 3 (Souls Banner) -->
-            <div class="swiper-slide relative aspect-[4/5] w-full overflow-hidden group">
+            <!-- 💡 href="#souls" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#souls" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
                 <img src="images/couple spider.jpg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <a href="#souls" class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
                         Order To Wear ↘
-                    </a>
+                    </span>
                 </div>
-            </div>
+            </a>
 
         </div>
         
@@ -285,8 +288,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="swiper-pagination camp-pagination !bottom-4"></div>
     </div>
 </section>
-    <style>
-        /* ৪:৫ নিখুঁত রেশিও লক করা */
+
+<style>
+/* ৪:৫ নিখুঁত রেশিও লক করা */
 .aspect-\[4\/5\] {
     aspect-ratio: 4 / 5;
 }
@@ -303,8 +307,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .group:hover .group-hover\:scale-105 {
     transform: scale(1.05);
 }
-</style>        
 
+/* স্মুথ স্ক্রোলিং ইফেক্ট */
+html {
+    scroll-behavior: smooth;
+}
+</style>
+    
     <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
