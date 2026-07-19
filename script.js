@@ -303,36 +303,104 @@ function openModal(id) {
     }
 
     const content = document.getElementById('modal-content');
+    
+    // ভ্যারিয়েবল রিসেট করা
     selectedSize = null;
     selectedColor = null;
+    selectedSizeP1 = ''; selectedSizeP2 = '';
+    selectedColorP1 = ''; selectedColorP2 = '';
     modalQty = 1;
 
     const hasDiscount = p.originalPrice && p.originalPrice > p.price;
 
-    // সাইজ বোতাম তৈরি (individual size availability check করা)
+    // ===== সাইজ এবং রঙ বোতাম তৈরির মেইন লজিক =====
     let sizesHTML = '';
-    if (p.sizes && Array.isArray(p.sizes)) {
-        p.sizes.forEach(size => {
-            const sizeStr = typeof size === 'string' ? size : (size.name || '');
-            const isAvailable = typeof size === 'string' ? true : (size.available !== false);
-            
-            if (isAvailable) {
-                sizesHTML += `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`;
-            } else {
-                sizesHTML += `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed">${sizeStr}</button>`;
-            }
-        });
-    }
-
-    // রঙ বোতাম তৈরি
     let colorsHTML = '';
-    if (p.colors && Array.isArray(p.colors)) {
-        p.colors.forEach(color => {
-            colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black hover:border-black transition">${color}</button>`;
-        });
+
+    if (p.category === 'couple-tshirt') {
+        // --- কাপল টি-শার্টের জন্য ২ সেট বাটন তৈরি ---
+        
+        // Partner 1 & Partner 2 Size
+        sizesHTML += `
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-wider">Partner 1 Size</label>
+                    <div class="flex flex-wrap gap-2">
+        `;
+        if (p.sizes && p.sizes.partner1) {
+            p.sizes.partner1.forEach(size => {
+                sizesHTML += size.available 
+                    ? `<button onclick="selectFeature('size-p1','${size.name}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed">${size.name}</button>`;
+            });
+        }
+        sizesHTML += `
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-wider">Partner 2 Size</label>
+                    <div class="flex flex-wrap gap-2">
+        `;
+        if (p.sizes && p.sizes.partner2) {
+            p.sizes.partner2.forEach(size => {
+                sizesHTML += size.available 
+                    ? `<button onclick="selectFeature('size-p2','${size.name}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed">${size.name}</button>`;
+            });
+        }
+        sizesHTML += `</div></div></div>`;
+
+        // Partner 1 & Partner 2 Color
+        colorsHTML += `
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-wider">Partner 1 Color</label>
+                    <div class="flex flex-wrap gap-2">
+        `;
+        if (p.colors && p.colors.partner1) {
+            p.colors.partner1.forEach(color => {
+                colorsHTML += `<button onclick="selectFeature('color-p1','${color}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black hover:border-black transition">${color}</button>`;
+            });
+        }
+        colorsHTML += `
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-wider">Partner 2 Color</label>
+                    <div class="flex flex-wrap gap-2">
+        `;
+        if (p.colors && p.colors.partner2) {
+            p.colors.partner2.forEach(color => {
+                colorsHTML += `<button onclick="selectFeature('color-p2','${color}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black hover:border-black transition">${color}</button>`;
+            });
+        }
+        colorsHTML += `</div></div></div>`;
+
+    } else {
+        // --- সাধারণ প্রোডাক্টের জন্য আগের সিঙ্গেল বাটন লজিক ---
+        if (p.sizes && Array.isArray(p.sizes)) {
+            sizesHTML += `<div class="flex flex-wrap gap-2">`;
+            p.sizes.forEach(size => {
+                const sizeStr = typeof size === 'string' ? size : (size.name || '');
+                const isAvailable = typeof size === 'string' ? true : (size.available !== false);
+                
+                sizesHTML += isAvailable
+                    ? `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-gray-100 rounded-full text-[10px] font-black flex items-center justify-center hover:border-black transition">${sizeStr}</button>`
+                    : `<button disabled class="w-12 h-12 border-2 border-gray-200 rounded-full text-[10px] font-black flex items-center justify-center bg-gray-50 text-gray-400 cursor-not-allowed">${sizeStr}</button>`;
+            });
+            sizesHTML += `</div>`;
+        }
+
+        if (p.colors && Array.isArray(p.colors)) {
+            colorsHTML += `<div class="flex flex-wrap gap-2">`;
+            p.colors.forEach(color => {
+                colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-5 py-2.5 border-2 border-gray-100 rounded-full text-[10px] font-black hover:border-black transition">${color}</button>`;
+            });
+            colorsHTML += `</div>`;
+        }
     }
 
-    // [SEO UPDATE] ইমেজ থাম্বনেইল তৈরি করার সময় dynamic alt এবং loading="lazy" যোগ করা হয়েছে
+    // [SEO UPDATE] ইমেজ থাম্বনেইল তৈরি
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images)) {
         imagesHTML = p.images.map((img, index) => {
@@ -346,15 +414,15 @@ function openModal(id) {
         }).join('');
     }
 
-    // ক্যাটাগরি টেক্সট ফরম্যাট করা (যেমন: drop-shoulder থেকে drop shoulder)
+    // ক্যাটাগরি টেক্সট ফরম্যাট করা
     const formattedCategory = p.category ? p.category.replace('-', ' ') : 'apparel';
     const mainAltText = `${p.name} - Premium ${formattedCategory} T-Shirt by REDAMS`;
 
+    // মোডাল HTML রেন্ডার করা
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-4">
                 <div class="relative overflow-hidden rounded-2xl bg-gray-50 aspect-[3/4]">
-                    <!-- [SEO UPDATE] মূল ইমেজে মিনিংফুল alt টেক্সট দেওয়া হয়েছে -->
                     <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
                          class="w-full h-full object-cover transition duration-500"
                          alt="${mainAltText}">
@@ -375,11 +443,11 @@ function openModal(id) {
                 </div>
                 <div class="mb-4">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Color</p>
-                    <div class="flex gap-2 flex-wrap">${colorsHTML}</div>
+                    <div>${colorsHTML}</div>
                 </div>
                 <div class="mb-6">
                     <p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Size</p>
-                    <div class="flex gap-2 flex-wrap">${sizesHTML}</div>
+                    <div>${sizesHTML}</div>
                     <p class="text-[9px] text-gray-400 mt-2">Disabled sizes are out of stock</p>
                 </div>
                 <div class="mb-8 flex items-center gap-5">
