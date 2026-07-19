@@ -237,6 +237,83 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="swiper-pagination"></div>
     </section>
+
+     <!-- REDAMS Premium 4:5 Campaign Slider (Fully Clickable) -->
+<section class="campaign-slider-section my-12 px-4 max-w-7xl mx-auto">
+    <!-- Swiper Container -->
+    <div class="swiper azz-campaign-swiper overflow-hidden relative rounded-2xl">
+        <div class="swiper-wrapper">
+            
+            <!-- Slide 1 (Free Delivery Banner) -->
+            <!-- 💡 href="#shop" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#product-grid" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
+                <img src="images/pro-free delivery.jpeg" alt="Free Delivery" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <!-- Bottom Action Button -->
+                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                        Free Delivery ↘
+                    </span>
+                </div>
+            </a>
+
+            <!-- Slide 2 (Deshi Collection Banner) -->
+            <!-- 💡 href="#deshi" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#'shop.html?cat=polo-tshirt'" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
+                <img src="images/Spider man 01.jpg" alt="Casual Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                        Order To Wear ↘
+                    </span>
+                </div>
+            </a>
+
+            <!-- Slide 3 (Souls Banner) -->
+            <!-- 💡 href="#souls" এর জায়গায় আপনার নির্দিষ্ট প্রোডাক্ট সেকশনের ID দিতে পারেন -->
+            <a href="#'shop.html?cat=couple-tshirt'" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
+                <img src="images/couple spider.jpg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                        Order To Wear ↘
+                    </span>
+                </div>
+            </a>
+
+        </div>
+        
+        <!-- Navigation Arrows (Azzbd style clean UI) -->
+        <div class="swiper-button-next camp-next !text-black after:!text-lg bg-white/90 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-4 z-10 transition-all hover:bg-black hover:!text-white"></div>
+        <div class="swiper-button-prev camp-prev !text-black after:!text-lg bg-white/90 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-4 z-10 transition-all hover:bg-black hover:!text-white"></div>
+        
+        <!-- Pagination Dots -->
+        <div class="swiper-pagination camp-pagination !bottom-4"></div>
+    </div>
+</section>
+
+<style>
+/* ৪:৫ নিখুঁত রেশিও লক করা */
+.aspect-\[4\/5\] {
+    aspect-ratio: 4 / 5;
+}
+
+/* স্লাইডারের অ্যাক্টিভ ডটের স্টাইল */
+.camp-pagination .swiper-pagination-bullet-active {
+    background: #ffffff !important; /* ব্যানারের ওপর সাদা ডট ফুটবে ভালো */
+    width: 20px;
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* মাউস নিলে ছবির স্মুথ জুম ইফেক্ট */
+.group:hover .group-hover\:scale-105 {
+    transform: scale(1.05);
+}
+
+/* স্মুথ স্ক্রোলিং ইফেক্ট */
+html {
+    scroll-behavior: smooth;
+}
+</style>
+
   <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
