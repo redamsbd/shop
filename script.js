@@ -398,6 +398,9 @@ function openModal(id) {
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
 
+let finalSize = product.category === 'couple-tshirt' ? `${selectedSizeP1} + ${selectedSizeP2}` : selectedSize;
+let finalColor = product.category === 'couple-tshirt' ? `${selectedColorP1} + ${selectedColorP2}` : selectedColor;
+
 // ===== কার্টে যোগ করা =====
 function addToCart(id) {
     if (!selectedSize || !selectedColor) {
