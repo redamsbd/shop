@@ -97,8 +97,19 @@ function toggleMobileMenu() {
     }
 }
 
-// ===== কালার এবং সাইজ সিলেকশন =====
+// ===== গ্লোবাল ভ্যারিয়েবল (ফাইলের শুরুতে বা ফাংশনের বাইরে রাখবেন) =====
+let selectedSize = '';
+let selectedColor = '';
+
+// কাপল টি-শার্টের জন্য আলাদা ভ্যারিয়েবল
+let selectedSizeP1 = '';
+let selectedSizeP2 = '';
+let selectedColorP1 = '';
+let selectedColorP2 = '';
+
+// ===== কালার এবং সাইজ সিলেকশন ফাংশন =====
 function selectFeature(type, val, el) {
+    // যে বাটনের গ্রুপে ক্লিক করা হয়েছে, শুধু সেটির Active ক্লাস চেঞ্জ হবে
     const buttons = el.parentElement.getElementsByTagName('button');
     for (let btn of buttons) {
         btn.classList.remove('bg-black', 'text-white', 'border-black');
@@ -107,8 +118,22 @@ function selectFeature(type, val, el) {
     el.classList.add('bg-black', 'text-white', 'border-black');
     el.classList.remove('border-gray-100');
 
-    if (type === 'size') selectedSize = val;
-    else selectedColor = val;
+    // টাইপ অনুযায়ী সঠিক ভ্যারিয়েবলে ডাটা সেভ করা
+    if (type === 'size') {
+        selectedSize = val;
+    } else if (type === 'color') {
+        selectedColor = val;
+    } 
+    // কাপল টি-শার্টের পার্টনার ভিত্তিক সিলেকশন
+    else if (type === 'size-p1') {
+        selectedSizeP1 = val;
+    } else if (type === 'size-p2') {
+        selectedSizeP2 = val;
+    } else if (type === 'color-p1') {
+        selectedColorP1 = val;
+    } else if (type === 'color-p2') {
+        selectedColorP2 = val;
+    }
 }
 
 // ===== কোয়ান্টিটি আপডেট =====
@@ -118,6 +143,58 @@ function updateQty(val) {
     if (qtyElement) qtyElement.innerText = modalQty;
 }
 
+// ===== আপনার রেফারেন্সের জন্য: প্রোডাক্ট মডাল/পেজ ওপেন করার সময় UI রেন্ডার করার ফাংশন =====
+// 💡 এই অংশটুকু আপনার যেখানে মডাল ওপেন বা প্রোডাক্ট ডিটেইলস শো হয় (যেমন openModal ফাংশন), সেখানে বসাবেন।
+function renderProductOptions(product) {
+    const sizeContainer = document.getElementById('size-container'); // আপনার কন্টেইনার আইডি
+    const colorContainer = document.getElementById('color-container'); // আপনার কালার কন্টেইনার আইডি
+    
+    // ভ্যারিয়েবল রিসেট করা
+    selectedSize = ''; selectedColor = '';
+    selectedSizeP1 = ''; selectedSizeP2 = '';
+    selectedColorP1 = ''; selectedColorP2 = '';
+
+    if (product.category === 'couple-tshirt') {
+        // কাপল টি-শার্টের জন্য ২ সেট সাইজ ও কালার অপশন
+        if (sizeContainer) {
+            sizeContainer.innerHTML = `
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Partner 1 Size:</label>
+                    <div class="flex gap-2">${generateSizeButtons(product.sizes.partner1, 'size-p1')}</div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Partner 2 Size:</label>
+                    <div class="flex gap-2">${generateSizeButtons(product.sizes.partner2, 'size-p2')}</div>
+                </div>
+            `;
+        }
+        
+        if (colorContainer) {
+            colorContainer.innerHTML = `
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Partner 1 Color:</label>
+                    <div class="flex gap-2">${generateColorButtons(product.colors.partner1, 'color-p1')}</div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Partner 2 Color:</label>
+                    <div class="flex gap-2">${generateColorButtons(product.colors.partner2, 'color-p2')}</div>
+                </div>
+            `;
+        }
+    } else {
+        // সাধারণ প্রোডাক্টের জন্য আগের সিঙ্গেল অপশন
+        if (sizeContainer) {
+            sizeContainer.innerHTML = `
+                <div class="flex gap-2">${generateSizeButtons(product.sizes, 'size')}</div>
+            `;
+        }
+        if (colorContainer) {
+            colorContainer.innerHTML = `
+                <div class="flex gap-2">${generateColorButtons(product.colors, 'color')}</div>
+            `;
+        }
+    }
+}
 // ===== নতুন আগমন স্লাইডার রেন্ডার =====
 function renderNewArrivals(products) {
     const slider = document.getElementById('new-arrivals-slider');
