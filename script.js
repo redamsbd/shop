@@ -465,32 +465,47 @@ function openModal(id) {
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
 
-// 'product' এর জায়গায় 'p' ব্যবহার করে ফিক্স করা হলো
-let finalSize = p.category === 'couple-tshirt' ? `${selectedSizeP1} + ${selectedSizeP2}` : selectedSize;
-let finalColor = p.category === 'couple-tshirt' ? `${selectedColorP1} + ${selectedColorP2}` : selectedColor;
-// ===== কার্টে যোগ করা =====
+// ===== কার্টে যোগ করা (সংশোধিত ও কাপল টি-শার্ট লজিক ফিক্সড) =====
 function addToCart(id) {
-    if (!selectedSize || !selectedColor) {
-        Swal.fire({
-            title: 'Attention!',
-            text: 'Please select both Color and Size.',
-            icon: 'warning',
-            confirmButtonColor: '#000'
-        });
-        return;
-    }
-
     const p = allProducts.find(item => item.id === id);
     if (!p) return;
 
+    // ১. সাইজ এবং কালার সিলেকশন ভ্যালিডেশন চেক
+    if (p.category === 'couple-tshirt') {
+        if (!selectedSizeP1 || !selectedSizeP2 || !selectedColorP1 || !selectedColorP2) {
+            Swal.fire({
+                title: 'Attention!',
+                text: 'Please select Size and Color for BOTH Partners.',
+                icon: 'warning',
+                confirmButtonColor: '#000'
+            });
+            return;
+        }
+    } else {
+        if (!selectedSize || !selectedColor) {
+            Swal.fire({
+                title: 'Attention!',
+                text: 'Please select both Color and Size.',
+                icon: 'warning',
+                confirmButtonColor: '#000'
+            });
+            return;
+        }
+    }
+
+    // ২. ফাইনাল সাইজ এবং কালার নির্ধারণ (ফাংশনের ভেতরে নিয়ে আসা হয়েছে)
+    let finalSize = p.category === 'couple-tshirt' ? `${selectedSizeP1} + ${selectedSizeP2}` : selectedSize;
+    let finalColor = p.category === 'couple-tshirt' ? `${selectedColorP1} + ${selectedColorP2}` : selectedColor;
+
+    // ৩. কার্ট লিস্টে ডাটা পুশ করা
     cart.push({
         id: p.id,
         name: p.name,
         price: p.price,
         originalPrice: p.originalPrice,
         category: p.category,
-        selectedSize: selectedSize,
-        selectedColor: selectedColor,
+        selectedSize: finalSize,   // এখানে কাপল/সিঙ্গেল ফিল্টার করা সাইজ যাবে
+        selectedColor: finalColor, // এখানে কাপল/সিঙ্গেল ফিল্টার করা কালার যাবে
         qty: modalQty,
         image: p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'
     });
@@ -508,7 +523,6 @@ function addToCart(id) {
     });
     saveCartToStorage(); // কার্ট ডাটা সেভ করো
 }
-
 // ===== প্রোমো কোড প্রয়োগ করা (ক্যাটাগরি চেক সহ) =====
 function applyPromoCode() {
     const input = document.getElementById('promo-input');
