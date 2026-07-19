@@ -97,16 +97,15 @@ function toggleMobileMenu() {
     }
 }
 
-// ===== গ্লোবাল ভ্যারিয়েবল (ফাইলের শুরুতে বা ফাংশনের বাইরে রাখবেন) =====
-let selectedSize = '';
-let selectedColor = '';
+// ===== গ্লোবাল ভ্যারিয়েবল (সংশোধিত) =====
+selectedSize = '';  // let কেটে দেওয়া হয়েছে
+selectedColor = ''; // let কেটে দেওয়া হয়েছে
 
-// কাপল টি-শার্টের জন্য আলাদা ভ্যারিয়েবল
+// কাপল টি-শার্টের জন্য নতুন ভ্যারিয়েবল (এগুলো আগে ছিল না, তাই let থাকবে)
 let selectedSizeP1 = '';
 let selectedSizeP2 = '';
 let selectedColorP1 = '';
 let selectedColorP2 = '';
-
 // ===== কালার এবং সাইজ সিলেকশন ফাংশন =====
 function selectFeature(type, val, el) {
     // যে বাটনের গ্রুপে ক্লিক করা হয়েছে, শুধু সেটির Active ক্লাস চেঞ্জ হবে
