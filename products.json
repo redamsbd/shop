@@ -777,7 +777,8 @@
   "isOutOfStock": false,
   "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
   "images": [
-    "images/couple spider.jpg"
+    "images/couple spider.jpg",
+    "images/size chart drop.jpeg"
   ],
   "altText": "REDAMS Couple Spider Collection Heavyweight Drop Shoulder Tee",
   "colors": {
@@ -797,6 +798,27 @@
       { "name": "XL", "available": true },
       { "name": "XXL", "available": true }
     ]
-  }
+  },
+    {
+    "id": 38,
+    "name": "Spider Man ",
+    "price": 490,
+    "originalPrice": 560,
+    "category": "drop-shoulder",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton summer friendly fabric.<br><b>Style:</b> Streetwear Drop Shoulder.<br><b>Detail:</b> High-quality DTF.<br>Perfect for your everyday casual look.",
+    "images": [
+      "images/spider man black.jpg",
+      "images/size chart drop.jpeg"
+    ],
+    "altText": "REDAMS Spider Man special Streetwear Drop Shoulder  T-Shirt in Bangladesh",
+    "colors": ["Black"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+  },
 }
 ]
