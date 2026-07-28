@@ -23,25 +23,36 @@
     ]
   },
   {
-    "id": 8,
-    "name": "Pirates Tee",
-    "price": 450,
-    "originalPrice": 499,
-    "category": "drop-shoulder",
+    "id": 2,
+    "name": "Spider-Duo",
+    "price": 850,
+    "originalPrice": 900,
+    "category": "couple-tshirt",
     "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Organic Cotton.<br><b>Style:</b> Streetwear Drop Shoulder.<br><b>Detail:</b> High-quality DTF.<br>Perfect for your everyday casual look.",
+    "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
     "images": [
-      "images/drop shoulder- Pirates Tee.jpg",
+      "images/couple spider.jpg",
       "images/size chart drop.jpeg"
     ],
-    "altText": "REDAMS Pirates Tee Streetwear Drop Shoulder Black T-Shirt in Bangladesh",
-    "colors": ["Black"],
-    "sizes": [
-      { "name": "M", "available": true },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
-    ]
+    "altText": "REDAMS Couple Spider Collection Heavyweight Drop Shoulder Tee",
+    "colors": {
+      "partner1": ["Black", "White"],
+      "partner2": ["White", "Black"]
+    },
+    "sizes": {
+      "partner1": [
+        { "name": "M", "available": true },
+        { "name": "L", "available": true },
+        { "name": "XL", "available": true },
+        { "name": "XXL", "available": true }
+      ],
+      "partner2": [
+        { "name": "M", "available": true },
+        { "name": "L", "available": true },
+        { "name": "XL", "available": true },
+        { "name": "XXL", "available": true }
+      ]
+    }
   },
   {
     "id": 3,
@@ -153,22 +164,20 @@
     ]
   },
   {
-    "id": 37,
-    "name": "LIBERAL",
+    "id": 8,
+    "name": "Pirates Tee",
     "price": 450,
-    "originalPrice": 520,
+    "originalPrice": 499,
     "category": "drop-shoulder",
     "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Dyed Cotton.<br><b>Fit:</b> Oversized Comfort.<br>Typography based streetwear design for the modern generation.",
+    "description": "<b>Fabric:</b> Premium Organic Cotton.<br><b>Style:</b> Streetwear Drop Shoulder.<br><b>Detail:</b> High-quality DTF.<br>Perfect for your everyday casual look.",
     "images": [
-      "images/❝LIBERAL❞ bottle green.jpg",
-      "images/❝LIBERAL❞ black.jpg",
+      "images/drop shoulder- Pirates Tee.jpg",
       "images/size chart drop.jpeg"
     ],
-    "altText": "REDAMS Liberal Typography Premium Streetwear Bottle Green & Black Oversized Tee",
-    "colors": ["Bottle Green", "Black"],
+    "altText": "REDAMS Pirates Tee Streetwear Drop Shoulder Black T-Shirt in Bangladesh",
+    "colors": ["Black"],
     "sizes": [
-      { "name": "S", "available": true },
       { "name": "M", "available": true },
       { "name": "L", "available": true },
       { "name": "XL", "available": true },
@@ -768,40 +777,9 @@
       { "name": "XL", "available": false }
     ]
   },
- {
-  "id": 2,
-  "name": "Spider-Duo",
-  "price": 850,
-  "originalPrice": 900,
-  "category": "couple-tshirt",
-  "isOutOfStock": false,
-  "description": "<b>Material:</b> Light-weight Cotton.<br><b>Fit:</b> Regular Standard Fit.<br>Basic essentials for layering or solo wear. Solid colors that don't fade.",
-  "images": [
-    "images/couple spider.jpg",
-    "images/size chart drop.jpeg"
-  ],
-  "altText": "REDAMS Couple Spider Collection Heavyweight Drop Shoulder Tee",
-  "colors": {
-    "partner1": ["Black", "White"],
-    "partner2": ["White", "Black"]
-  },
-  "sizes": {
-    "partner1": [
-      { "name": "M", "available": true },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
-    ],
-    "partner2": [
-      { "name": "M", "available": true },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
-    ]
-  },
-    {
-    "id": 38,
-    "name": "Spider Man ",
+  {
+    "id": 37,
+    "name": "Spider Man",
     "price": 490,
     "originalPrice": 560,
     "category": "drop-shoulder",
@@ -811,7 +789,7 @@
       "images/spider man black.jpg",
       "images/size chart drop.jpeg"
     ],
-    "altText": "REDAMS Spider Man special Streetwear Drop Shoulder  T-Shirt in Bangladesh",
+    "altText": "REDAMS Spider Man special Streetwear Drop Shoulder T-Shirt in Bangladesh",
     "colors": ["Black"],
     "sizes": [
       { "name": "M", "available": true },
