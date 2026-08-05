@@ -1,4 +1,24 @@
-[
+[ {
+    "id": 38,
+    "name": "Spider Man-02",
+    "price": 490,
+    "originalPrice": 560,
+    "category": "drop-shoulder",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton summer friendly fabric.<br><b>Style:</b> Streetwear Drop Shoulder.<br><b>Detail:</b> High-quality DTF.<br>Perfect for your everyday casual look.",
+    "images": [
+      "images/spider man 02.jpg",
+      "images/size chart drop.jpeg"
+    ],
+    "altText": "REDAMS Spider Man special Streetwear Drop Shoulder T-Shirt in Bangladesh",
+    "colors": ["Black"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+  },
   {
     "id": 1,
     "name": "Cosmic Wonder",
