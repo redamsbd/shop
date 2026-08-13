@@ -884,12 +884,15 @@ function confirmOrder() {
         }
     });
 
-    // Web3Forms এ পাঠানোর জন্য ডাটা অবজেক্ট তৈরি
-   const formData = {
-        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
-        subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
-        from_name: "REDAMS Website",
-        
+   // Web3Forms এ পাঠানোর জন্য ডাটা অবজেক্ট তৈরি
+const formData = {
+    access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
+    subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
+    from_name: "REDAMS Website",
+    
+    // স্প্যাম ফিল্টার এড়াতে এবং মেইল ডেলিভারি মসৃণ করতে এই ২টি লাইন যোগ করা হয়েছে:
+    replyto: "anmridwanulhassan@gmail.com", // আপনার মেইল অ্যাড্রেস
+    email: "redams.official@gmail.com",    // বা কাস্টমারের ইমেইল আইডি (যদি ইনপুট ফিল্ড থাকে)
         
  // কাস্টমার ইনফো
         Customer_Name: name,
