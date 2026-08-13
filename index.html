@@ -419,7 +419,7 @@ html {
         </div>
     </div>
     
-    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
+   <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
     <div class="p-5 bg-black text-white flex justify-between items-center shrink-0">
         <h2 class="font-black uppercase tracking-widest text-sm">Shopping Bag (<span id="cart-count-drawer">0</span>)</h2>
         <button onclick="toggleCart()" class="text-3xl hover:text-gray-400 transition">&times;</button>
@@ -486,7 +486,7 @@ html {
             </div>
             <div class="p-4 text-center space-y-3">
                 <div class="space-y-1">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
                     <div class="bg-gray-50 py-3 rounded-xl border border-dashed border-gray-200">
                         <span id="display-number" class="text-xl font-black tracking-widest text-black"></span>
                     </div>
@@ -513,12 +513,22 @@ html {
 </div>
 
 <div id="cart-total" class="pt-2 text-left"></div>
-    
-    <div id="cart-total" class="pt-2 text-left"></div>
 
-   <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
-    <i class="fa-solid fa-bag-shopping text-xl"></i><span>Confirm Order</span>
-</button>
+    <!-- Dual Action Order Buttons -->
+    <div class="flex flex-col gap-2 pt-2">
+        <!-- ১. ইমেইল গেটওয়ে বাটন (Confirm Order) -->
+        <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full bg-black text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all opacity-50 cursor-not-allowed">
+            <i class="fa-solid fa-bag-shopping text-base"></i>
+            <span>Confirm Order</span>
+        </button>
+
+        <!-- ২. হোয়াটসঅ্যাপ অর্ডার বাটন (Order via WhatsApp) -->
+        <button id="whatsapp-order-btn" onclick="orderByWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all">
+            <i class="fa-brands fa-whatsapp text-lg"></i>
+            <span>Order via WhatsApp</span>
+        </button>
+    </div>
+
 </div>
         </div>
         </div>
