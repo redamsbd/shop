@@ -890,10 +890,8 @@ function confirmOrder() {
         subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
         from_name: "REDAMS Website",
         
-        // বাকি ২টি মেইলে কার্বন কপি (CC) পাঠানোর জন্য
-        cc: "shamimaackerman@gmail.com,anmridwanulhassan@gmail.com",
         
-        // কাস্টমার ইনফো
+ // কাস্টমার ইনফো
         Customer_Name: name,
         Customer_Phone: phone,
         Delivery_Address: address,
