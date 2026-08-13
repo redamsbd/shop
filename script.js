@@ -962,6 +962,123 @@ if (typeof updateCartUI === "function") updateCartUI();
         });
     });
 }
+// ===== প্রফেশনাল উপায়ে WhatsApp-এ অর্ডার কনফার্ম করা =====
+function orderByWhatsApp() {
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
+    const trnxIdInput = document.getElementById('trnx-id');
+    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
+
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    // বেসিক ভ্যালিডেশন Check
+    if (!name || !phone || !address || cart.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'অসম্পূর্ণ তথ্য!',
+            text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।'
+        });
+        return;
+    }
+
+    if (paymentMethod !== 'COD' && trnxId.length < 8) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'TRXID প্রয়োজন!',
+            text: 'সঠিক Transaction ID দিন।'
+        });
+        return;
+    }
+
+    // আইটেম এবং সাবটোটাল হিসাব
+    let itemsText = "";
+    let subtotal = 0;
+    cart.forEach((item, index) => {
+        itemsText += `${index + 1}. ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}\n`;
+        subtotal += item.price * item.qty;
+    });
+
+    // ডেলিভারি চার্জ হিসাব
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+
+    if (totalQty >= 3) baseCharge = 0;
+
+    // প্রোমো ডিসকাউন্ট হিসাব
+    let discount = 0;
+    let promoInfo = "NONE";
+
+    if (activePromo) {
+        const promo = promoList[activePromo];
+        promoInfo = activePromo;
+
+        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
+            const applicableSubtotal = cart
+                .filter(item => promo.applicableCategories.includes(item.category))
+                .reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (promo.type === "delivery") {
+                baseCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (applicableSubtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
+        } else {
+            if (promo.type === "delivery") {
+                baseCharge = 0;
+            } else if (promo.type === "percent") {
+                discount = (subtotal * promo.value) / 100;
+            } else if (promo.type === "fixed") {
+                discount = promo.value;
+            }
+        }
+    }
+
+    const totalBill = subtotal + baseCharge - discount;
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID";
+    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+
+    // আপনার WhatsApp Business নম্বর (কান্ট্রি কোড সহ)
+    const whatsappNumber = "8801894357549"; 
+
+    // WhatsApp Message Format (WhatsApp Markdowns সহ সুন্দরভাবে সাজানো)
+    let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
+    message += `👤 *Customer Details:*\n`;
+    message += `• Name: ${name}\n`;
+    message += `• Phone: ${phone}\n`;
+    message += `• Address: ${address}\n\n`;
+
+    message += `🛒 *Ordered Items:*\n${itemsText}\n`;
+
+    message += `💰 *Billing Details:*\n`;
+    message += `• Subtotal: ৳${subtotal}\n`;
+    message += `• Promo Used: ${promoInfo}\n`;
+    message += `• Discount: ৳${discount.toFixed(0)}\n`;
+    message += `• Delivery Charge: ${baseCharge === 0 ? "FREE" : "৳" + baseCharge}\n`;
+    message += `• *TOTAL BILL: ৳${totalBill.toFixed(0)}*\n\n`;
+
+    message += `💳 *Payment Details:*\n`;
+    message += `• Method: ${paymentMethod}\n`;
+    message += `• Status: ${paymentStatus}\n`;
+    message += `• TrxID: ${trnxId}\n`;
+    message += `• *Due Amount: ৳${finalPayable.toFixed(0)}*\n\n`;
+    message += `Please confirm my order!`;
+
+    // কার্ট এবং লোকাল স্টোরেজ ক্লিয়ার করা
+    cart = [];
+    localStorage.removeItem('redams_cart');
+    activePromo = null;
+    if (typeof updateCartUI === "function") updateCartUI();
+    if (typeof toggleCart === "function") toggleCart(false);
+
+    // WhatsApp Open করা
+    const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+}
 // ===== কার্ট থেকে আইটেম রিমুভ করা =====
 function removeFromCart(index) {
     cart.splice(index, 1);
