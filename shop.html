@@ -242,9 +242,21 @@
     
     <div id="cart-total" class="pt-2 text-left"></div>
 
-    <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full bg-gray-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg transition-all opacity-50 cursor-not-allowed">
-    <i class="fa-solid fa-bag-shopping text-xl"></i><span>Confirm Order</span>
-</button>
+     <!-- Dual Action Order Buttons (REDAMS Premium Theme) -->
+    <div class="flex flex-col gap-3 pt-3">
+        
+        <!-- ১. প্রিমিয়াম ব্ল্যাক ইমেইল অর্ডার বাটন -->
+        <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full !bg-black hover:!bg-zinc-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all duration-300 disabled:!bg-zinc-400 disabled:!opacity-50 disabled:cursor-not-allowed border border-black/10 active:scale-[0.98]">
+            <i class="fa-solid fa-bag-shopping text-sm"></i>
+            <span>Confirm Order</span>
+        </button>
+
+        <!-- ২. প্রিমিয়াম মিনিমালিস্ট হোয়াটসঅ্যাপ বাটন -->
+        <button id="whatsapp-order-btn" onclick="orderByWhatsApp()" class="w-full bg-white hover:bg-zinc-50 text-black border-2 border-zinc-200 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
+            <i class="fa-brands fa-whatsapp text-lg text-[#25D366]"></i>
+            <span>Order via WhatsApp</span>
+        </button>
+
 </div>
         </div>
     </div>
