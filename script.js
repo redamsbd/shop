@@ -438,14 +438,14 @@ function openModal(id) {
                 </div>
             </div>
             <div class="flex flex-col">
-                <!-- Add To Cart & Share Action Area -->
-<div class="flex items-center gap-3 w-full">
-    <button onclick="addToCart(${p.id})" class="flex-1 bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">
-        Add To Cart
-    </button>
+               <!-- প্রোডাক্টের নাম ও পাশে লাক্সারি Share Link বাটন -->
+<div class="flex justify-between items-center mb-3">
+    <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-black">${p.name}</h2>
     
-    <button onclick="shareProductLink(${p.id})" title="Share Product" class="w-16 h-[60px] bg-gray-100 hover:bg-black text-black hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300 shrink-0 active:scale-95 border border-gray-200">
-        <i class="fa-solid fa-share-nodes text-lg"></i>
+    <!-- Premium Minimalist Share Button -->
+    <button onclick="shareProductLink(${p.id})" class="flex items-center gap-2 bg-gray-50 hover:bg-black text-black hover:text-white px-3.5 py-2 rounded-full border border-gray-200 transition-all duration-300 shadow-sm shrink-0 active:scale-95">
+        <i class="fa-solid fa-share-nodes text-xs"></i>
+        <span class="text-[10px] font-black uppercase tracking-wider">Share</span>
     </button>
 </div>
 
