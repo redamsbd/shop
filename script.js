@@ -438,13 +438,16 @@ function openModal(id) {
                 </div>
             </div>
             <div class="flex flex-col">
-                <!-- প্রোডাক্টের নাম ও পাশে Share Link বাটন -->
-                <div class="flex justify-between items-start mb-2">
-                    <h2 class="text-3xl font-black uppercase tracking-tighter">${p.name}</h2>
-                    <button onclick="shareProductLink(${p.id})" title="Copy Share Link" class="p-2.5 rounded-full bg-gray-100 hover:bg-black hover:text-white transition">
-                        <i class="fa-solid fa-share-nodes text-sm"></i>
-                    </button>
-                </div>
+                <!-- Add To Cart & Share Action Area -->
+<div class="flex items-center gap-3 w-full">
+    <button onclick="addToCart(${p.id})" class="flex-1 bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">
+        Add To Cart
+    </button>
+    
+    <button onclick="shareProductLink(${p.id})" title="Share Product" class="w-16 h-[60px] bg-gray-100 hover:bg-black text-black hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300 shrink-0 active:scale-95 border border-gray-200">
+        <i class="fa-solid fa-share-nodes text-lg"></i>
+    </button>
+</div>
 
                 <div class="flex items-center gap-3 mb-6">
                     <p class="text-2xl font-black">৳ ${p.price}</p>
@@ -1117,35 +1120,41 @@ function closeModal() {
     // URL থেকে #product-ID সরিয়ে মূল ক্লিন URL ফিরিয়ে আনা
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
-// ===== প্রোডাক্টের নির্দিষ্ট লিংক কপি করার জন্য Share ফাংশন =====
+// ===== প্রিমিয়াম ওয়েব শেয়ার এবং কপি ফাংশন =====
 function shareProductLink(id) {
+    const p = allProducts.find(item => item.id === id);
     const shareUrl = `${window.location.origin}${window.location.pathname}#product-${id}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        Swal.fire({
-            icon: 'success',
-            title: 'Link Copied!',
-            text: 'Product link copied to clipboard. Share it anywhere!',
-            timer: 1800,
-            showConfirmButton: false
+    
+    // ১. মোবাইল ডিভাইসে Native App Share Prompt (WhatsApp/Messenger direct popup)
+    if (navigator.share) {
+        navigator.share({
+            title: p ? p.name : 'REDAMS Streetwear',
+            text: `Check out ${p ? p.name : 'this product'} on REDAMS!`,
+            url: shareUrl
+        }).catch(() => {
+            copyToClipboard(shareUrl);
         });
-    });
+    } else {
+        // ২. ডেস্কটপ বা সাপোর্ট না থাকলে প্রিমিয়াম কাস্টম কপি নোটিফিকেশন
+        copyToClipboard(shareUrl);
+    }
 }
 
-// ===== শেয়ার করা লিংকে কেউ ঢুকলে সরাসরি মোডাল খোলার লজিক =====
-window.addEventListener('DOMContentLoaded', () => {
-    checkUrlAndOpenModal();
-});
-
-function checkUrlAndOpenModal() {
-    const hash = window.location.hash; // যেমন: #product-37
-    if (hash && hash.startsWith('#product-')) {
-        const productId = parseInt(hash.replace('#product-', ''));
-        if (!isNaN(productId)) {
-            setTimeout(() => {
-                openModal(productId);
-            }, 300);
-        }
-    }
+// হেল্পার কপি ফাংশন
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'LINK COPIED!',
+            text: 'Product link copied. Share it anywhere!',
+            timer: 1500,
+            showConfirmButton: false,
+            customClass: {
+                popup: 'rounded-2xl',
+                title: 'text-sm font-black tracking-widest'
+            }
+        });
+    });
 }
 // ===== স্বয়ংক্রিয় স্ক্রল সেটআপ =====
 function setupAutoScroll(slider) {
