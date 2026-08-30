@@ -287,7 +287,7 @@ function displayProducts(products, showAll = false) {
 
 // ===== মোডাল খোলা (URL Hash & Share Feature সহ আপডেট করা) =====
 function openModal(id) {
-    const p = allProducts.find(item => item.id === id);
+   const p = allProducts.find(item => item.id == id); 
     if (!p) return;
 
     // Stock Out check করা
@@ -1156,6 +1156,29 @@ function copyToClipboard(url) {
         });
     });
 }
+// ===== শেয়ার করা লিংকে ঢুকলে সরাসরি মোডাল ওপেন করার লজিক =====
+function checkUrlAndOpenModal() {
+    const hash = window.location.hash; // যেমন: #product-3
+    if (hash && hash.startsWith('#product-')) {
+        const productId = hash.replace('#product-', '');
+        
+        // প্রোডাক্ট ডাটা লোড না হওয়া পর্যন্ত ২-৩ বার ট্রাই করার জন্য একটি সেফ ইন্টারভাল
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+            attempts++;
+            if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
+                openModal(productId);
+                clearInterval(checkInterval);
+            } else if (attempts > 20) { // ২ সেকেন্ড পার হলে স্টপ হবে
+                clearInterval(checkInterval);
+            }
+        }, 100);
+    }
+}
+
+// পেজ লোড হওয়া এবং লিংক চেঞ্জ হওয়ার ওপর লিসেনার
+window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
+window.addEventListener('hashchange', checkUrlAndOpenModal);
 // ===== স্বয়ংক্রিয় স্ক্রল সেটআপ =====
 function setupAutoScroll(slider) {
     if (!slider) return;
