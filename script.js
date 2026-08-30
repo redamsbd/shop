@@ -285,7 +285,7 @@ function displayProducts(products, showAll = false) {
     if (viewAllBtn) viewAllBtn.style.display = (showAll || products.length <= 8) ? 'none' : 'block';
 }
 
-// ===== মোডাল খোলা =====
+// ===== মোডাল খোলা (URL Hash & Share Feature সহ আপডেট করা) =====
 function openModal(id) {
     const p = allProducts.find(item => item.id === id);
     if (!p) return;
@@ -301,9 +301,12 @@ function openModal(id) {
         return;
     }
 
+    // [URL UPDATE] ব্রাউজারের URL-এ নির্দিষ্ট প্রোডাক্টের হ্যাশ আইডি যোগ করা
+    window.location.hash = `product-${id}`;
+
     const content = document.getElementById('modal-content');
     
-    // ভ্যারিয়েবল রিসেট করা
+    // ভ্যারিয়েবল রিসেট করা
     selectedSize = null;
     selectedColor = null;
     selectedSizeP1 = ''; selectedSizeP2 = '';
@@ -435,7 +438,14 @@ function openModal(id) {
                 </div>
             </div>
             <div class="flex flex-col">
-                <h2 class="text-3xl font-black mb-2 uppercase tracking-tighter">${p.name}</h2>
+                <!-- প্রোডাক্টের নাম ও পাশে Share Link বাটন -->
+                <div class="flex justify-between items-start mb-2">
+                    <h2 class="text-3xl font-black uppercase tracking-tighter">${p.name}</h2>
+                    <button onclick="shareProductLink(${p.id})" title="Copy Share Link" class="p-2.5 rounded-full bg-gray-100 hover:bg-black hover:text-white transition">
+                        <i class="fa-solid fa-share-nodes text-sm"></i>
+                    </button>
+                </div>
+
                 <div class="flex items-center gap-3 mb-6">
                     <p class="text-2xl font-black">৳ ${p.price}</p>
                     ${hasDiscount ? `<p class="text-sm font-bold text-gray-400 line-through">৳ ${p.originalPrice}</p>` : ''}
@@ -464,7 +474,6 @@ function openModal(id) {
 
     document.getElementById('product-modal').classList.replace('hidden', 'flex');
 }
-
 // ===== কার্টে যোগ করা (সংশোধিত ও কাপল টি-শার্ট লজিক ফিক্সড) =====
 function addToCart(id) {
     const p = allProducts.find(item => item.id === id);
@@ -1100,12 +1109,44 @@ function toggleCart(open = false) {
     }
 }
 
-// ===== মোডাল বন্ধ করা =====
+// ===== মোডাল বন্ধ করা (URL Hash সরানোর জন্য আপডেট করা) =====
 function closeModal() {
     const modal = document.getElementById('product-modal');
     if (modal) modal.classList.replace('flex', 'hidden');
+
+    // URL থেকে #product-ID সরিয়ে মূল ক্লিন URL ফিরিয়ে আনা
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+}
+// ===== প্রোডাক্টের নির্দিষ্ট লিংক কপি করার জন্য Share ফাংশন =====
+function shareProductLink(id) {
+    const shareUrl = `${window.location.origin}${window.location.pathname}#product-${id}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Link Copied!',
+            text: 'Product link copied to clipboard. Share it anywhere!',
+            timer: 1800,
+            showConfirmButton: false
+        });
+    });
 }
 
+// ===== শেয়ার করা লিংকে কেউ ঢুকলে সরাসরি মোডাল খোলার লজিক =====
+window.addEventListener('DOMContentLoaded', () => {
+    checkUrlAndOpenModal();
+});
+
+function checkUrlAndOpenModal() {
+    const hash = window.location.hash; // যেমন: #product-37
+    if (hash && hash.startsWith('#product-')) {
+        const productId = parseInt(hash.replace('#product-', ''));
+        if (!isNaN(productId)) {
+            setTimeout(() => {
+                openModal(productId);
+            }, 300);
+        }
+    }
+}
 // ===== স্বয়ংক্রিয় স্ক্রল সেটআপ =====
 function setupAutoScroll(slider) {
     if (!slider) return;
@@ -1309,3 +1350,4 @@ const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
         }
     }
 });
+
