@@ -438,13 +438,13 @@ function openModal(id) {
                 </div>
             </div>
             <div class="flex flex-col">
-               <!-- প্রোডাক্টের নাম ও পাশে লাক্সারি Share Link বাটন -->
-<div class="flex justify-between items-center mb-3">
+              <!-- প্রোডাক্টের নাম ও Share বাটন (PC-তে ক্রস বাটন থেকে দূরে বামে থাকবে) -->
+<div class="flex flex-wrap items-center justify-between md:justify-start gap-3 md:gap-4 mb-3 pr-8 md:pr-0">
     <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-black">${p.name}</h2>
     
-    <!-- Premium Minimalist Share Button -->
-    <button onclick="shareProductLink(${p.id})" class="flex items-center gap-2 bg-gray-50 hover:bg-black text-black hover:text-white px-3.5 py-2 rounded-full border border-gray-200 transition-all duration-300 shadow-sm shrink-0 active:scale-95">
-        <i class="fa-solid fa-share-nodes text-xs"></i>
+    <!-- Premium Share Button (Responsive Layout) -->
+    <button onclick="shareProductLink(${p.id})" class="flex items-center gap-2 bg-gray-50 hover:bg-black text-black hover:text-white px-3.5 py-1.5 rounded-full border border-gray-200 transition-all duration-300 shadow-sm shrink-0 active:scale-95 md:ml-2">
+        <i class="fa-solid fa-share-nodes text-[11px]"></i>
         <span class="text-[10px] font-black uppercase tracking-wider">Share</span>
     </button>
 </div>
