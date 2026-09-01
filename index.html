@@ -276,7 +276,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     </span>
                 </div>
             </a>
-            <a href="#polo-tshirt" onclick="openModal(2)" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
+            <a href="#shop.html?cat=polo-tshirt" onclick="openModal(2)" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
                 <img src="images/polo olive model.jpeg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
                     <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
@@ -287,40 +287,68 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         </div>
         
-        <!-- Navigation Arrows -->
-        <div class="swiper-button-next camp-next !text-black after:!text-lg bg-white/90 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-4 z-10 transition-all hover:bg-black hover:!text-white"></div>
-        <div class="swiper-button-prev camp-prev !text-black after:!text-lg bg-white/90 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-4 z-10 transition-all hover:bg-black hover:!text-white"></div>
-        
-        <!-- Pagination Dots -->
-        <div class="swiper-pagination camp-pagination !bottom-4"></div>
-    </div>
+      <!-- Navigation Arrows (REDAMS Premium Glassmorphic UI) -->
+<div class="swiper-button-next camp-next !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
+
+<div class="swiper-button-prev camp-prev !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
+
+<!-- Pagination Dots Container -->
+<div class="swiper-pagination camp-pagination !bottom-5 z-10 flex justify-center items-center gap-1"></div>
 </section>
 
 <style>
-/* ৪:৫ নিখুঁত রেশিও লক করা */
+/* 1. Aspect Ratio Engine */
 .aspect-\[4\/5\] {
     aspect-ratio: 4 / 5;
 }
 
-/* স্লাইডারের অ্যাক্টিভ ডটের স্টাইল */
+/* 2. Premium Swiper Pagination (REDAMS Luxury Style) */
+.camp-pagination .swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.4) !important;
+    opacity: 1 !important;
+    width: 8px;
+    height: 8px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .camp-pagination .swiper-pagination-bullet-active {
-    background: #ffffff !important; /* ব্যানারের ওপর সাদা ডট ফুটবে ভালো */
-    width: 20px;
-    border-radius: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff !important;
+    width: 24px !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
 }
 
-/* মাউস নিলে ছবির স্মুথ জুম ইফেক্ট */
-.group:hover .group-hover\:scale-105 {
-    transform: scale(1.05);
+/* 3. Ultra-Smooth Hardware Accelerated Zoom Effect */
+.campaign-slider-section .group {
+    isolation: isolate;
 }
 
-/* স্মুথ স্ক্রোলিং ইফেক্ট */
+.campaign-slider-section img {
+    will-change: transform;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.campaign-slider-section .group:hover img {
+    transform: scale(1.06);
+}
+
+/* 4. Luxury Navigation Buttons (Hover Polish) */
+.camp-next, .camp-prev {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.camp-next:hover, .camp-prev:hover {
+    transform: translateY(-50%) scale(1.1) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 5. Smooth Scroll Engine */
 html {
     scroll-behavior: smooth;
 }
 </style>
-
   <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
