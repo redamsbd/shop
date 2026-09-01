@@ -761,15 +761,15 @@ function setOnlineMethod(method) {
     validateOrder();
 }
 
-// ===== অর্ডার ভ্যালিডেশন =====
+// ===== ১. অর্ডার ভ্যালিডেশন (Email ও WhatsApp দুটি বাটনই কন্ট্রোল করবে) =====
 function validateOrder() {
     const nameInput = document.getElementById('final-name');
     const phoneInput = document.getElementById('final-phone');
     const addressInput = document.getElementById('final-address');
     const trnxInput = document.getElementById('trnx-id');
-    const btn = document.getElementById('confirm-order-btn');
 
-    if (!btn) return;
+    const confirmBtn = document.getElementById('confirm-order-btn');
+    const whatsappBtn = document.getElementById('whatsapp-order-btn');
 
     const name = nameInput ? nameInput.value.trim() : "";
     const phone = phoneInput ? phoneInput.value.trim() : "";
@@ -788,26 +788,53 @@ function validateOrder() {
         isPaymentValid = trnxId.length >= 8;
     }
 
-    if (isInfoValid && isPaymentValid) {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.add('bg-[#25D366]');
-        btn.style.opacity = "1";
+    const isValid = isInfoValid && isPaymentValid;
 
-        if (typeof updateCartUI === "function") {
-            updateCartUI(paymentMethod !== 'COD' ? "Full Paid" : "Unpaid");
+    // --- ১. ইমেইল অর্ডার বাটন (Confirm Order) আপডেট ---
+    if (confirmBtn) {
+        if (isValid) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.remove('opacity-50', 'bg-zinc-400', 'cursor-not-allowed', 'pointer-events-none');
+            confirmBtn.classList.add('!bg-black', 'hover:!bg-zinc-800');
+            confirmBtn.style.opacity = "1";
+        } else {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('opacity-50', 'bg-zinc-400', 'cursor-not-allowed', 'pointer-events-none');
+            confirmBtn.classList.remove('!bg-black', 'hover:!bg-zinc-800');
+            confirmBtn.style.opacity = "0.5";
         }
-    } else {
-        btn.disabled = true;
-        btn.classList.add('opacity-50', 'bg-gray-300', 'cursor-not-allowed', 'pointer-events-none');
-        btn.classList.remove('bg-[#25D366]');
-        btn.style.opacity = "0.5";
+    }
 
-        if (typeof updateCartUI === "function") updateCartUI("Unpaid");
+    // --- ২. হোয়াটসঅ্যাপ অর্ডার বাটন (Order via WhatsApp) আপডেট ---
+    if (whatsappBtn) {
+        if (isValid) {
+            whatsappBtn.disabled = false;
+            whatsappBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            whatsappBtn.style.opacity = "1";
+        } else {
+            whatsappBtn.disabled = true;
+            whatsappBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            whatsappBtn.style.opacity = "0.5";
+        }
+    }
+
+    // UI স্টেট আপডেট
+    if (typeof updateCartUI === "function") {
+        updateCartUI(isValid ? (paymentMethod !== 'COD' ? "Full Paid" : "Unpaid") : "Unpaid");
     }
 }
 
-// ===== প্রফেশনাল উপায়ে ই-মেইলে অর্ডার কনফার্ম করা (Web3Forms) =====
+// ===== ইনপুট ফিল্ড খালি করার হেল্পার ফাংশন =====
+function clearCheckoutInputs() {
+    ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+    validateOrder(); // বাটনগুলোকে আবার ডিফল্ট ডিজেবল স্টেটে নেওয়া
+}
+
+
+// ===== ২. প্রফেশনাল উপায়ে ই-মেইলে অর্ডার কনফার্ম করা (Web3Forms) =====
 function confirmOrder() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
@@ -819,11 +846,11 @@ function confirmOrder() {
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    if (!name || !phone || !address || cart.length === 0) {
+    if (!name || phone.length < 11 || !address || cart.length === 0) {
         Swal.fire({
             icon: 'warning',
             title: 'অসম্পূর্ণ তথ্য!',
-            text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।'
+            text: 'অনুগ্রহ করে সঠিক নাম, ১১ ডিজিটের মোবাইল নম্বর এবং ঠিকানা দিন।'
         });
         return;
     }
@@ -832,12 +859,12 @@ function confirmOrder() {
         Swal.fire({
             icon: 'warning',
             title: 'TRXID প্রয়োজন!',
-            text: 'সঠিক Transaction ID দিন।'
+            text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID দিন।'
         });
         return;
     }
 
-    // আইটেম এবং সাবটোটাল (মেইলের জন্য টেক্সট ফরম্যাট করা হলো)
+    // আইটেম এবং সাবটোটাল
     let itemsText = "";
     let subtotal = 0;
     cart.forEach((item) => {
@@ -848,7 +875,6 @@ function confirmOrder() {
     // ডেলিভারি চার্জ
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-
     if (totalQty >= 3) baseCharge = 0;
 
     // প্রোমো ডিসকাউন্ট
@@ -886,7 +912,6 @@ function confirmOrder() {
     let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID (FULL AMOUNT)";
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
-    // অর্ডার কনফার্ম করার বাটনটি লোডিং মোডে নেওয়া (যাতে বারবার কাস্টমার ক্লিক না করতে পারে)
     Swal.fire({
         title: 'Processing Order...',
         text: 'Please wait while we secure your order.',
@@ -896,39 +921,29 @@ function confirmOrder() {
         }
     });
 
-   // Web3Forms এ পাঠানোর জন্য ডাটা অবজেক্ট তৈরি
-const formData = {
-    access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
-    subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
-    from_name: "REDAMS Website",
-    
-    // স্প্যাম ফিল্টার এড়াতে এবং মেইল ডেলিভারি মসৃণ করতে এই ২টি লাইন যোগ করা হয়েছে:
-    replyto: "anmridwanulhassan@gmail.com", // আপনার মেইল অ্যাড্রেস
-    email: "redams.official@gmail.com",    // বা কাস্টমারের ইমেইল আইডি (যদি ইনপুট ফিল্ড থাকে)
+    // Web3Forms ডাটা অবজেক্ট
+    const formData = {
+        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
+        subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
+        from_name: "REDAMS Website",
+        replyto: "anmridwanulhassan@gmail.com",
+        email: "redams.official@gmail.com",
         
- // কাস্টমার ইনফো
         Customer_Name: name,
         Customer_Phone: phone,
         Delivery_Address: address,
-        
-        // অর্ডার ইনফো
         Ordered_Items: itemsText,
-        
-        // বিলিং ইনফো
         Subtotal: `৳${subtotal}`,
         Promo_Used: promoInfo,
         Discount: `৳${discount.toFixed(0)}`,
         Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
         TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
-        
-        // পেমেন্ট ইনফো
         Payment_Method: paymentMethod,
         Payment_Status: paymentStatus,
         Transaction_ID: trnxId,
         Due_Amount: `৳${finalPayable.toFixed(0)}`
     };
 
-    // Web3Forms API-তে ডাটা পুশ করা
     fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: {
@@ -940,23 +955,20 @@ const formData = {
     .then(async (response) => {
         let json = await response.json();
         if (response.status == 200) {
-            // সফলভাবে মেইল চলে গেলে কার্ট ও স্টেট ক্লিয়ার করা
             cart = [];
-localStorage.removeItem('redams_cart'); // অর্ডার শেষ, তাই স্টোরেজ খালি
-if (typeof updateCartUI === "function") updateCartUI();
+            localStorage.removeItem('redams_cart');
             activePromo = null;
+            
+            clearCheckoutInputs(); // ফর্ম ক্লিয়ার করা
             if (typeof updateCartUI === "function") updateCartUI();
             if (typeof toggleCart === "function") toggleCart(false);
 
-            // সফলতার প্রফেশনাল পপআপ
             Swal.fire({
                 icon: 'success',
                 title: 'Order Confirmed!',
                 text: 'Thank you for shopping with REDAMS. We will review your order and contact you soon!',
                 confirmButtonColor: '#000'
             });
-            
-            // চেকআউট ফর্ম বা ইনপুট ফিল্ডগুলো খালি করতে চাইলে এখানে কোড লিখতে পারেন
         } else {
             console.log(json);
             Swal.fire({
@@ -975,7 +987,9 @@ if (typeof updateCartUI === "function") updateCartUI();
         });
     });
 }
-// ===== প্রফেশনাল উপায়ে WhatsApp-এ অর্ডার কনফার্ম করা =====
+
+
+// ===== ৩. প্রফেশনাল উপায়ে WhatsApp-এ অর্ডার কনফার্ম করা =====
 function orderByWhatsApp() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
@@ -987,12 +1001,11 @@ function orderByWhatsApp() {
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
-    // বেসিক ভ্যালিডেশন Check
-    if (!name || !phone || !address || cart.length === 0) {
+    if (!name || phone.length < 11 || !address || cart.length === 0) {
         Swal.fire({
             icon: 'warning',
             title: 'অসম্পূর্ণ তথ্য!',
-            text: 'নাম, মোবাইল নম্বর এবং ঠিকানা দিন।'
+            text: 'অনুগ্রহ করে নাম, ১১ ডিজিটের মোবাইল নম্বর এবং ঠিকানা দিন।'
         });
         return;
     }
@@ -1001,12 +1014,11 @@ function orderByWhatsApp() {
         Swal.fire({
             icon: 'warning',
             title: 'TRXID প্রয়োজন!',
-            text: 'সঠিক Transaction ID দিন।'
+            text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID দিন।'
         });
         return;
     }
 
-    // আইটেম এবং সাবটোটাল হিসাব
     let itemsText = "";
     let subtotal = 0;
     cart.forEach((item, index) => {
@@ -1014,13 +1026,10 @@ function orderByWhatsApp() {
         subtotal += item.price * item.qty;
     });
 
-    // ডেলিভারি চার্জ হিসাব
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-
     if (totalQty >= 3) baseCharge = 0;
 
-    // প্রোমো ডিসকাউন্ট হিসাব
     let discount = 0;
     let promoInfo = "NONE";
 
@@ -1055,10 +1064,8 @@ function orderByWhatsApp() {
     let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : "ONLINE PAID";
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
-    // আপনার WhatsApp Business নম্বর (কান্ট্রি কোড সহ)
     const whatsappNumber = "8801894357549"; 
 
-    // WhatsApp Message Format (WhatsApp Markdowns সহ সুন্দরভাবে সাজানো)
     let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
     message += `👤 *Customer Details:*\n`;
     message += `• Name: ${name}\n`;
@@ -1081,14 +1088,16 @@ function orderByWhatsApp() {
     message += `• *Due Amount: ৳${finalPayable.toFixed(0)}*\n\n`;
     message += `Please confirm my order!`;
 
-    // কার্ট এবং লোকাল স্টোরেজ ক্লিয়ার করা
+    // কার্ট ও ফর্ম ক্লিয়ার
     cart = [];
     localStorage.removeItem('redams_cart');
     activePromo = null;
+    
+    clearCheckoutInputs(); 
     if (typeof updateCartUI === "function") updateCartUI();
     if (typeof toggleCart === "function") toggleCart(false);
 
-    // WhatsApp Open করা
+    // WhatsApp Open
     const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
 }
