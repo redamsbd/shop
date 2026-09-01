@@ -1345,41 +1345,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof updateCartUI === "function") updateCartUI();
 });
 
-// Azzbd Style 4:5 Campaign/Banner Slider
+// REDAMS Premium Azzbd-Style 4:5 Campaign Slider Engine
 const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
-    slidesPerView: 1,         // মোবাইলে ফুল স্ক্রিন জুড়ে ১টি ব্যানার দেখাবে (Azzbd এর মতো)
-    spaceBetween: 10,         // ব্যানারের মাঝের গ্যাপ
-    loop: false,
+    slidesPerView: 1.15,      // মোবাইলে পরের ব্যানারের ১৫% ফোকাস থাকবে (AAZ Peek Effect)
+    spaceBetween: 12,         // ব্যানারগুলোর মাঝখানের পারফেক্ট মার্জিন
+    loop: true,               // অটো-প্লে স্মুথ রাখার জন্য ইনফিনিট লুপ
+    grabCursor: true,         // মাউস দিয়ে টানার সময় প্রিমিয়াম কার্সার হ্যান্ডেল
+    centeredSlides: false,
+    speed: 700,               // স্লাইড ট্রানজিশনের লাক্সারি স্পিড (Ms)
+    
     autoplay: {
-        delay: 4000,
+        delay: 3500,
         disableOnInteraction: false,
         pauseOnMouseEnter: true
     },
+    
     navigation: {
         nextEl: '.camp-next',
         prevEl: '.camp-prev',
     },
+    
     pagination: {
         el: '.camp-pagination',
         clickable: true,
-        dynamicBullets: true
+        dynamicBullets: false // কাস্টম ক্যাপসুল পিডি ডট অ্যানিমেশনের জন্য ফলস রাখা শ্রেয়
     },
+    
     breakpoints: {
-        // ছোট মোবাইল বা বড় স্ক্রিনে (যেমন: ৫৪০ পিক্সেল এর ওপর) ১.৫ বা ২টি
-        540: {
-            slidesPerView: 1.5,
-            spaceBetween: 12,
+        // স্মল মোবাইল / লার্জ পোট্রেট
+        480: {
+            slidesPerView: 1.25,
+            spaceBetween: 14,
         },
-        // ট্যাবলেট স্ক্রিনে ২টি ব্যানার দেখাবে
-        768: {
-            slidesPerView: 2,
+        // ট্যাবলেটে ১.8 টি ব্যানার
+        640: {
+            slidesPerView: 1.8,
             spaceBetween: 16,
         },
-        // ডেস্কটপে হুবহু ছবির মতো একসাথে ৩টি বড় ব্যানার দেখাবে
+        // আইপ্যাড / মিডিয়াম স্ক্রিনে ২টি ব্যানার
+        768: {
+            slidesPerView: 2.2,
+            spaceBetween: 18,
+        },
+        // ডেস্কটপে হুবহু AAZ-এর মতো ৩টি সম্পূর্ণ ব্যানার দেখাবে
         1024: {
             slidesPerView: 3,
-            spaceBetween: 20,
+            spaceBetween: 24,
         }
     }
 });
-
