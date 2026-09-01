@@ -238,62 +238,70 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="swiper-pagination"></div>
     </section>
 
-    <!-- REDAMS Premium 4:5 Campaign Slider (Fully Clickable & Fixed Links) -->
-<section class="campaign-slider-section my-12 px-4 max-w-7xl mx-auto">
+    <!-- REDAMS Premium 4:5 Campaign Slider (AAZ Style Carousel & Fixed Links) -->
+<section class="campaign-slider-section my-12 px-4 max-w-7xl mx-auto overflow-hidden">
     <!-- Swiper Container -->
-    <div class="swiper azz-campaign-swiper overflow-hidden relative rounded-2xl">
+    <div class="swiper azz-campaign-swiper relative">
         <div class="swiper-wrapper">
             
             <!-- Slide 1 (Free Delivery Banner) -->
-            <a href="#product-grid" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
-                <img src="images/pro-free delivery.jpeg" alt="Free Delivery" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                <!-- Bottom Action Button -->
-                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
-                        Free Delivery ↘
-                    </span>
-                </div>
-            </a>
+            <div class="swiper-slide">
+                <a href="#product-grid" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
+                    <img src="images/pro-free delivery.jpeg" alt="Free Delivery" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                        <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                            Free Delivery ↘
+                        </span>
+                    </div>
+                </a>
+            </div>
 
             <!-- Slide 2 (Spider Man Single Tee - Product 3) -->
-            <!-- 💡 href এবং onclick দুটোই ফিক্স করা হয়েছে -->
-            <a href="#product-3" onclick="openModal(3)" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
-                <img src="images/Spider man 01.jpg" alt="Casual Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
-                        Order To Wear ↘
-                    </span>
-                </div>
-            </a>
+            <div class="swiper-slide">
+                <a href="#product-3" onclick="openModal(3)" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
+                    <img src="images/Spider man 01.jpg" alt="Casual Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                        <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                            Order To Wear ↘
+                        </span>
+                    </div>
+                </a>
+            </div>
 
             <!-- Slide 3 (Couple Spider Tee - Product 2) -->
-            <!-- 💡 href এবং onclick দুটোই ফিক্স করা হয়েছে -->
-            <a href="#product-2" onclick="openModal(2)" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
-                <img src="images/couple spider.jpg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
-                        Order To Wear ↘
-                    </span>
-                </div>
-            </a>
-            <a href="#shop.html?cat=polo-tshirt" onclick="openModal(2)" class="swiper-slide block relative aspect-[4/5] w-full overflow-hidden group cursor-pointer">
-                <img src="images/polo olive model.jpeg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
-                        Order To Wear ↘
-                    </span>
-                </div>
-            </a>
+            <div class="swiper-slide">
+                <a href="#product-2" onclick="openModal(2)" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
+                    <img src="images/couple spider.jpg" alt="Souls Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                        <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                            Order To Wear ↘
+                        </span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Slide 4 (Polo Category Page Link - Fixed) -->
+            <div class="swiper-slide">
+                <a href="shop.html?cat=polo-tshirt" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
+                    <img src="images/polo olive model.jpeg" alt="Polo Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+                        <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
+                            Explore Polo ↘
+                        </span>
+                    </div>
+                </a>
+            </div>
 
         </div>
         
-      <!-- Navigation Arrows (REDAMS Premium Glassmorphic UI) -->
-<div class="swiper-button-next camp-next !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
+        <!-- Navigation Arrows (REDAMS Premium Glassmorphic UI) -->
+        <div class="swiper-button-next camp-next !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
 
-<div class="swiper-button-prev camp-prev !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
+        <div class="swiper-button-prev camp-prev !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
 
-<!-- Pagination Dots Container -->
-<div class="swiper-pagination camp-pagination !bottom-5 z-10 flex justify-center items-center gap-1"></div>
+        <!-- Pagination Dots Container -->
+        <div class="swiper-pagination camp-pagination !bottom-5 z-10 flex justify-center items-center gap-1"></div>
+    </div>
 </section>
 
 <style>
@@ -349,6 +357,7 @@ html {
     scroll-behavior: smooth;
 }
 </style>
+    
   <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
