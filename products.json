@@ -1,49 +1,6 @@
 [ 
-    {
-    "id": 40,
-    "name": "Cloudspun Henley",
-    "price": 420,
-    "originalPrice": 499,
-    "category": "henley",
-    "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly Waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
-    "images": [
-      "images/henley tee front.jpg",
-        "images/henley tee side.jpg",
-      "images/henley tee chest.jpg"
-    ],
-    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
-    "colors": ["White"],
-    "sizes": [
-      { "name": "M", "available": true },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
-    ]
-},
- 
-    {
-    "id": 39,
-    "name": "Ocean Drift Henley",
-    "price": 420,
-    "originalPrice": 499,
-    "category": "henley",
-    "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
-    "images": [
-      "images/henley tee front white.jpg",
-        "images/henley tee side whht.jpg",
-      "images/henley tee chest white.jpg"
-    ],
-    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
-    "colors": ["Steel Blue"],
-    "sizes": [
-      { "name": "M", "available": false },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
-    ]
-},
+   
+   
     {
     "id": 38,
     "name": "Spider Man-02",
@@ -863,5 +820,51 @@
       { "name": "L", "available": true },
       { "name": "XL", "available": false }
     ]
-  }
+  },
+     {
+    "id": 39,
+    "name": "Ocean Drift Henley",
+    "price": 420,
+    "originalPrice": 499,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front white.jpg",
+        "images/henley tee side whht.jpg",
+      "images/henley tee chest white.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["Steel Blue"],
+    "sizes": [
+      { "name": "M", "available": false },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+},
+     {
+    "id": 40,
+    "name": "Cloudspun Henley",
+    "price": 420,
+    "originalPrice": 499,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly Waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front.jpg",
+        "images/henley tee side.jpg",
+      "images/henley tee chest.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["White"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+}
+ 
+    
 ]
