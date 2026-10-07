@@ -16,7 +16,7 @@ const promoList = {
     // সব প্রোডাক্টে কাজ করে
     "": { type: "delivery", value: 0, applicableCategories: [] },
     "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
-    "SAVE50": { type: "fixed", value: 50, applicableCategories: [] },
+    "": { type: "fixed", value: 50, applicableCategories: [] },
     "WELCOME20": { type: "percent", value: 20, applicableCategories: [] },
     
     // শুধু drop-shoulder এ কাজ করে
@@ -25,12 +25,12 @@ const promoList = {
     
     // শুধু regular-tshirt এ কাজ করে
     "REGULAR10": { type: "percent", value: 10, applicableCategories: ['regular-tshirt'] },
-    "REGULAR30": { type: "fixed", value: 30, applicableCategories: ['regular-tshirt'] },
+    "": { type: "fixed", value: 30, applicableCategories: ['regular-tshirt'] },
     
     // শুধু polo-tshirt এ কাজ করে
-    "FREESHIP": { type: "delivery", value: 0, applicableCategories: ['polo-tshirt'] },
+    "HENFREE": { type: "delivery", value: 0, applicableCategories: ['henley'] },
     "": { type: "percent", value: 15, applicableCategories: ['polo-tshirt'] },
-     "": { type: "fixed", value: 150, applicableCategories: ['polo-tshirt'] },
+     "WELCOME100": { type: "fixed", value: 100, applicableCategories: ['henley'] },
     
     // শুধু acid-wash এ কাজ করে
     "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
