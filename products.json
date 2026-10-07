@@ -736,7 +736,7 @@
   {
     "id": 33,
     "name": "Classic Zipper Polo Shirt",
-    "price": 650,
+    "price": 720,
     "originalPrice": 799,
     "category": "polo-tshirt",
     "isOutOfStock": false,
@@ -758,7 +758,7 @@
   {
     "id": 34,
     "name": "Classic Zipper Polo Shirt",
-    "price": 650,
+    "price": 720,
     "originalPrice": 799,
     "category": "polo-tshirt",
     "isOutOfStock": true,
@@ -780,7 +780,7 @@
   {
     "id": 35,
     "name": "Classic Zipper Polo Shirt",
-    "price": 650,
+    "price": 720,
     "originalPrice": 799,
     "category": "polo-tshirt",
     "isOutOfStock": false,
@@ -802,7 +802,7 @@
   {
     "id": 36,
     "name": "Premium Old Money Polo Shirt",
-    "price": 650,
+    "price": 720,
     "originalPrice": 799,
     "category": "polo-tshirt",
     "isOutOfStock": false,
@@ -823,19 +823,63 @@
   },
      {
     "id": 39,
-    "name": "Ocean Drift Henley",
-    "price": 420,
-    "originalPrice": 499,
+    "name": "Cloudspun Henley",
+    "price":450,
+    "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
     "images": [
       "images/henley tee front white.jpg",
         "images/henley tee side whht.jpg",
       "images/henley tee chest white.jpg"
     ],
     "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
-    "colors": ["Steel Blue"],
+    "colors": ["White"],
+    "sizes": [
+      { "name": "M", "available": false },
+      { "name": "L", "available": false },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+},
+     {
+    "id": 40,
+    "name": "Ocean Drift Henley",
+    "price": 450,
+    "originalPrice": 550,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b>  Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front.jpg",
+        "images/henley tee side.jpg",
+      "images/henley tee chest.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["Ocean Blue"],
+    "sizes": [
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+},
+    {
+    "id": 41,
+    "name": "Dark Heather Grey-Henley",
+    "price": 450,
+    "originalPrice": 550,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front ash.jpg",
+        "images/henley tee side ash.jpg",
+      "images/henley tee chest ash.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["Dark Grey"],
     "sizes": [
       { "name": "M", "available": false },
       { "name": "L", "available": true },
@@ -843,28 +887,68 @@
       { "name": "XXL", "available": true }
     ]
 },
-     {
-    "id": 40,
-    "name": "Cloudspun Henley",
-    "price": 420,
-    "originalPrice": 499,
+   {
+    "id": 42,
+    "name": "Olive Khaki-Henley",
+    "price": 450,
+    "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
-    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly Waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
     "images": [
-      "images/henley tee front.jpg",
-        "images/henley tee side.jpg",
-      "images/henley tee chest.jpg"
+      "images/henley tee front olive.jpg",
+      "images/henley tee chest olive.jpg"
     ],
     "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
-    "colors": ["White"],
+    "colors": ["Olive"],
     "sizes": [
-      { "name": "M", "available": true },
+      { "name": "M", "available": false },
+      { "name": "L", "available": false },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
+    ]
+},
+   {
+    "id": 43,
+    "name": "Midnight Navy-Henley",
+    "price": 450,
+    "originalPrice": 550,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front nevy blue.jpg",
+      "images/henley tee chest nevy blue.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["Nevy Blue"],
+    "sizes": [
+      { "name": "M", "available": false },
+      { "name": "L", "available": false },
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": false }
+    ]
+},
+    {
+    "id": 44,
+    "name": "Onyx Black-Henley",
+    "price": 450,
+    "originalPrice": 550,
+    "category": "henley",
+    "isOutOfStock": false,
+    "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
+    "images": [
+      "images/henley tee front blc.jpg",
+      "images/henley tee chest blc.jpg"
+    ],
+    "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
+    "colors": ["Black"],
+    "sizes": [
+      { "name": "M", "available": false },
       { "name": "L", "available": true },
       { "name": "XL", "available": true },
       { "name": "XXL", "available": true }
     ]
 }
- 
-    
+   
 ]
