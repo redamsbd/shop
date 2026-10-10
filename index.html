@@ -802,15 +802,90 @@ html {
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
 
-        <div class="flex flex-col md:flex-row h-full">
-            <div class="p-10 flex flex-col justify-center items-center text-center w-full">
-                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-red-600 mb-4">Welcome to Redams</span>
-                <h2 class="text-3xl font-black uppercase tracking-tighter text-black mb-4 italic">FREE <span class="text-red-600">DELIVERY OFFER</span></h2>
-                <p class="text-gray-500 text-sm mb-8 leading-relaxed">USE PROMO CODE "HENFREE" TO GET FREE DELIVERY</p>
-                
-                <a href="shop.html?cat=henley" class="w-full py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 transition-all duration-500 shadow-lg shadow-black/20">
-                    Explore Collection
-                </a>
+       <div class="flex flex-col md:flex-row h-full overflow-hidden relative bg-black/5 rounded-3xl border border-red-500/10">
+    <div class="p-8 md:p-14 flex flex-col justify-center items-center text-center w-full relative">
+        
+        <!-- Background Highlight Gradient -->
+        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-red-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+        <!-- Tagline -->
+        <span class="text-[10px] md:text-xs font-black uppercase tracking-[0.6em] text-red-500 mb-4 animate-pulse flex items-center gap-1.5">
+            🔥 Limited Time Event 🔥
+        </span>
+        
+        <!-- Fiery Heading Section -->
+        <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tight text-white mb-2 italic select-none">
+            <span class="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">SUMMER</span> 
+            <span class="block text-fire-glow text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-yellow-400 font-black italic">
+                CLEARANCE
+            </span>
+            <span class="text-red-600 text-xs md:text-sm tracking-[0.3em] font-black uppercase block mt-2">HENLEY SALE</span>
+        </h2>
+
+        <!-- Pricing Highlight (Huge Spot) -->
+        <div class="my-6 md:my-8 flex flex-col items-center justify-center relative">
+            <span class="text-[10px] text-gray-400 uppercase tracking-widest font-black">Now Only</span>
+            <div class="flex items-baseline justify-center gap-2">
+                <span class="text-5xl md:text-7xl font-black text-white tracking-tighter text-fire-glow drop-shadow-[0_4px_24px_rgba(239,68,68,0.5)]">
+                    250 <span class="text-2xl md:text-4xl font-black text-red-500">TK</span>
+                </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-widest">Originally</span>
+                <span class="text-sm md:text-base text-gray-400 line-through font-extrabold tracking-wide decoration-red-600 decoration-2">
+                    550 TK
+                </span>
+            </div>
+            <span class="mt-2.5 px-3 py-1 bg-red-950/45 text-red-400 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-full border border-red-900/40">
+                Elevate your story, for less.
+            </span>
+        </div>
+
+        <!-- Offer Message -->
+        <div class="mb-8 border border-orange-500/20 bg-orange-500/5 px-6 py-4 rounded-xl max-w-sm w-full backdrop-blur-sm">
+            <p class="text-[10px] text-orange-400 font-black uppercase tracking-[0.2em] mb-1">Promo Details</p>
+            <p class="text-white text-xs md:text-sm font-black leading-relaxed tracking-wide">
+                USE PROMO CODE <span class="bg-gradient-to-r from-red-500 to-orange-500 text-transparent bg-clip-text font-black px-1">"HENFREE"</span> TO GET FREE DELIVERY
+            </p>
+        </div>
+        
+        <!-- Explore Button -->
+        <a href="shop.html?cat=henley" class="w-full max-w-sm py-4 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-[length:200%_auto] text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-right hover:scale-[1.02] active:scale-[0.98] transition-all duration-700 shadow-xl shadow-red-900/30 border border-red-500/20 flex items-center justify-center gap-2">
+            Explore Collection ↘
+        </a>     
+    </div>
+</div>
+
+<style>
+/* 1. Fire and Sparks Sparkle Animation Engine */
+.text-fire-glow {
+    text-shadow: 0 0 4px #ff3300, 0 -2px 8px #ff7700, 0 -8px 12px #ffbb00, 0 -15px 20px #ffea00;
+    animation: flicker 1.8s infinite alternate ease-in-out, burn-shadow 0.15s infinite;
+}
+
+@keyframes flicker {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.01) skewX(0.5deg);
+        filter: brightness(1.15);
+    }
+}
+
+@keyframes burn-shadow {
+    0% {
+        text-shadow: 0 0 4px #ff3300, 0 -2px 8px #ff7700, 0 -8px 12px #ffbb00, 0 -15px 20px #ffea00;
+    }
+    50% {
+        text-shadow: 0 0 5px #ff2a00, 0 -3px 10px #ff6a00, 0 -10px 15px #ffa600, 0 -18px 25px #ffdd00;
+    }
+    100% {
+        text-shadow: 0 0 4px #ff3300, 0 -2px 8px #ff7700, 0 -8px 12px #ffbb00, 0 -15px 20px #ffea00;
+    }
+}
+</style>
                 
                 <p class="mt-6 text-[9px] text-gray-300 font-bold uppercase tracking-widest italic leading-none">THIS OFFER ONLY APPLICABLE FOR HENLEY</p>
             </div>
