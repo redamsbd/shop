@@ -824,7 +824,7 @@
      {
     "id": 39,
     "name": "Cloudspun Henley",
-    "price":490,
+    "price":250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
@@ -847,7 +847,7 @@
      {
     "id": 40,
     "name": "Ocean Drift Henley",
-    "price": 490,
+    "price": 250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
@@ -870,7 +870,7 @@
     {
     "id": 41,
     "name": "Dark Heather Grey-Henley",
-    "price": 490,
+    "price": 250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
@@ -893,7 +893,7 @@
    {
     "id": 42,
     "name": "Olive Khaki-Henley",
-    "price": 490,
+    "price": 250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
@@ -915,7 +915,7 @@
    {
     "id": 43,
     "name": "Midnight Navy-Henley",
-    "price": 490,
+    "price": 250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
@@ -937,7 +937,7 @@
     {
     "id": 44,
     "name": "Onyx Black-Henley",
-    "price": 490,
+    "price": 250,
     "originalPrice": 550,
     "category": "henley",
     "isOutOfStock": false,
