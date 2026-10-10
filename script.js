@@ -619,19 +619,23 @@ function updateCartUI(isPaidOverride = null) {
 
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
-    // অটো ফ্রি ডেলিভারি (৩ টি আইটেমে)
-    if (itemCount >= 3) {
-        baseDeliveryCharge = 0;
-        if (freeDeliveryMsg) {
-            freeDeliveryMsg.classList.add('text-green-600', 'opacity-100');
-            freeDeliveryMsg.innerHTML = "✓ FREE DELIVERY UNLOCKED! 🚚";
-        }
-    } else {
-        if (freeDeliveryMsg) {
-            freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100');
-            freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚";
-        }
+   // অটো ফ্রি ডেলিভারি (৩ টি আইটেমে) - Henley ক্যাটাগরি বাদে
+const eligibleItemCount = cart
+    .filter(item => item.category !== 'henley')
+    .reduce((sum, item) => sum + item.qty, 0);
+
+if (eligibleItemCount >= 3) {
+    baseDeliveryCharge = 0;
+    if (freeDeliveryMsg) {
+        freeDeliveryMsg.classList.add('text-green-600', 'opacity-100');
+        freeDeliveryMsg.innerHTML = "✓ FREE DELIVERY UNLOCKED! 🚚";
     }
+} else {
+    if (freeDeliveryMsg) {
+        freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100');
+        freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚 (Henley Excluded)";
+    }
+}
 
     // প্রোমো কোড ডিসকাউন্ট (ক্যাটাগরি চেক সহ)
     let discount = 0;
