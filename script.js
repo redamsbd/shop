@@ -28,7 +28,7 @@ const promoList = {
     "": { type: "fixed", value: 30, applicableCategories: ['regular-tshirt'] },
     
     // শুধু polo-tshirt এ কাজ করে
-    "HENFREE": { type: "delivery", value: 0, applicableCategories: ['henley'] },
+    "": { type: "delivery", value: 0, applicableCategories: ['henley'] },
     "": { type: "percent", value: 15, applicableCategories: ['polo-tshirt'] },
      "WELCOME100": { type: "fixed", value: 100, applicableCategories: ['henley'] },
     
