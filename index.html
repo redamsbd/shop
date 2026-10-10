@@ -838,13 +838,23 @@ html {
                 </div>
             </div>
 
-            <!-- Promo Details Box -->
-            <div class="w-full max-w-sm bg-white/5 border border-white/10 rounded-xl p-4 mb-6 backdrop-blur-sm shadow-inner">
-                <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Promo Details</p>
-                <p class="text-white text-xs md:text-sm font-bold tracking-wide">
-                    Use Promo Code <span class="text-orange-400 font-black px-1">"HENFREE"</span> To Get Free Delivery
-                </p>
-            </div>
+           <!-- Promo Details & Urgency Box -->
+<div class="w-full max-w-sm bg-white/5 border border-red-500/20 rounded-xl p-4 mb-6 backdrop-blur-sm shadow-inner relative">
+    
+    <!-- Urgency Title with Pulsing Dot -->
+    <p class="text-[10px] text-red-400 font-black uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
+        <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+        </span>
+        Selling Fast!
+    </p>
+
+    <!-- FOMO Message -->
+    <p class="text-gray-300 text-[11px] md:text-xs font-medium tracking-wide mb-2.5">
+        Grab your favorite <span class="text-white font-black">Size & Color</span> before stock runs out.
+    </p> 
+</div>
 
             <!-- Call to Action Button -->
             <a href="shop.html?cat=henley" class="w-full max-w-sm py-4 bg-red-600 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-700 active:scale-95 transition-all duration-300 shadow-[0_0_15px_rgba(220,38,38,0.4)] border border-red-500/50 flex items-center justify-center gap-2">
