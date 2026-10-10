@@ -793,69 +793,71 @@ html {
         });
     </script>
     
-    <div id="entry-popup" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500"></div>
+   <!-- REDAMS High-Performance Premium Entry Popup -->
+<div id="entry-popup" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+    <!-- Premium Backdrop (বাইরে ক্লিক করলে পপআপ ক্লোজ হবে) -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-500" onclick="closePopup()"></div>
     
-    <div class="relative bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-all duration-700 scale-90 translate-y-10 opacity-0" id="popup-box">
+    <!-- Popup Modal Box (সরাসরি ডার্ক প্রিমিয়াম থিম, কোনো সাদা বর্ডার নেই) -->
+    <div class="relative w-full max-w-lg rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform transition-all duration-700 scale-90 translate-y-10 opacity-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-zinc-800" id="popup-box">
         
-        <button onclick="closePopup()" class="absolute top-6 right-6 text-gray-400 hover:text-black transition-all z-10">
-            <i class="fa-solid fa-xmark text-xl"></i>
+        <!-- Premium Close Button -->
+        <button onclick="closePopup()" class="absolute top-5 right-5 text-gray-400 hover:text-white transition-all duration-300 z-30 bg-white/5 hover:bg-white/10 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-md">
+            <i class="fa-solid fa-xmark text-lg"></i>
         </button>
         
-<!-- REDAMS High-Performance Premium Promo Banner -->
-<div class="relative w-full max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-zinc-800 my-8">
-    
-    <!-- Subtle Background Accent (Lag-Free) -->
-    <div class="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-0 left-0 w-48 h-48 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- Subtle Background Accent (Lag-Free) -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="p-8 md:p-12 flex flex-col items-center text-center relative z-10">
-        
-        <!-- Badge -->
-        <span class="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-red-500 mb-5 bg-red-500/10 border border-red-500/20 px-4 py-1.5 rounded-full">
-            Limited Time Event
-        </span>
+        <!-- Popup Content Area -->
+        <div class="p-8 md:p-10 flex flex-col items-center text-center relative z-20">
+            
+            <!-- Badge -->
+            <span class="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-red-500 mb-5 bg-red-500/10 border border-red-500/20 px-4 py-1.5 rounded-full shadow-sm">
+                Limited Time Event
+            </span>
 
-        <!-- Clear & Sharp Heading -->
-        <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-2 italic">
-            SUMMER <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500">CLEARANCE</span>
-        </h2>
-        <span class="text-gray-400 text-xs md:text-sm tracking-[0.4em] font-black uppercase mb-8 block">HENLEY SALE</span>
+            <!-- Clear & Sharp Heading -->
+            <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-2 italic">
+                SUMMER <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500">CLEARANCE</span>
+            </h2>
+            <span class="text-gray-400 text-[10px] md:text-xs tracking-[0.4em] font-black uppercase mb-6 block">HENLEY SALE</span>
 
-        <!-- Pricing Highlight -->
-        <div class="flex flex-col items-center mb-8">
-            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-1">Now Only</span>
-            <div class="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600 tracking-tighter mb-2 leading-none py-1">
-                250 <span class="text-3xl md:text-4xl text-red-500">TK</span>
+            <!-- Pricing Highlight -->
+            <div class="flex flex-col items-center mb-6">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-black mb-1">Now Only</span>
+                <div class="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600 tracking-tighter mb-2 leading-none py-1 drop-shadow-md">
+                    250 <span class="text-3xl md:text-4xl text-red-500">TK</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[11px] text-gray-500 font-bold uppercase tracking-widest">Originally</span>
+                    <span class="text-sm md:text-base text-gray-400 line-through font-extrabold decoration-red-600 decoration-2">
+                        550 TK
+                    </span>
+                </div>
             </div>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-[11px] text-gray-500 font-bold uppercase tracking-widest">Originally</span>
-                <span class="text-sm md:text-base text-gray-400 line-through font-extrabold decoration-red-600 decoration-2">
-                    550 TK
-                </span>
-            </div>
-        </div>
 
-        <!-- Promo Details Box -->
-        <div class="w-full max-w-sm bg-white/5 border border-white/10 rounded-xl p-4 mb-8">
-            <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Promo Details</p>
-            <p class="text-white text-xs md:text-sm font-bold tracking-wide">
-                Use Promo Code <span class="text-orange-400 font-black px-1">"HENFREE"</span> To Get Free Delivery
+            <!-- Promo Details Box -->
+            <div class="w-full max-w-sm bg-white/5 border border-white/10 rounded-xl p-4 mb-6 backdrop-blur-sm shadow-inner">
+                <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Promo Details</p>
+                <p class="text-white text-xs md:text-sm font-bold tracking-wide">
+                    Use Promo Code <span class="text-orange-400 font-black px-1">"HENFREE"</span> To Get Free Delivery
+                </p>
+            </div>
+
+            <!-- Call to Action Button -->
+            <a href="shop.html?cat=henley" class="w-full max-w-sm py-4 bg-red-600 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-700 active:scale-95 transition-all duration-300 shadow-[0_0_15px_rgba(220,38,38,0.4)] border border-red-500/50 flex items-center justify-center gap-2">
+                Explore Collection ↘
+            </a>
+            
+            <!-- Terms Text -->
+            <p class="mt-5 text-[9px] md:text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] italic leading-none">
+                THIS OFFER IS ONLY APPLICABLE FOR HENLEY
             </p>
         </div>
-
-        <!-- Call to Action Button -->
-        <a href="shop.html?cat=henley" class="w-full max-w-sm py-4 bg-red-600 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20 border border-red-500/50 flex items-center justify-center gap-2">
-            Explore Collection ↘
-        </a>
-        
     </div>
 </div>
-           
-                <p class="mt-6 text-[9px] text-gray-300 font-bold uppercase tracking-widest italic leading-none">THIS OFFER ONLY APPLICABLE FOR HENLEY</p>
-            </div>
-        </div>
-    </div>
 </div>
 </body>
 </html>  
