@@ -617,7 +617,7 @@ function updateCartUI(isPaidOverride = null) {
         paymentSection.classList.remove('hidden');
     }
 
-    let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
+    let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 90);
 
    // অটো ফ্রি ডেলিভারি (৩ টি আইটেমে) - Henley ক্যাটাগরি বাদে
 const eligibleItemCount = cart
