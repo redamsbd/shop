@@ -887,7 +887,7 @@
       { "name": "M", "available": true },
       { "name": "L", "available": false },
       { "name": "XL", "available": true },
-      { "name": "XXL", "available": true }
+      { "name": "XXL", "available": false }
     ]
 },
    {
