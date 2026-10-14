@@ -974,7 +974,7 @@
     "colors": ["Dark Grey"],
     "sizes": [
       { "name": "M", "available": false },
-      { "name": "L", "available": true },
+      { "name": "L", "available": false },
       { "name": "XL", "available": true },
       { "name": "XXL", "available": true }
     ]
