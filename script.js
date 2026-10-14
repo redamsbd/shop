@@ -848,7 +848,11 @@ function confirmOrder() {
 
     const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
     const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    // 💡 Henley ক্যাটাগরি বাদে বাকি যোগ্য (Eligible) আইটেমগুলোর মোট সংখ্যা হিসাব
+    const eligibleQty = cart
+        .filter(item => item.category !== 'henley')
+        .reduce((sum, item) => sum + item.qty, 0);
 
     if (!name || phone.length < 11 || !address || cart.length === 0) {
         Swal.fire({
@@ -876,10 +880,11 @@ function confirmOrder() {
         subtotal += item.price * item.qty;
     });
 
-    // ডেলিভারি চার্জ
+    // 💡 ডেলিভারি চার্জ (শুধুমাত্র Henley বাদে অন্যান্য আইটেম ৩টি বা তার বেশি হলে অটো ফ্রি ডেলিভারি)
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    if (totalQty >= 3) baseCharge = 0;
+    
+    if (eligibleQty >= 3) baseCharge = 0;
 
     // প্রোমো ডিসকাউন্ট
     let discount = 0;
@@ -963,7 +968,7 @@ function confirmOrder() {
             localStorage.removeItem('redams_cart');
             activePromo = null;
             
-            clearCheckoutInputs(); // ফর্ম ক্লিয়ার করা
+            clearCheckoutInputs(); // ফর্ম ক্লিয়ার করা
             if (typeof updateCartUI === "function") updateCartUI();
             if (typeof toggleCart === "function") toggleCart(false);
 
@@ -991,7 +996,6 @@ function confirmOrder() {
         });
     });
 }
-
 
 // ===== ৩. প্রফেশনাল উপায়ে WhatsApp-এ অর্ডার কনফার্ম করা =====
 function orderByWhatsApp() {
