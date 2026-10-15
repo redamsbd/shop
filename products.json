@@ -963,7 +963,7 @@
     "price": 390,
     "originalPrice": 650,
     "category": "henley",
-    "isOutOfStock": true,
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density premium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
     "images": [
       "images/henley front ash full.jpg",
@@ -975,7 +975,7 @@
     "sizes": [
       { "name": "M", "available": false },
       { "name": "L", "available": false },
-      { "name": "XL", "available": true },
+      { "name": "XL", "available": false },
       { "name": "XXL", "available": true }
     ]
   },
