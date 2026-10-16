@@ -840,7 +840,7 @@
     "sizes": [
       { "name": "M", "available": false },
       { "name": "L", "available": false },
-      { "name": "XL", "available": true },
+      { "name": "XL", "available": false },
       { "name": "XXL", "available": true }
     ]
 },
