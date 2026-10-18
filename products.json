@@ -884,10 +884,10 @@
     "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
     "colors": ["Dark Grey"],
     "sizes": [
-      { "name": "M", "available": false },
+      { "name": "M", "available": true },
       { "name": "L", "available": false },
-      { "name": "XL", "available": true },
-      { "name": "XXL", "available": false }
+      { "name": "XL", "available": false },
+      { "name": "XXL", "available": true }
     ]
 },
    {
