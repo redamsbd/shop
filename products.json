@@ -862,8 +862,8 @@
     "colors": ["Ocean Blue"],
     "sizes": [
       { "name": "M", "available": true },
-      { "name": "L", "available": true },
-      { "name": "XL", "available": true },
+      { "name": "L", "available": false },
+      { "name": "XL", "available": false },
       { "name": "XXL", "available": true }
     ]
 },
@@ -906,8 +906,8 @@
     "altText": "REDAMS Special Henley T-Shirt in Bangladesh",
     "colors": ["Olive"],
     "sizes": [
-      { "name": "M", "available": false },
-      { "name": "L", "available": false },
+      { "name": "M", "available": true },
+      { "name": "L", "available": true },
       { "name": "XL", "available": false },
       { "name": "XXL", "available": true }
     ]
