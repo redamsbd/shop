@@ -194,42 +194,108 @@ function renderProductOptions(product) {
         }
     }
 }
-// ===== নতুন আগমন স্লাইডার রেন্ডার =====
+// ===== 3D HANGER NEW ARRIVALS RENDER FUNCTION =====
+let hangerSwiperInstance = null;
+
 function renderNewArrivals(products) {
     const slider = document.getElementById('new-arrivals-slider');
-    if (!slider) return;
+    if (!slider || !products || products.length === 0) return;
 
-    // Stock out products exclude করা
+    // Stock out products exclude kora ebong last 10-ti item new-first kora
     const availableProducts = products.filter(p => !p.isOutOfStock);
     const newItems = availableProducts.slice(-10).reverse();
 
-    slider.innerHTML = newItems.map(p => `
-        <div class="min-w-[280px] md:min-w-[340px] snap-center group cursor-pointer relative" onclick="openModal(${p.id})">
-            <div class="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-[#f8f8f8]">
-                <img src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition duration-[1.5s]"
-                     alt="${p.name}">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-8 flex flex-col justify-end">
-                    <p class="text-white/70 text-[10px] uppercase tracking-widest">${p.category}</p>
-                    <h3 class="text-white text-lg font-black uppercase">${p.name}</h3>
-                    <p class="text-white font-bold mt-2">৳ ${p.price}</p>
-                </div>
-                <div class="absolute top-6 right-6">
-                    <div class="bg-white/10 backdrop-blur-xl text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2">
-                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> New Drop
+    if (newItems.length === 0) return;
+
+    // Slide HTML Map Kora
+    slider.innerHTML = newItems.map(p => {
+        const imgSrc = (p.images && p.images[0]) ? p.images[0] : (p.image || 'images/placeholder.jpg');
+        return `
+            <div class="swiper-slide cursor-pointer" onclick="openModal(${p.id})">
+                <div class="hanger-card-item relative flex flex-col items-center group">
+                    <!-- Sleek Chrome Wire Hook (Rail-er shaathe 0 Gap Touch) -->
+                    <div class="w-8 h-10 relative z-20 mb-[-2px]">
+                        <svg viewBox="0 0 40 50" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                            <path d="M 20 48 L 20 22 C 20 10 32 10 32 20 C 32 26 24 26 24 20" stroke="url(#chromeMetalLight)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                            <defs>
+                                <linearGradient id="chromeMetalLight" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#52525b"/>
+                                    <stop offset="50%" stop-color="#a1a1aa"/>
+                                    <stop offset="100%" stop-color="#27272a"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Clean Premium Apparel Card -->
+                    <div class="w-44 md:w-52 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
+                        <img src="${imgSrc}" alt="${p.name}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-40"></div>
+                        
+                        <!-- Category Tag -->
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-zinc-900 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                            ${p.category || 'NEW'}
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="mt-6 text-center">
-                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${p.category}</h3>
-                <h2 class="text-sm font-black uppercase text-gray-900">${p.name}</h2>
-                <p class="text-lg font-black mt-1">৳ ${p.price}</p>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
-    setupAutoScroll(slider);
+    // Bottom Selected Item Box Update Function
+    function updateHangerCardInfo(index) {
+        const item = newItems[index];
+        if (!item) return;
+
+        const titleEl = document.getElementById('new-hanger-title');
+        const priceEl = document.getElementById('new-hanger-price');
+        const btnEl = document.getElementById('new-hanger-buy-btn');
+
+        if (titleEl) titleEl.innerText = item.name;
+        if (priceEl) {
+            const oldPrice = item.originalPrice || item.oldPrice;
+            const oldPriceHTML = oldPrice ? `<span class="text-xs text-zinc-400 line-through font-bold ml-1.5">৳${oldPrice}</span>` : '';
+            priceEl.innerHTML = `৳${item.price} ${oldPriceHTML}`;
+        }
+        if (btnEl) btnEl.setAttribute('onclick', `openModal(${item.id})`);
+    }
+
+    // Swiper Engine Re-initialize
+    if (typeof Swiper !== 'undefined') {
+        if (hangerSwiperInstance) {
+            hangerSwiperInstance.destroy(true, true);
+        }
+
+        hangerSwiperInstance = new Swiper('.new-hanger-swiper', {
+            effect: 'coverflow',
+            grabCursor: true,
+            centeredSlides: true,
+            slidesPerView: 'auto',
+            loop: newItems.length > 3,
+            speed: 500,
+            coverflowEffect: {
+                rotate: 0,
+                stretch: 10,
+                depth: 160,
+                modifier: 1,
+                slideShadows: false
+            },
+            navigation: {
+                nextEl: '.new-hanger-next',
+                prevEl: '.new-hanger-prev',
+            },
+            on: {
+                init: function () {
+                    updateHangerCardInfo(this.realIndex);
+                },
+                slideChange: function () {
+                    updateHangerCardInfo(this.realIndex);
+                }
+            }
+        });
+    }
 }
+
 
 // ===== প্রোডাক্ট গ্রিড ডিসপ্লে =====
 function displayProducts(products, showAll = false) {
@@ -1321,115 +1387,6 @@ function showPopup() {
         }
     }, 100);
 }
-
-// Global variable for Hanger Swiper Instance
-let hangerSwiperInstance = null;
-let latest12Products = [];
-
-// Auto-Render Last 12 Products onto Hanger Rack
-function renderHangerShowcase(productsList) {
-    if (!productsList || productsList.length === 0) return;
-
-    // Get last 12 products (Newest first)
-    latest12Products = [...productsList].slice(-12).reverse();
-
-    const wrapper = document.getElementById('hanger-swiper-wrapper');
-    if (!wrapper) return;
-
-    // Render HTML for 12 items
-    wrapper.innerHTML = latest12Products.map((product) => {
-        const prodImg = product.image || (product.images && product.images[0]) || '';
-        return `
-            <div class="swiper-slide cursor-pointer" onclick="openModal(${product.id})">
-                <div class="hanger-card-item relative flex flex-col items-center group">
-                    <!-- Sleek Chrome Hook (Rail-er shaathe 100% Touch) -->
-                    <div class="w-8 h-10 relative z-20 mb-[-2px]">
-                        <svg viewBox="0 0 40 50" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-                            <path d="M 20 48 L 20 22 C 20 10 32 10 32 20 C 32 26 24 26 24 20" stroke="url(#chromeMetalLight)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                            <defs>
-                                <linearGradient id="chromeMetalLight" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#52525b"/>
-                                    <stop offset="50%" stop-color="#a1a1aa"/>
-                                    <stop offset="100%" stop-color="#27272a"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-
-                    <!-- Clean Premium Floating Apparel Card -->
-                    <div class="w-44 md:w-52 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
-                        <img src="${prodImg}" alt="${product.name}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    // Re-initialize Swiper Carousel
-    initHangerSwiper();
-}
-
-// Initialize Swiper Engine
-function initHangerSwiper() {
-    if (typeof Swiper === 'undefined') return;
-
-    if (hangerSwiperInstance) {
-        hangerSwiperInstance.destroy(true, true);
-    }
-
-    hangerSwiperInstance = new Swiper('.new-hanger-swiper', {
-        effect: 'coverflow',
-        grabCursor: true,
-        centeredSlides: true,
-        slidesPerView: 'auto',
-        loop: latest12Products.length > 3,
-        speed: 550,
-        coverflowEffect: {
-            rotate: 0,
-            stretch: 10,
-            depth: 160,
-            modifier: 1,
-            slideShadows: false
-        },
-        navigation: {
-            nextEl: '.new-hanger-next',
-            prevEl: '.new-hanger-prev',
-        },
-        on: {
-            init: function () {
-                updateHangerCardInfo(this.realIndex);
-            },
-            slideChange: function () {
-                updateHangerCardInfo(this.realIndex);
-            }
-        }
-    });
-}
-
-// Update Active Product Details Card
-function updateHangerCardInfo(index) {
-    const item = latest12Products[index];
-    if (!item) return;
-
-    const titleEl = document.getElementById('new-hanger-title');
-    const priceEl = document.getElementById('new-hanger-price');
-    const btnEl = document.getElementById('new-hanger-buy-btn');
-
-    if (titleEl) titleEl.innerText = item.name;
-    if (priceEl) {
-        const oldPriceHTML = item.originalPrice ? `<span class="text-xs text-zinc-400 line-through font-bold ml-1.5">৳${item.originalPrice}</span>` : '';
-        priceEl.innerHTML = `৳${item.price} ${oldPriceHTML}`;
-    }
-    if (btnEl) btnEl.setAttribute('onclick', `openModal(${item.id})`);
-}
-
-// Example Auto-Triggering (Apnar main product fetch function-er bhetor sora shori call koren):
-// Example: fetch('products.json').then(res => res.json()).then(data => { renderHangerShowcase(data); });
-if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
-    renderHangerShowcase(allProducts);
-}
-
 
 // ===== পপআপ বন্ধ করা =====
 function closePopup() {
