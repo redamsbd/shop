@@ -1520,3 +1520,116 @@ const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
         }
     }
 });
+// REDAMS Auto Hanger Showcase Fix Engine
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Fetch products & Render Showcase
+    function loadHangerProducts() {
+        if (typeof products !== 'undefined' && products.length > 0) {
+            renderHangerShowcase(products);
+        } else if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
+            renderHangerShowcase(allProducts);
+        } else {
+            // Direct fetch fallback if global variable is not ready
+            fetch('products.json')
+                .then(response => response.json())
+                .then(data => renderHangerShowcase(data))
+                .catch(error => console.error("Error loading products for hanger:", error));
+        }
+    }
+
+    // 2. Main Render Function
+    window.renderHangerShowcase = function(productsList) {
+        if (!productsList || productsList.length === 0) return;
+
+        const wrapper = document.getElementById('hanger-swiper-wrapper');
+        if (!wrapper) return;
+
+        // Take last 12 products (Newest first)
+        const latest12Products = [...productsList].slice(-12).reverse();
+
+        // Generate Slide HTML
+        wrapper.innerHTML = latest12Products.map((product) => {
+            // Image fallback check
+            let imgUrl = product.image || product.img || (product.images && product.images[0]) || '';
+            let price = product.price || 0;
+            let oldPrice = product.originalPrice || product.oldPrice || null;
+
+            return `
+                <div class="swiper-slide cursor-pointer" onclick="openModal(${product.id})">
+                    <div class="hanger-card-item relative flex flex-col items-center group">
+                        <!-- Sleek Chrome Hook -->
+                        <div class="w-8 h-10 relative z-20 mb-[-2px]">
+                            <svg viewBox="0 0 40 50" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+                                <path d="M 20 48 L 20 22 C 20 10 32 10 32 20 C 32 26 24 26 24 20" stroke="url(#chromeMetalLight)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                                <defs>
+                                    <linearGradient id="chromeMetalLight" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#52525b"/>
+                                        <stop offset="50%" stop-color="#a1a1aa"/>
+                                        <stop offset="100%" stop-color="#27272a"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <!-- Floating Card -->
+                        <div class="w-44 md:w-52 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
+                            <img src="${imgUrl}" alt="${product.name}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 3. Initialize Swiper Slider
+        if (typeof Swiper !== 'undefined') {
+            const hangerSwiper = new Swiper('.new-hanger-swiper', {
+                effect: 'coverflow',
+                grabCursor: true,
+                centeredSlides: true,
+                slidesPerView: 'auto',
+                loop: latest12Products.length > 3,
+                speed: 550,
+                coverflowEffect: {
+                    rotate: 0,
+                    stretch: 10,
+                    depth: 160,
+                    modifier: 1,
+                    slideShadows: false
+                },
+                navigation: {
+                    nextEl: '.new-hanger-next',
+                    prevEl: '.new-hanger-prev',
+                },
+                on: {
+                    init: function () {
+                        updateCardInfo(latest12Products[this.realIndex]);
+                    },
+                    slideChange: function () {
+                        updateCardInfo(latest12Products[this.realIndex]);
+                    }
+                }
+            });
+        }
+    };
+
+    // Update Bottom Details Box
+    function updateCardInfo(item) {
+        if (!item) return;
+
+        const titleEl = document.getElementById('new-hanger-title');
+        const priceEl = document.getElementById('new-hanger-price');
+        const btnEl = document.getElementById('new-hanger-buy-btn');
+
+        if (titleEl) titleEl.innerText = item.name;
+        if (priceEl) {
+            const oldPriceHTML = item.originalPrice ? `<span class="text-xs text-zinc-400 line-through font-bold ml-1.5">৳${item.originalPrice}</span>` : '';
+            priceEl.innerHTML = `৳${item.price} ${oldPriceHTML}`;
+        }
+        if (btnEl) btnEl.setAttribute('onclick', `openModal(${item.id})`);
+    }
+
+    // Run Auto Load
+    setTimeout(loadHangerProducts, 300);
+});
+
