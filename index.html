@@ -447,41 +447,44 @@ html {
         animation: ticker 30s linear infinite;
     }
 </style>
-    <!-- REDAMS Premium White-Theme 3D Hanger Showcase Section -->
-<section class="hanger-showcase-section relative my-12 py-10 px-3 max-w-6xl mx-auto overflow-hidden bg-gradient-to-b from-white via-zinc-50 to-white rounded-3xl border border-zinc-200/80 shadow-xl">
+
+<!-- REDAMS Ultra-Premium 3D Curved Boutique Hanger Rack Section -->
+<section class="hanger-showcase-section relative my-12 py-10 px-2 md:px-4 max-w-6xl mx-auto overflow-hidden bg-gradient-to-b from-white via-zinc-50 to-white rounded-3xl border border-zinc-200/80 shadow-xl">
     
-    <!-- Background Ambient Red Glow -->
+    <!-- Background Ambient Glow -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 md:w-[500px] h-60 bg-red-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
     <!-- Section Header -->
-    <div class="text-center relative z-10 mb-6">
+    <div class="text-center relative z-10 mb-5">
         <span class="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-red-600 bg-red-50 border border-red-200 px-3.5 py-1.5 rounded-full shadow-sm">
-            Interactive Rack
+            Interactive Boutique Rack
         </span>
         <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tight text-zinc-900 mt-3 italic">
             NEW <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-orange-500 to-red-600">ARRIVALS</span>
         </h2>
-        <p class="text-zinc-500 text-[11px] md:text-xs mt-1 font-medium tracking-wider">Drag or swipe to explore items on the rack</p>
+        <p class="text-zinc-500 text-[11px] md:text-xs mt-1 font-medium tracking-wider">Drag or swipe to rotate items along the curved rack</p>
     </div>
 
-    <!-- 1. SLEEK STAINLESS STEEL CURVED RAIL (SVG Engine) -->
+    <!-- 1. STAINLESS STEEL CURVED RAIL (Exact Arc Alignment) -->
     <div class="relative w-full max-w-2xl mx-auto h-8 z-20 flex items-center justify-center pointer-events-none">
-        <svg class="w-full h-8 drop-shadow-[0_8px_10px_rgba(0,0,0,0.15)]" viewBox="0 0 800 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 10 10 Q 400 35 790 10" stroke="url(#metalGradLight)" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 10 9 Q 400 34 790 9" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.9"/>
+        <svg class="w-full h-8 drop-shadow-[0_8px_10px_rgba(0,0,0,0.12)]" viewBox="0 0 800 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Curved Metal Tube -->
+            <path d="M 10 10 Q 400 36 790 10" stroke="url(#metalGradLight)" stroke-width="7" stroke-linecap="round"/>
+            <!-- Metallic Highlight Ring Edge -->
+            <path d="M 10 9 Q 400 35 790 9" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.9"/>
             <defs>
                 <linearGradient id="metalGradLight" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#71717a"/>
-                    <stop offset="25%" stop-color="#f4f4f5"/>
+                    <stop offset="0%" stop-color="#52525b"/>
+                    <stop offset="20%" stop-color="#f4f4f5"/>
                     <stop offset="50%" stop-color="#a1a1aa"/>
-                    <stop offset="75%" stop-color="#ffffff"/>
-                    <stop offset="100%" stop-color="#52525b"/>
+                    <stop offset="80%" stop-color="#ffffff"/>
+                    <stop offset="100%" stop-color="#3f3f46"/>
                 </linearGradient>
             </defs>
         </svg>
     </div>
 
-    <!-- 2. SWIPER CAROUSEL CONTAINER (Target ID: new-arrivals-slider) -->
+    <!-- 2. SWIPER CAROUSEL (Target ID: new-arrivals-slider) -->
     <div class="swiper new-hanger-swiper relative z-10 -mt-3 pb-6">
         <div id="new-arrivals-slider" class="swiper-wrapper">
             <!-- Dynamic JS Output Here -->
@@ -509,40 +512,46 @@ html {
     </div>
 </section>
 
-<!-- CSS Styling -->
+<!-- CSS Styling for Slide Engine -->
 <style>
 .new-hanger-swiper .swiper-slide {
-    width: 220px !important;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 0.4;
-    filter: blur(1.5px) grayscale(30%);
+    width: 210px !important;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+    opacity: 0.35;
+    filter: blur(1px) grayscale(30%);
 }
 
 @media (min-width: 768px) {
     .new-hanger-swiper .swiper-slide {
-        width: 250px !important;
+        width: 240px !important;
     }
 }
 
 .new-hanger-swiper .swiper-slide-active {
     opacity: 1 !important;
     filter: blur(0px) grayscale(0%) !important;
-    transform: scale(1.08);
 }
 
-/* Subtle Rack Sway Physics */
-.swiper-slide-active .hanger-card-item {
-    animation: rackSway 3.5s ease-in-out infinite alternate;
+/* Hanger Card Inner Structural Wrapper */
+.hanger-card-item {
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     transform-origin: top center;
 }
 
-@keyframes rackSway {
-    0% { transform: rotate(0deg); }
-    30% { transform: rotate(1.2deg); }
-    70% { transform: rotate(-1.2deg); }
-    100% { transform: rotate(0deg); }
+/* Natural Rack Sway Effect for Active Slide */
+.swiper-slide-active .hanger-card-item {
+    animation: rackCurvedSway 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes rackCurvedSway {
+    0% { transform: translateY(0px) rotate(0deg); }
+    30% { transform: translateY(-1px) rotate(1.2deg); }
+    70% { transform: translateY(-1px) rotate(-1.2deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
 }
 </style>
+
+
 
     
 
