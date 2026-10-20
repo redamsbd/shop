@@ -1322,6 +1322,115 @@ function showPopup() {
     }, 100);
 }
 
+// Global variable for Hanger Swiper Instance
+let hangerSwiperInstance = null;
+let latest12Products = [];
+
+// Auto-Render Last 12 Products onto Hanger Rack
+function renderHangerShowcase(productsList) {
+    if (!productsList || productsList.length === 0) return;
+
+    // Get last 12 products (Newest first)
+    latest12Products = [...productsList].slice(-12).reverse();
+
+    const wrapper = document.getElementById('hanger-swiper-wrapper');
+    if (!wrapper) return;
+
+    // Render HTML for 12 items
+    wrapper.innerHTML = latest12Products.map((product) => {
+        const prodImg = product.image || (product.images && product.images[0]) || '';
+        return `
+            <div class="swiper-slide cursor-pointer" onclick="openModal(${product.id})">
+                <div class="hanger-card-item relative flex flex-col items-center group">
+                    <!-- Sleek Chrome Hook (Rail-er shaathe 100% Touch) -->
+                    <div class="w-8 h-10 relative z-20 mb-[-2px]">
+                        <svg viewBox="0 0 40 50" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+                            <path d="M 20 48 L 20 22 C 20 10 32 10 32 20 C 32 26 24 26 24 20" stroke="url(#chromeMetalLight)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                            <defs>
+                                <linearGradient id="chromeMetalLight" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#52525b"/>
+                                    <stop offset="50%" stop-color="#a1a1aa"/>
+                                    <stop offset="100%" stop-color="#27272a"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Clean Premium Floating Apparel Card -->
+                    <div class="w-44 md:w-52 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.12)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
+                        <img src="${prodImg}" alt="${product.name}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Re-initialize Swiper Carousel
+    initHangerSwiper();
+}
+
+// Initialize Swiper Engine
+function initHangerSwiper() {
+    if (typeof Swiper === 'undefined') return;
+
+    if (hangerSwiperInstance) {
+        hangerSwiperInstance.destroy(true, true);
+    }
+
+    hangerSwiperInstance = new Swiper('.new-hanger-swiper', {
+        effect: 'coverflow',
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: 'auto',
+        loop: latest12Products.length > 3,
+        speed: 550,
+        coverflowEffect: {
+            rotate: 0,
+            stretch: 10,
+            depth: 160,
+            modifier: 1,
+            slideShadows: false
+        },
+        navigation: {
+            nextEl: '.new-hanger-next',
+            prevEl: '.new-hanger-prev',
+        },
+        on: {
+            init: function () {
+                updateHangerCardInfo(this.realIndex);
+            },
+            slideChange: function () {
+                updateHangerCardInfo(this.realIndex);
+            }
+        }
+    });
+}
+
+// Update Active Product Details Card
+function updateHangerCardInfo(index) {
+    const item = latest12Products[index];
+    if (!item) return;
+
+    const titleEl = document.getElementById('new-hanger-title');
+    const priceEl = document.getElementById('new-hanger-price');
+    const btnEl = document.getElementById('new-hanger-buy-btn');
+
+    if (titleEl) titleEl.innerText = item.name;
+    if (priceEl) {
+        const oldPriceHTML = item.originalPrice ? `<span class="text-xs text-zinc-400 line-through font-bold ml-1.5">৳${item.originalPrice}</span>` : '';
+        priceEl.innerHTML = `৳${item.price} ${oldPriceHTML}`;
+    }
+    if (btnEl) btnEl.setAttribute('onclick', `openModal(${item.id})`);
+}
+
+// Example Auto-Triggering (Apnar main product fetch function-er bhetor sora shori call koren):
+// Example: fetch('products.json').then(res => res.json()).then(data => { renderHangerShowcase(data); });
+if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
+    renderHangerShowcase(allProducts);
+}
+
+
 // ===== পপআপ বন্ধ করা =====
 function closePopup() {
     const popup = document.getElementById('entry-popup');
