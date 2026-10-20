@@ -194,7 +194,8 @@ function renderProductOptions(product) {
         }
     }
 }
-// ===== 3D HANGER NEW ARRIVALS RENDER FUNCTION =====
+
+// ===== 3D CURVED RACK NEW ARRIVALS RENDER FUNCTION =====
 let hangerSwiperInstance = null;
 
 function renderNewArrivals(products) {
@@ -207,19 +208,19 @@ function renderNewArrivals(products) {
 
     if (newItems.length === 0) return;
 
-    // Slide HTML Map Kora
+    // Slide HTML Mapping
     slider.innerHTML = newItems.map(p => {
         const imgSrc = (p.images && p.images[0]) ? p.images[0] : (p.image || 'images/placeholder.jpg');
         return `
             <div class="swiper-slide cursor-pointer" onclick="openModal(${p.id})">
                 <div class="hanger-card-item relative flex flex-col items-center group">
-                    <!-- Sleek Chrome Wire Hook (Rail-er shaathe 0 Gap Touch) -->
-                    <div class="w-8 h-10 relative z-20 mb-[-2px]">
+                    <!-- Sleek Chrome Hook (100% Rail Arc Touch) -->
+                    <div class="w-8 h-9 relative z-20 mb-[-3px]">
                         <svg viewBox="0 0 40 50" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
                             <path d="M 20 48 L 20 22 C 20 10 32 10 32 20 C 32 26 24 26 24 20" stroke="url(#chromeMetalLight)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
                             <defs>
                                 <linearGradient id="chromeMetalLight" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#52525b"/>
+                                    <stop offset="0%" stop-color="#3f3f46"/>
                                     <stop offset="50%" stop-color="#a1a1aa"/>
                                     <stop offset="100%" stop-color="#27272a"/>
                                 </linearGradient>
@@ -227,10 +228,10 @@ function renderNewArrivals(products) {
                         </svg>
                     </div>
 
-                    <!-- Clean Premium Apparel Card -->
-                    <div class="w-44 md:w-52 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
+                    <!-- Floating Apparel Card -->
+                    <div class="w-44 md:w-50 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
                         <img src="${imgSrc}" alt="${p.name}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-40"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-30"></div>
                         
                         <!-- Category Tag -->
                         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-zinc-900 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
@@ -242,7 +243,7 @@ function renderNewArrivals(products) {
         `;
     }).join('');
 
-    // Bottom Selected Item Box Update Function
+    // Bottom Info Display Update
     function updateHangerCardInfo(index) {
         const item = newItems[index];
         if (!item) return;
@@ -260,7 +261,7 @@ function renderNewArrivals(products) {
         if (btnEl) btnEl.setAttribute('onclick', `openModal(${item.id})`);
     }
 
-    // Swiper Engine Re-initialize
+    // Swiper Engine Re-initialize with ARC PHYSICS
     if (typeof Swiper !== 'undefined') {
         if (hangerSwiperInstance) {
             hangerSwiperInstance.destroy(true, true);
@@ -275,8 +276,8 @@ function renderNewArrivals(products) {
             speed: 500,
             coverflowEffect: {
                 rotate: 0,
-                stretch: 10,
-                depth: 160,
+                stretch: 12,
+                depth: 140,
                 modifier: 1,
                 slideShadows: false
             },
@@ -290,12 +291,37 @@ function renderNewArrivals(products) {
                 },
                 slideChange: function () {
                     updateHangerCardInfo(this.realIndex);
+                },
+                // 💡 ARC CURVE MATHEMATICAL ALIGNMENT (রেইলের কার্ভ অনুযায়ী হ্যাঙ্গার টিল্ট ও পজিশনিং)
+                setTranslate: function () {
+                    const swiper = this;
+                    swiper.slides.forEach((slide) => {
+                        const progress = slide.progress; // Active slide = 0, side slides = 1, 2, -1, -2
+                        const absProgress = Math.abs(progress);
+                        
+                        // রেইলের বাঁকা শেপ অনুসরণ করার ফর্মুলা (মাঝখানে নিচে, দুপাশে উপরে)
+                        const translateY = - Math.pow(absProgress, 1.8) * 11; 
+                        const rotateZ = progress * -3.5; // রেইলের কার্ভে ঝুলে থাকার ন্যাচারাল থ্রিডি টিল্ট
+
+                        const cardItem = slide.querySelector('.hanger-card-item');
+                        if (cardItem) {
+                            cardItem.style.transform = `translate3d(0, ${translateY}px, 0) rotate(${rotateZ}deg)`;
+                        }
+                    });
+                },
+                setTransition: function (duration) {
+                    const swiper = this;
+                    swiper.slides.forEach((slide) => {
+                        const cardItem = slide.querySelector('.hanger-card-item');
+                        if (cardItem) {
+                            cardItem.style.transitionDuration = `${duration}ms`;
+                        }
+                    });
                 }
             }
         });
     }
 }
-
 
 // ===== প্রোডাক্ট গ্রিড ডিসপ্লে =====
 function displayProducts(products, showAll = false) {
