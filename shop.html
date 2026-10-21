@@ -443,5 +443,75 @@
 </a>
 
     <script src="script.js"></script>
+<!-- REDAMS Master Hybrid Data Sync Engine for Shop Page -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
+        authDomain: "redams-61f66.firebaseapp.com",
+        projectId: "redams-61f66",
+        storageBucket: "redams-61f66.firebasestorage.app",
+        messagingSenderId: "852974979706",
+        appId: "1:852974979706:web:0f332bafadc653565fc9c3",
+        measurementId: "G-59WMZ7870M"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    window.localJsonProducts = [];
+    window.firebaseProducts = [];
+
+    function syncAndRenderAllProducts() {
+        const combined = [...window.firebaseProducts, ...window.localJsonProducts];
+        
+        window.allProducts = combined;
+        window.products = combined;
+
+        // ১. ৩ডি হ্যাঙ্গার থাকলে তাতে রেন্ডার করবে
+        if (typeof renderNewArrivals === 'function') {
+            renderNewArrivals(combined.slice(0, 10));
+        }
+
+        // ২. ক্যাটালগ গ্রিডে প্রোডাক্ট রেন্ডার
+        if (typeof renderProducts === 'function') {
+            renderProducts(combined);
+        }
+
+        // ৩. ইউআরএল এর ক্যাটাগরি (যেমন ?cat=drop-shoulder) অনুযায়ী ফিল্টার
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('cat');
+        
+        if (categoryParam && typeof filterCategory === 'function') {
+            filterCategory(categoryParam);
+        } else if (typeof filterCategory === 'function') {
+            filterCategory('all');
+        }
+
+        // 8. ইভেন্ট বাটন আবার সক্রিয় করা
+        if (typeof attachProductEvents === 'function') {
+            attachProductEvents();
+        }
+    }
+
+    // JSON ফাইল লোড
+    fetch('products.json')
+        .then(res => res.json())
+        .then(data => {
+            window.localJsonProducts = data || [];
+            syncAndRenderAllProducts();
+        })
+        .catch(err => console.log("JSON Load:", err));
+
+    // Firebase Firestore থেকে রিয়েলটাইম ডেটা লোড
+    db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        window.firebaseProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        syncAndRenderAllProducts();
+    });
+</script>    
 </body>
 </html>
