@@ -939,6 +939,188 @@ window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
 // =================================================================
+// ULTRA-PREMIUM DYNAMIC REVIEW SYSTEM (JSON + CUSTOMER REVIEWS)
+// =================================================================
+
+let currentSelectedRating = 5;
+
+// ===== 1. Reviews Load Function =====
+async function loadReviews() {
+    const wrapper = document.getElementById('reviews-wrapper');
+    if (!wrapper) return;
+
+    // LocalStorage checking for customer added reviews
+    const userReviews = JSON.parse(localStorage.getItem('redams_user_reviews')) || [];
+
+    // Fallback static reviews if reviews.json fails
+    const fallbackReviews = [
+        { name: "Tahmid Hasan", rating: 5, text: "Drop shoulder t-shirt er fabric quality khub-i bhalo. Fitting perfectly done!", initials: "TH", color: "bg-black", date: "2 days ago" },
+        { name: "Arafat Hossain", rating: 5, text: "Packaging ebong delivery speed khub fast chilo. REDAMS brand styling top notch.", initials: "AH", color: "bg-red-600", date: "1 week ago" },
+        { name: "Rafsan Ahmed", rating: 5, text: "Acid wash t-shirt er print ebong color grading osadharon. Highly recommended!", initials: "RA", color: "bg-zinc-800", date: "2 weeks ago" },
+        { name: "Tanvir Anjum", rating: 5, text: "Premium quality product at affordable price. Customer support o bhalo chilo.", initials: "TA", color: "bg-black", date: "3 weeks ago" }
+    ];
+
+    let combinedReviews = [];
+
+    try {
+        const response = await fetch('reviews.json');
+        if (response.ok) {
+            const jsonReviews = await response.json();
+            combinedReviews = [...userReviews, ...(jsonReviews || [])];
+        } else {
+            combinedReviews = [...userReviews, ...fallbackReviews];
+        }
+    } catch (e) {
+        console.log("JSON Review Fetch Fallback Active:", e);
+        combinedReviews = [...userReviews, ...fallbackReviews];
+    }
+
+    // Review Count Update
+    const countText = document.getElementById('review-count-text');
+    if (countText) {
+        countText.innerText = `BASED ON ${combinedReviews.length + 500}+ REVIEWS`;
+    }
+
+    // Render Cards
+    wrapper.innerHTML = combinedReviews.map(r => {
+        const stars = '<i class="fa-solid fa-star"></i>'.repeat(r.rating || 5);
+        const nameInitials = r.initials || r.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        return `
+            <div class="review-card bg-white border border-zinc-200/80 p-6 transition-all duration-500 hover:border-black flex flex-col justify-between min-w-[280px] md:min-w-[340px] max-w-[340px] rounded-2xl shadow-sm hover:shadow-xl group relative shrink-0">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex text-yellow-400 text-xs gap-1">
+                            ${stars}
+                        </div>
+                        <span class="text-[9px] font-black text-zinc-300 uppercase tracking-widest">${r.date || 'Verified Buyer'}</span>
+                    </div>
+                    <p class="text-zinc-700 text-xs md:text-sm leading-relaxed font-medium mb-6 italic line-clamp-4">"${r.text}"</p>
+                </div>
+                <div class="flex items-center gap-3 border-t border-zinc-100 pt-4">
+                    <div class="w-10 h-10 ${r.color || 'bg-black'} text-white flex items-center justify-center font-black text-xs rounded-full shadow-inner tracking-wider">
+                        ${nameInitials}
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-black tracking-wider">${r.name}</h4>
+                        <div class="flex items-center gap-1 text-[9px] text-green-600 font-bold uppercase mt-0.5">
+                            <i class="fa-solid fa-circle-check"></i> Verified Community Member
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ===== 2. Review Modal Logic =====
+function openReviewModal() {
+    const modal = document.getElementById('review-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setReviewRating(5); // Default 5 star
+    }
+}
+
+function closeReviewModal() {
+    const modal = document.getElementById('review-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function setReviewRating(stars) {
+    currentSelectedRating = stars;
+    const starContainer = document.getElementById('modal-star-rating');
+    if (!starContainer) return;
+
+    const starIcons = starContainer.querySelectorAll('i');
+    starIcons.forEach((star, idx) => {
+        if (idx < stars) {
+            star.classList.remove('text-zinc-300');
+            star.classList.add('text-yellow-400');
+        } else {
+            star.classList.remove('text-yellow-400');
+            star.classList.add('text-zinc-300');
+        }
+    });
+}
+
+// ===== 3. Customer Review Submit Engine =====
+function submitCustomerReview(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('review-user-name')?.value.trim();
+    const email = document.getElementById('review-user-email')?.value.trim();
+    const text = document.getElementById('review-user-text')?.value.trim();
+    const submitBtn = document.getElementById('submit-review-btn');
+
+    if (!name || !email || !text) {
+        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Sob gulo field puron korun.' });
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "SUBMITTING...";
+    }
+
+    const newReview = {
+        name: name,
+        email: email,
+        rating: currentSelectedRating,
+        text: text,
+        initials: name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+        color: "bg-red-600",
+        date: "Just now"
+    };
+
+    // 1. Save locally so it appears immediately on website
+    const existingUserReviews = JSON.parse(localStorage.getItem('redams_user_reviews')) || [];
+    existingUserReviews.unshift(newReview);
+    localStorage.setItem('redams_user_reviews', JSON.stringify(existingUserReviews));
+
+    // 2. Send email notification via Web3Forms
+    const formData = {
+        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
+        subject: `⭐ NEW CUSTOMER REVIEW - ${name} (${currentSelectedRating} Stars)`,
+        from_name: "REDAMS Website Reviews",
+        email: "redams.official@gmail.com",
+        Customer_Name: name,
+        Customer_Email: email,
+        Star_Rating: `${currentSelectedRating} / 5 Stars`,
+        Review_Feedback: text
+    };
+
+    fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(formData)
+    }).finally(() => {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "SUBMIT REVIEW ↘";
+        }
+        closeReviewModal();
+        loadReviews(); // Refresh review list on page
+
+        Swal.fire({
+            icon: 'success',
+            title: 'THANK YOU!',
+            text: 'Apnar review-ti safolobhabe jog hoyeche!',
+            confirmButtonColor: '#000'
+        });
+
+        // Reset form inputs
+        document.getElementById('review-user-name').value = '';
+        document.getElementById('review-user-email').value = '';
+        document.getElementById('review-user-text').value = '';
+    });
+}
+
+// =================================================================
 // 6. EVENT BINDINGS ON LOAD
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -956,12 +1138,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Initial Payment UI Check
+    // 3. Delivery Area Change Listener (Real-time Delivery Fee Calculation)
+    const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
+    deliveryRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (typeof updateCartUI === 'function') updateCartUI();
+            if (typeof validateOrder === 'function') validateOrder();
+        });
+    });
+
+    // 4. Initial Payment UI Check
     const selectedRadio = document.querySelector('input[name="payment-method"]:checked');
     if (selectedRadio) {
         updatePaymentUI(selectedRadio.value);
     }
 
-    loadProducts();
-    updateCartUI();
+    // 5. Data & UI Engine Initialization
+    if (typeof loadProducts === 'function') loadProducts();
+    if (typeof loadReviews === 'function') loadReviews(); // Dynamic Review System
+    if (typeof updateCartUI === 'function') updateCartUI();
+    if (typeof checkUrlAndOpenModal === 'function') checkUrlAndOpenModal();
 });
+
