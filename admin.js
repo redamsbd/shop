@@ -503,3 +503,98 @@ function updateStats() {
     document.getElementById('stat-pending').innerText = allOrders.filter(o => o.status === 'Pending').length;
     document.getElementById('stat-outofstock').innerText = allProducts.filter(p => p.isOutOfStock).length;
 }
+// =================================================================
+// ADMIN REALTIME REVIEW MANAGEMENT ENGINE
+// =================================================================
+function initAdminReviewManager() {
+    const listContainer = document.getElementById('admin-reviews-list');
+    const badge = document.getElementById('pending-count-badge');
+    if (!listContainer) return;
+
+    const db = firebase.firestore();
+
+    // Listen to all reviews in Realtime
+    db.collection("reviews").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        const reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const pendingCount = reviews.filter(r => r.status === "pending").length;
+
+        if (badge) badge.innerText = `${pendingCount} Pending`;
+
+        if (reviews.length === 0) {
+            listContainer.innerHTML = '<p class="text-xs text-zinc-400 font-bold uppercase col-span-full py-4">No submitted reviews found.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = reviews.map(r => {
+            const isApproved = r.status === 'approved';
+            const stars = '★'.repeat(r.rating || 5);
+
+            return `
+                <div class="p-5 border rounded-2xl flex flex-col justify-between ${isApproved ? 'bg-green-50/30 border-green-200' : 'bg-zinc-50 border-zinc-200'}">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-black uppercase text-black">${r.name} <span class="text-[10px] text-zinc-400 font-normal">(${r.email || 'No Email'})</span></span>
+                            <span class="text-xs text-yellow-500 font-black">${stars}</span>
+                        </div>
+                        <p class="text-xs text-zinc-700 italic mb-4">"${r.text}"</p>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-zinc-200/60 pt-3">
+                        <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                            ${r.status || 'pending'}
+                        </span>
+
+                        <div class="flex gap-2">
+                            ${!isApproved ? `
+                                <button onclick="approveReview('${r.id}')" class="bg-black hover:bg-green-600 text-white text-[10px] font-black uppercase px-4 py-2 rounded-xl transition">
+                                    Approve ✓
+                                </button>
+                            ` : `
+                                <button onclick="unapproveReview('${r.id}')" class="bg-zinc-200 hover:bg-zinc-300 text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl transition">
+                                    Unapprove
+                                </button>
+                            `}
+                            <button onclick="deleteReview('${r.id}')" class="bg-red-100 hover:bg-red-600 hover:text-white text-red-600 text-[10px] font-black uppercase px-3 py-2 rounded-xl transition">
+                                Delete 🗑
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    });
+}
+
+// Action Functions
+function approveReview(id) {
+    firebase.firestore().collection("reviews").doc(id).update({
+        status: "approved"
+    }).then(() => {
+        Swal.fire({ icon: 'success', title: 'APPROVED!', text: 'Review is now live on the website.', timer: 1200, showConfirmButton: false });
+    });
+}
+
+function unapproveReview(id) {
+    firebase.firestore().collection("reviews").doc(id).update({
+        status: "pending"
+    });
+}
+
+function deleteReview(id) {
+    Swal.fire({
+        title: 'Delete Review?',
+        text: "This action cannot be undone.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#000',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            firebase.firestore().collection("reviews").doc(id).delete();
+        }
+    });
+}
+
+// Initialize on DOM Load
+document.addEventListener('DOMContentLoaded', initAdminReviewManager);
