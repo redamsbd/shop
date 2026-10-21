@@ -527,24 +527,31 @@
         document.getElementById('promo-modal').classList.add('active');
     }
 
-    // 4. CLOUDINARY UPLOADER
-    async function uploadFileToCloudinary(fileInput) {
-        if (!fileInput || !fileInput.files[0]) return null;
-        const file = fileInput.files[0];
+// Updated Cloudinary Direct Upload Engine
+async function uploadFileToCloudinary(fileInput) {
+    if (!fileInput || !fileInput.files[0]) return null;
+    const file = fileInput.files[0];
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", UPLOAD_PRESET);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "REDAMS PRESET"); // আপনার ক্লাউডিনারি প্রিসেটের হুবহু নাম
 
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-            method: "POST",
-            body: formData
-        });
+    const res = await fetch(`https://api.cloudinary.com/v1_1/ktpipwbp/image/upload`, {
+        method: "POST",
+        body: formData
+    });
 
-        if (!res.ok) throw new Error("Cloudinary image upload failed");
-        const data = await res.json();
-        return data.secure_url;
+    const data = await res.json();
+
+    if (!res.ok) {
+        console.error("Cloudinary Error Detail:", data);
+        // ক্লাউডিনারি থেকে আসা আসল এরর মেসেজ দেখাবে
+        throw new Error(data.error ? data.error.message : "Cloudinary upload failed");
     }
+
+    return data.secure_url;
+}
+
 
     // 5. DASHBOARD INIT & REALTIME LISTENERS
     function initDashboard() {
