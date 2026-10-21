@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,12 +56,12 @@
 <!-- MAIN DASHBOARD CONTAINER -->
 <div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
     
-    <!-- Mobile Top Navigation Bar -->
+    <!-- Mobile Top Navigation Bar (Left-aligned Toggle Button) -->
     <div class="md:hidden bg-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800 sticky top-0 z-30">
-        <h2 class="text-xl font-black tracking-tighter">REDAMS <span class="text-red-600">ADMIN</span></h2>
         <button onclick="toggleMobileSidebar()" class="text-white bg-gray-800 p-2.5 rounded-xl focus:outline-none">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
+        <h2 class="text-xl font-black tracking-tighter">REDAMS <span class="text-red-600">ADMIN</span></h2>
     </div>
 
     <!-- Mobile Drawer Overlay -->
@@ -80,7 +80,7 @@
         </div>
         
         <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-            <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="dashboard">
+            <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300 sidebar-active" data-tab="dashboard">
                 <i class="fa-solid fa-chart-line text-red-500"></i> Dashboard
             </button>
             <button onclick="switchTab('products')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="products">
@@ -91,6 +91,9 @@
             </button>
             <button onclick="switchTab('courier')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="courier">
                 <i class="fa-solid fa-truck-fast text-purple-500"></i> Courier & Logistics
+            </button>
+            <button onclick="switchTab('reviews')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="reviews">
+                <i class="fa-solid fa-star text-yellow-400"></i> Reviews Control
             </button>
             <button onclick="switchTab('inventory')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="inventory">
                 <i class="fa-solid fa-warehouse text-emerald-500"></i> Size & Inventory
@@ -150,7 +153,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h1 class="text-xl md:text-3xl font-black text-gray-900">Products Catalog</h1>
-                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Cloudinary + Firebase Realtime Product Engine</p>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Firebase Realtime Product Engine</p>
                 </div>
                 <button onclick="openAddProductModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 shadow-md text-xs md:text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-plus"></i> Add Product
@@ -210,6 +213,23 @@
             </div>
         </div>
 
+        <!-- ADMIN REVIEW MODERATION SECTION -->
+        <div id="reviews-content" class="tab-content hidden">
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 card-shadow">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">Moderation Panel</span>
+                        <h2 class="text-2xl font-black uppercase tracking-tighter text-black mt-2">Customer Reviews Control</h2>
+                    </div>
+                    <span id="pending-count-badge" class="bg-black text-white text-xs font-black px-4 py-2 rounded-full">0 Pending</span>
+                </div>
+
+                <div id="admin-reviews-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p class="text-xs text-gray-400 font-bold uppercase col-span-full py-4">Loading customer reviews...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- SIZE & INVENTORY CONTROL -->
         <div id="inventory-content" class="tab-content hidden">
             <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Size Availability & Inventory</h1>
@@ -253,23 +273,6 @@
 
     </div>
 </div>
-
-    <!-- ADMIN REVIEW MODERATION SECTION -->
-<section class="admin-review-section bg-white border border-zinc-200 rounded-3xl p-6 md:p-8 my-8 shadow-sm">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">Moderation Panel</span>
-            <h2 class="text-2xl font-black uppercase tracking-tighter text-black mt-2">CUSTOMER REVIEWS CONTROL</h2>
-        </div>
-        <span id="pending-count-badge" class="bg-black text-white text-xs font-black px-4 py-2 rounded-full">0 Pending</span>
-    </div>
-
-    <!-- Review Management Grid -->
-    <div id="admin-reviews-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <p class="text-xs text-zinc-400 font-bold uppercase col-span-full py-4">Loading customer reviews...</p>
-    </div>
-</section>
-
 
 <!-- ================= MODALS SECTION ================= -->
 
@@ -321,48 +324,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">SEO Alt Text</label>
-                    <input type="text" id="product-alt-text" placeholder="REDAMS Spider Man Special T-Shirt BD" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                </div>
-
-                <!-- Sizes Configuration -->
-                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-2">Available Sizes Configuration</label>
-                    <div class="flex flex-wrap gap-4 text-xs font-bold text-gray-700">
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="size-S" checked class="w-4 h-4 accent-red-600 rounded"> S
-                        </label>
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="size-M" checked class="w-4 h-4 accent-red-600 rounded"> M
-                        </label>
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="size-L" checked class="w-4 h-4 accent-red-600 rounded"> L
-                        </label>
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="size-XL" checked class="w-4 h-4 accent-red-600 rounded"> XL
-                        </label>
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="size-XXL" checked class="w-4 h-4 accent-red-600 rounded"> XXL
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Cloudinary Direct Image Uploaders -->
-                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📸 Main Product Image (Cloudinary Upload)</label>
-                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500">
-                </div>
-
-                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📐 Size Chart Image (Optional Cloudinary Upload)</label>
-                    <input type="file" id="size-chart-file" accept="image/*" class="text-xs text-gray-500">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Main Image URL</label>
+                    <input type="text" id="product-image-url" placeholder="images/spider-01.jpg" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
                 </div>
 
                 <div class="col-span-1 md:col-span-2">
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Overall Stock Status</label>
                     <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                        <option value="1">✓ In Stock (ইন স্টক)</option>
-                        <option value="0">✗ Out of Stock (স্টক আউট)</option>
+                        <option value="1">✓ In Stock</option>
+                        <option value="0">✗ Out of Stock</option>
                     </select>
                 </div>
             </div>
@@ -370,43 +340,6 @@
             <div class="flex gap-3 mt-4">
                 <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold text-xs hover:bg-red-700 transition">Save Product & Publish</button>
                 <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold text-xs hover:bg-gray-300 transition">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Courier Dispatch Modal -->
-<div id="courier-modal" class="modal-overlay">
-    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-2 text-gray-900">Book Courier Parcel</h2>
-        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-3">
-            <input type="hidden" id="courier-order-id">
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Courier Service</label>
-                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-                    <option value="steadfast">Steadfast Courier</option>
-                    <option value="pathao">Pathao Courier</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Customer Name</label>
-                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
-                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Address</label>
-                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">COD Amount (৳)</label>
-                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-xs">
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-purple-700">Confirm Booking</button>
-                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </form>
     </div>
@@ -440,7 +373,7 @@
 <!-- Manual Order Modal -->
 <div id="order-modal" class="modal-overlay">
     <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-4 text-gray-900">Add Order</h2>
+        <h2 class="text-xl font-black mb-4 text-gray-900">Add Manual Order</h2>
         <div class="space-y-3">
             <input type="text" id="order-customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
             <input type="tel" id="order-customer-phone" placeholder="Phone Number" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
@@ -449,26 +382,6 @@
             <div class="flex gap-3 pt-2">
                 <button onclick="saveOrder()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Save Order</button>
                 <button onclick="closeModal('order-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Promo Modal -->
-<div id="promo-modal" class="modal-overlay">
-    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-4 text-gray-900">Create Promo</h2>
-        <div class="space-y-3">
-            <input type="text" id="promo-code" placeholder="PROMO CODE" class="w-full p-3 border border-gray-200 rounded-xl font-bold text-xs uppercase">
-            <select id="promo-type" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-                <option value="percent">Percentage (%)</option>
-                <option value="fixed">Fixed Amount (৳)</option>
-                <option value="delivery">Free Delivery</option>
-            </select>
-            <input type="number" id="promo-value" placeholder="Value" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            <div class="flex gap-3 pt-2">
-                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Create</button>
-                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </div>
     </div>
