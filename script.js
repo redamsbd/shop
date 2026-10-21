@@ -943,76 +943,6 @@ window.addEventListener('hashchange', checkUrlAndOpenModal);
 // =================================================================
 
 let currentSelectedRating = 5;
-
-// ===== 1. Reviews Load Function =====
-async function loadReviews() {
-    const wrapper = document.getElementById('reviews-wrapper');
-    if (!wrapper) return;
-
-    // LocalStorage checking for customer added reviews
-    const userReviews = JSON.parse(localStorage.getItem('redams_user_reviews')) || [];
-
-    // Fallback static reviews if reviews.json fails
-    const fallbackReviews = [
-        { name: "Tahmid Hasan", rating: 5, text: "Drop shoulder t-shirt er fabric quality khub-i bhalo. Fitting perfectly done!", initials: "TH", color: "bg-black", date: "2 days ago" },
-        { name: "Arafat Hossain", rating: 5, text: "Packaging ebong delivery speed khub fast chilo. REDAMS brand styling top notch.", initials: "AH", color: "bg-red-600", date: "1 week ago" },
-        { name: "Rafsan Ahmed", rating: 5, text: "Acid wash t-shirt er print ebong color grading osadharon. Highly recommended!", initials: "RA", color: "bg-zinc-800", date: "2 weeks ago" },
-        { name: "Tanvir Anjum", rating: 5, text: "Premium quality product at affordable price. Customer support o bhalo chilo.", initials: "TA", color: "bg-black", date: "3 weeks ago" }
-    ];
-
-    let combinedReviews = [];
-
-    try {
-        const response = await fetch('reviews.json');
-        if (response.ok) {
-            const jsonReviews = await response.json();
-            combinedReviews = [...userReviews, ...(jsonReviews || [])];
-        } else {
-            combinedReviews = [...userReviews, ...fallbackReviews];
-        }
-    } catch (e) {
-        console.log("JSON Review Fetch Fallback Active:", e);
-        combinedReviews = [...userReviews, ...fallbackReviews];
-    }
-
-    // Review Count Update
-    const countText = document.getElementById('review-count-text');
-    if (countText) {
-        countText.innerText = `BASED ON ${combinedReviews.length + 500}+ REVIEWS`;
-    }
-
-    // Render Cards
-    wrapper.innerHTML = combinedReviews.map(r => {
-        const stars = '<i class="fa-solid fa-star"></i>'.repeat(r.rating || 5);
-        const nameInitials = r.initials || r.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
-        return `
-            <div class="review-card bg-white border border-zinc-200/80 p-6 transition-all duration-500 hover:border-black flex flex-col justify-between min-w-[280px] md:min-w-[340px] max-w-[340px] rounded-2xl shadow-sm hover:shadow-xl group relative shrink-0">
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex text-yellow-400 text-xs gap-1">
-                            ${stars}
-                        </div>
-                        <span class="text-[9px] font-black text-zinc-300 uppercase tracking-widest">${r.date || 'Verified Buyer'}</span>
-                    </div>
-                    <p class="text-zinc-700 text-xs md:text-sm leading-relaxed font-medium mb-6 italic line-clamp-4">"${r.text}"</p>
-                </div>
-                <div class="flex items-center gap-3 border-t border-zinc-100 pt-4">
-                    <div class="w-10 h-10 ${r.color || 'bg-black'} text-white flex items-center justify-center font-black text-xs rounded-full shadow-inner tracking-wider">
-                        ${nameInitials}
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-black uppercase text-black tracking-wider">${r.name}</h4>
-                        <div class="flex items-center gap-1 text-[9px] text-green-600 font-bold uppercase mt-0.5">
-                            <i class="fa-solid fa-circle-check"></i> Verified Community Member
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
 // ===== 2. Review Modal Logic =====
 function openReviewModal() {
     const modal = document.getElementById('review-modal');
@@ -1047,8 +977,11 @@ function setReviewRating(stars) {
         }
     });
 }
+// =================================================================
+// FIREBASE REALTIME CUSTOMER REVIEW SYSTEM
+// =================================================================
 
-// ===== 3. Customer Review Submit Engine =====
+// 1. Submit Customer Review directly to Firebase Firestore
 function submitCustomerReview(e) {
     e.preventDefault();
 
@@ -1058,7 +991,7 @@ function submitCustomerReview(e) {
     const submitBtn = document.getElementById('submit-review-btn');
 
     if (!name || !email || !text) {
-        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Sob gulo field puron korun.' });
+        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Please fill in all required fields.' });
         return;
     }
 
@@ -1067,58 +1000,105 @@ function submitCustomerReview(e) {
         submitBtn.innerText = "SUBMITTING...";
     }
 
-    const newReview = {
+    const db = firebase.firestore();
+
+    db.collection("reviews").add({
         name: name,
         email: email,
         rating: currentSelectedRating,
         text: text,
-        initials: name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
-        color: "bg-red-600",
-        date: "Just now"
-    };
+        status: "pending", // Requires admin approval
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        closeReviewModal();
+        Swal.fire({
+            icon: 'success',
+            title: 'REVIEW SUBMITTED!',
+            text: 'Thank you! Your review has been submitted and is pending admin approval.',
+            confirmButtonColor: '#000'
+        });
 
-    // 1. Save locally so it appears immediately on website
-    const existingUserReviews = JSON.parse(localStorage.getItem('redams_user_reviews')) || [];
-    existingUserReviews.unshift(newReview);
-    localStorage.setItem('redams_user_reviews', JSON.stringify(existingUserReviews));
-
-    // 2. Send email notification via Web3Forms
-    const formData = {
-        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
-        subject: `⭐ NEW CUSTOMER REVIEW - ${name} (${currentSelectedRating} Stars)`,
-        from_name: "REDAMS Website Reviews",
-        email: "redams.official@gmail.com",
-        Customer_Name: name,
-        Customer_Email: email,
-        Star_Rating: `${currentSelectedRating} / 5 Stars`,
-        Review_Feedback: text
-    };
-
-    fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(formData)
-    }).finally(() => {
+        // Reset form
+        document.getElementById('review-user-name').value = '';
+        document.getElementById('review-user-email').value = '';
+        document.getElementById('review-user-text').value = '';
+    })
+    .catch((error) => {
+        console.error("Error submitting review:", error);
+        Swal.fire({ icon: 'error', title: 'Submission Failed', text: 'Something went wrong. Please try again.' });
+    })
+    .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = "SUBMIT REVIEW ↘";
         }
-        closeReviewModal();
-        loadReviews(); // Refresh review list on page
-
-        Swal.fire({
-            icon: 'success',
-            title: 'THANK YOU!',
-            text: 'Apnar review-ti safolobhabe jog hoyeche!',
-            confirmButtonColor: '#000'
-        });
-
-        // Reset form inputs
-        document.getElementById('review-user-name').value = '';
-        document.getElementById('review-user-email').value = '';
-        document.getElementById('review-user-text').value = '';
     });
 }
+
+// 2. Realtime Loader for ONLY Approved Reviews on website
+function loadReviews() {
+    const wrapper = document.getElementById('reviews-wrapper');
+    if (!wrapper) return;
+
+    const db = firebase.firestore();
+
+    // Fetch only reviews with status == "approved"
+    db.collection("reviews")
+      .where("status", "==", "approved")
+      .onSnapshot(async (snapshot) => {
+          let approvedFirebaseReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+          let jsonReviews = [];
+          try {
+              const res = await fetch('reviews.json');
+              if (res.ok) jsonReviews = await res.json();
+          } catch (e) {
+              console.log("JSON fallback warning:", e);
+          }
+
+          const allApproved = [...approvedFirebaseReviews, ...jsonReviews];
+
+          const countText = document.getElementById('review-count-text');
+          if (countText) {
+              countText.innerText = `BASED ON ${allApproved.length + 500}+ REVIEWS`;
+          }
+
+          if (allApproved.length === 0) {
+              wrapper.innerHTML = '<p class="text-zinc-400 text-xs font-bold uppercase py-4">No reviews available yet.</p>';
+              return;
+          }
+
+          wrapper.innerHTML = allApproved.map(r => {
+              const stars = '<i class="fa-solid fa-star"></i>'.repeat(r.rating || 5);
+              const initials = r.initials || (r.name ? r.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'R');
+
+              return `
+                  <div class="review-card bg-white border border-zinc-200/80 p-6 transition-all duration-500 hover:border-black flex flex-col justify-between min-w-[280px] md:min-w-[340px] max-w-[340px] rounded-2xl shadow-sm hover:shadow-xl group relative shrink-0">
+                      <div>
+                          <div class="flex justify-between items-center mb-4">
+                              <div class="flex text-yellow-400 text-xs gap-1">${stars}</div>
+                              <span class="text-[9px] font-black text-zinc-300 uppercase tracking-widest">${r.date || 'Verified Member'}</span>
+                          </div>
+                          <p class="text-zinc-700 text-xs md:text-sm leading-relaxed font-medium mb-6 italic line-clamp-4">"${r.text}"</p>
+                      </div>
+                      <div class="flex items-center gap-3 border-t border-zinc-100 pt-4">
+                          <div class="w-10 h-10 ${r.color || 'bg-black'} text-white flex items-center justify-center font-black text-xs rounded-full shadow-inner tracking-wider">
+                              ${initials}
+                          </div>
+                          <div>
+                              <h4 class="text-xs font-black uppercase text-black tracking-wider">${r.name}</h4>
+                              <div class="flex items-center gap-1 text-[9px] text-green-600 font-bold uppercase mt-0.5">
+                                  <i class="fa-solid fa-circle-check"></i> Verified Community Member
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              `;
+          }).join('');
+      });
+}
+
 
 // =================================================================
 // 6. EVENT BINDINGS ON LOAD
