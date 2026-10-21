@@ -230,7 +230,7 @@ async function saveProduct(e) {
         submitBtn.innerText = 'Save Product & Publish';
     }
 }
-
+// ১. প্রোডাক্ট কার্ডে এডিট ও ডিলিট বাটন রেন্ডার (admin.js - renderProductsTab)
 function renderProductsTab() {
     const grid = document.getElementById('products-grid');
     if (allProducts.length === 0) {
@@ -252,18 +252,48 @@ function renderProductsTab() {
                     </span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    <!-- EDIT BUTTON -->
+                    <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-1.5" title="Edit Product">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <!-- DELETE BUTTON -->
+                    <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5" title="Delete Product">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-async function deleteProduct(id) {
-    if (confirm("সত্যিই ডিলিট করতে চান?")) {
-        await db.collection("products").doc(id).delete();
+// ২. প্রোডাক্ট এডিট করার ফাংশন (admin.js-এর নিচে যুক্ত করুন)
+function editProduct(id) {
+    const product = allProducts.find(p => p.id === id);
+    if (!product) return;
+
+    document.getElementById('product-edit-id').value = product.id;
+    document.getElementById('product-name').value = product.name || '';
+    document.getElementById('product-price').value = product.price || '';
+    document.getElementById('product-original-price').value = product.originalPrice || '';
+    document.getElementById('product-category').value = product.category || 'drop-shoulder';
+    document.getElementById('product-description').value = product.description || '';
+    document.getElementById('product-colors').value = Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors || '');
+    document.getElementById('product-alt-text').value = product.altText || '';
+    document.getElementById('product-stock').value = product.isOutOfStock ? "0" : "1";
+
+    // সাইজ সমূহের চেকবক্স পপুলেট করা
+    if (Array.isArray(product.sizes)) {
+        ['S', 'M', 'L', 'XL', 'XXL'].forEach(size => {
+            const sizeObj = product.sizes.find(s => s.name === size);
+            const chk = document.getElementById(`size-${size}`);
+            if (chk) chk.checked = sizeObj ? sizeObj.available : false;
+        });
     }
+
+    document.getElementById('product-form-title').innerText = 'Edit Product Details';
+    document.getElementById('product-modal').classList.add('active');
 }
+
 
 // 8. ORDERS & COURIER LOGISTICS
 function renderOrdersTab() {
