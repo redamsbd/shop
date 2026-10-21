@@ -1,450 +1,475 @@
-// ============================================
-// COMPLETE ADMIN SYSTEM - FULL PRODUCT MANAGEMENT
-// সম্পূর্ণ প্রোডাক্ট ম্যানেজমেন্ট সিস্টেম
-// ============================================
+// 1. FIREBASE INITIALIZATION
+const firebaseConfig = {
+    apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
+    authDomain: "redams-61f66.firebaseapp.com",
+    projectId: "redams-61f66",
+    storageBucket: "redams-61f66.firebasestorage.app",
+    messagingSenderId: "852974979706",
+    appId: "1:852974979706:web:0f332bafadc653565fc9c3",
+    measurementId: "G-59WMZ7870M"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
+// 2. CLOUDINARY CONFIG
+const CLOUD_NAME = "redamsbd";
+const UPLOAD_PRESET = "redams_preset";
+
+// Global State Arrays
 let allProducts = [];
-let adminOrders = [];
-let adminPromos = [];
-let editingProductIndex = -1;
+let allOrders = [];
+let allPromos = [];
+let allCourierShipments = [];
 
-const ADMIN_USERNAME = "redamsbd";
-const ADMIN_PASSWORD = "redamsbd16";
+// Mobile Drawer Toggle
+function toggleMobileSidebar() {
+    document.getElementById('sidebar-drawer').classList.toggle('-translate-x-full');
+    document.getElementById('sidebar-overlay').classList.toggle('hidden');
+}
 
-// ===== LOGIN SYSTEM =====
+// 3. AUTHENTICATION & PASSWORD ENGINE
 function adminLogin() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
+    const u = document.getElementById('login-username').value.trim();
+    const p = document.getElementById('login-password').value.trim();
+    
+    const storedUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
+    const storedPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    if (u === storedUser && p === storedPass) {
         document.getElementById('login-modal').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
-        localStorage.setItem('adminLoggedIn', 'true');
-        loadAdminData();
-        switchTab('dashboard');
+        initDashboard();
     } else {
-        alert('❌ Invalid credentials!\nUsername: redamsbd\nPassword: redamsbd16');
+        Swal.fire({ icon: 'error', title: 'Login Failed', text: 'ভুল ইউজারনেম বা পাসওয়ার্ড!' });
     }
+}
+
+function openChangePasswordModal() {
+    document.getElementById('old-pass').value = '';
+    document.getElementById('new-pass').value = '';
+    document.getElementById('confirm-pass').value = '';
+    document.getElementById('change-password-modal').classList.add('active');
+}
+
+function saveNewPassword() {
+    const oldP = document.getElementById('old-pass').value.trim();
+    const newP = document.getElementById('new-pass').value.trim();
+    const confirmP = document.getElementById('confirm-pass').value.trim();
+    const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
+
+    if (oldP !== currentPass) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'বর্তমান পাসওয়ার্ডটি সঠিক নয়!' });
+        return;
+    }
+    if (newP.length < 6) {
+        Swal.fire({ icon: 'warning', title: 'Weak Password', text: 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।' });
+        return;
+    }
+    if (newP !== confirmP) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'নতুন পাসওয়ার্ড দুটি মিলছে না!' });
+        return;
+    }
+
+    localStorage.setItem('redams_admin_pass', newP);
+    Swal.fire({ icon: 'success', title: 'Success!', text: 'পাসওয়ার্ড পরিবর্তিত হয়েছে।' });
+    closeModal('change-password-modal');
 }
 
 function adminLogout() {
-    if (confirm('Logout?')) {
-        document.getElementById('login-modal').classList.remove('hidden');
-        document.getElementById('dashboard').classList.add('hidden');
-        localStorage.removeItem('adminLoggedIn');
-    }
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('login-modal').classList.remove('hidden');
 }
 
-// ===== LOAD ALL DATA =====
-function loadAdminData() {
-    const savedProducts = localStorage.getItem('adminProducts');
-    if (savedProducts) {
-        allProducts = JSON.parse(savedProducts);
-    } else {
-        fetch('products.json')
-            .then(r => r.json())
-            .then(data => {
-                allProducts = data;
-                localStorage.setItem('adminProducts', JSON.stringify(allProducts));
-                updateAllTabs();
-            })
-            .catch(err => console.error('Error loading products:', err));
-        return;
-    }
-
-    const saved = localStorage.getItem('adminOrders');
-    adminOrders = saved ? JSON.parse(saved) : [];
-
-    const promos = localStorage.getItem('adminPromos');
-    adminPromos = promos ? JSON.parse(promos) : [
-        { code: 'FREESHIP', type: 'delivery', value: 0, applicableCategories: [], uses: 0, maxUses: 0 },
-        { code: 'REDAMS10', type: 'percent', value: 10, applicableCategories: [], uses: 0, maxUses: 0 },
-        { code: 'SAVE50', type: 'fixed', value: 50, applicableCategories: [], uses: 0, maxUses: 0 },
-        { code: 'DROPDROP15', type: 'percent', value: 15, applicableCategories: ['drop-shoulder'], uses: 0, maxUses: 0 }
-    ];
+// 4. NAVIGATION TAB SWITCHING
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('sidebar-active'));
     
-    updateAllTabs();
-}
+    document.getElementById(`${tabId}-content`).classList.remove('hidden');
+    const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+    if (activeBtn) activeBtn.classList.add('sidebar-active');
 
-function updateAllTabs() {
-    updateInventory();
-    updateProducts();
-    updateOrders();
-    updatePromos();
-    updateStats();
-}
-
-// ===== TAB SWITCHING =====
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-    document.getElementById(tab + '-content').classList.remove('hidden');
-    
-    document.querySelectorAll('.sidebar-btn').forEach(b => b.style.background = '');
-    event.target.style.background = '#DC2626';
-    
-    if (tab === 'dashboard') updateStats();
-}
-
-// ===== DASHBOARD STATS =====
-function updateStats() {
-    const total = adminOrders.reduce((s, o) => s + parseInt(o.amount || 0), 0);
-    const pending = adminOrders.filter(o => o.status === 'Pending').length;
-    const outofstock = allProducts.filter(p => p.isOutOfStock).length;
-
-    document.getElementById('stat-revenue').innerText = total.toLocaleString();
-    document.getElementById('stat-orders').innerText = adminOrders.length;
-    document.getElementById('stat-pending').innerText = pending;
-    document.getElementById('stat-outofstock').innerText = outofstock;
-
-    const topDiv = document.getElementById('top-products');
-    if (topDiv) {
-        topDiv.innerHTML = allProducts.slice(0, 5).map((p, i) => `
-            <div class="flex justify-between p-3 bg-gray-50 rounded">
-                <p class="font-bold text-sm">${i+1}. ${p.name.substring(0, 20)}</p>
-                <p class="text-red-600 font-black">৳${p.price}</p>
-            </div>
-        `).join('');
-    }
-
-    const ctx = document.getElementById('salesChart');
-    if (ctx && window.Chart) {
-        const data = new Array(30).fill(0);
-        adminOrders.forEach(o => {
-            const day = new Date(o.date).getDate();
-            if (day <= 30) data[day-1] += parseInt(o.amount || 0);
-        });
-
-        if (window.salesChart) window.salesChart.destroy();
-        window.salesChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({length: 30}, (_, i) => i+1),
-                datasets: [{
-                    label: 'Revenue',
-                    data: data,
-                    borderColor: '#DC2626',
-                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
-        });
+    if (window.innerWidth < 768) {
+        document.getElementById('sidebar-drawer').classList.add('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.add('hidden');
     }
 }
 
-// ===== PRODUCTS MANAGEMENT =====
-function updateProducts() {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
-
-    grid.innerHTML = allProducts.map((p, i) => `
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <img src="${p.images?.[0] || 'images/placeholder.jpg'}" class="w-full h-48 object-cover">
-            <div class="p-4">
-                <p class="font-bold text-sm line-clamp-2">${p.name}</p>
-                <p class="text-xs text-gray-500 mb-2">${p.category}</p>
-                <p class="text-lg font-black text-red-600 mt-2">৳${p.price}</p>
-                <p class="text-xs text-gray-500 mt-1">${p.isOutOfStock ? '❌ Out of Stock' : '✓ Available'}</p>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="openEditProductModal(${i})" class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-700">
-                        <i class="fa-solid fa-pen"></i> Edit
-                    </button>
-                    <button onclick="deleteProduct(${i})" class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-700">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
 }
 
 function openAddProductModal() {
-    editingProductIndex = -1;
+    document.getElementById('product-form').reset();
+    document.getElementById('product-edit-id').value = '';
     document.getElementById('product-form-title').innerText = 'Add New Product';
-    document.getElementById('product-name').value = '';
-    document.getElementById('product-price').value = '';
-    document.getElementById('product-original-price').value = '';
-    document.getElementById('product-category').value = '';
-    document.getElementById('product-description').value = '';
-    document.getElementById('product-colors').value = '';
-    document.getElementById('product-sizes').value = '';
-    document.getElementById('product-images').value = '';
-    document.getElementById('product-stock').value = '1';
-    document.getElementById('product-modal').classList.remove('hidden');
-    document.getElementById('product-modal').classList.add('flex');
+    document.getElementById('product-modal').classList.add('active');
 }
 
-function openEditProductModal(index) {
-    editingProductIndex = index;
-    const product = allProducts[index];
-    document.getElementById('product-form-title').innerText = 'Edit Product';
-    document.getElementById('product-name').value = product.name;
-    document.getElementById('product-price').value = product.price;
-    document.getElementById('product-original-price').value = product.originalPrice || product.price;
-    document.getElementById('product-category').value = product.category;
-    document.getElementById('product-description').value = product.description || '';
-    document.getElementById('product-colors').value = (product.colors || []).join(', ');
-    document.getElementById('product-sizes').value = (product.sizes || []).map(s => typeof s === 'string' ? s : s.name).join(', ');
-    document.getElementById('product-images').value = (product.images || []).join('\n');
-    document.getElementById('product-stock').value = product.isOutOfStock ? '0' : '1';
-    document.getElementById('product-modal').classList.remove('hidden');
-    document.getElementById('product-modal').classList.add('flex');
+function openAddOrderModal() { document.getElementById('order-modal').classList.add('active'); }
+function openAddPromoModal() { document.getElementById('promo-modal').classList.add('active'); }
+
+// 5. CLOUDINARY DIRECT FILE UPLOADER ENGINE
+async function uploadFileToCloudinary(fileInput) {
+    if (!fileInput || !fileInput.files[0]) return null;
+    const file = fileInput.files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ? data.error.message : "Cloudinary upload failed");
+    return data.secure_url;
 }
 
-function saveProduct() {
-    const name = document.getElementById('product-name').value.trim();
-    const price = parseInt(document.getElementById('product-price').value);
-    const originalPrice = parseInt(document.getElementById('product-original-price').value);
-    const category = document.getElementById('product-category').value;
-    const description = document.getElementById('product-description').value.trim();
-    const colors = document.getElementById('product-colors').value.split(',').map(c => c.trim()).filter(c => c);
-    const sizesList = document.getElementById('product-sizes').value.split(',').map(s => s.trim()).filter(s => s);
-    const images = document.getElementById('product-images').value.split('\n').map(i => i.trim()).filter(i => i);
-    const stock = parseInt(document.getElementById('product-stock').value);
+// 6. REALTIME LISTENERS & DASHBOARD INIT
+function initDashboard() {
+    switchTab('dashboard');
 
-    if (!name || !price || !category) {
-        alert('Please fill Product Name, Price, and Category!');
-        return;
-    }
-
-    const sizes = sizesList.map(s => ({ name: s, available: true }));
-    const productData = {
-        id: editingProductIndex === -1 ? allProducts.length + 1 : allProducts[editingProductIndex].id,
-        name,
-        price,
-        originalPrice: originalPrice || price,
-        category,
-        description: description || "Premium quality product",
-        isOutOfStock: stock === 0,
-        colors,
-        sizes,
-        images: images.length > 0 ? images : ['images/placeholder.jpg']
-    };
-
-    if (editingProductIndex === -1) {
-        allProducts.push(productData);
-        alert('✓ Product added successfully!');
-    } else {
-        allProducts[editingProductIndex] = productData;
-        alert('✓ Product updated successfully!');
-    }
-
-    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
-    updateAllTabs();
-    closeModal('product-modal');
-}
-
-function deleteProduct(index) {
-    if (confirm('Delete this product? This action cannot be undone.')) {
-        allProducts.splice(index, 1);
-        localStorage.setItem('adminProducts', JSON.stringify(allProducts));
-        updateAllTabs();
-        alert('✓ Product deleted!');
-    }
-}
-
-// ===== INVENTORY MANAGEMENT =====
-function updateInventory() {
-    const tbody = document.getElementById('inventory-table');
-    if (!tbody) return;
-
-    tbody.innerHTML = allProducts.map((p, i) => `
-        <tr>
-            <td class="px-6 py-4 font-bold text-sm">${p.name}</td>
-            <td class="px-6 py-4 text-sm">${p.category}</td>
-            <td class="px-6 py-4"><span class="text-xs font-bold px-3 py-1 rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out' : 'In Stock'}</span></td>
-            <td class="px-6 py-4"><button onclick="openEditProductModal(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-pen"></i></button></td>
-        </tr>
-    `).join('');
-}
-
-// ===== ORDERS MANAGEMENT =====
-function updateOrders() {
-    const tbody = document.getElementById('orders-table');
-    if (!tbody) return;
-
-    if (adminOrders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8">No orders</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = adminOrders.map((o, i) => `
-        <tr>
-            <td class="px-6 py-4 font-bold">#${i+1}</td>
-            <td class="px-6 py-4"><p class="font-bold">${o.customerName}</p><p class="text-xs text-gray-500">${o.customerPhone}</p></td>
-            <td class="px-6 py-4 font-bold">৳${o.amount}</td>
-            <td class="px-6 py-4">
-                <select onchange="updateOrderStatus(${i}, this.value)" class="text-xs font-bold px-2 py-1 rounded border-2 ${
-                    o.status === 'Delivered' ? 'bg-green-100 border-green-600' :
-                    o.status === 'Shipped' ? 'bg-blue-100 border-blue-600' :
-                    o.status === 'Confirmed' ? 'bg-yellow-100 border-yellow-600' :
-                    'bg-red-100 border-red-600'
-                }">
-                    <option ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                    <option ${o.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                    <option ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                    <option ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                </select>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500">${o.date}</td>
-            <td class="px-6 py-4"><button onclick="deleteOrder(${i})" class="text-red-600 font-bold"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
-    `).join('');
-}
-
-function updateOrderStatus(i, status) {
-    adminOrders[i].status = status;
-    localStorage.setItem('adminOrders', JSON.stringify(adminOrders));
-    updateOrders();
-    updateStats();
-}
-
-function deleteOrder(i) {
-    if (confirm('Delete this order?')) {
-        adminOrders.splice(i, 1);
-        localStorage.setItem('adminOrders', JSON.stringify(adminOrders));
-        updateOrders();
+    db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProductsTab();
+        renderInventoryTab();
         updateStats();
+    });
+
+    db.collection("orders").onSnapshot(snapshot => {
+        allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderOrdersTab();
+        updateStats();
+    });
+
+    db.collection("promos").onSnapshot(snapshot => {
+        allPromos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderPromoTab();
+    });
+
+    db.collection("courier_shipments").onSnapshot(snapshot => {
+        allCourierShipments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCourierTab();
+    });
+}
+
+// 7. SAVE & PUBLISH PRODUCT (Matches REDAMS Schema)
+async function saveProduct(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('save-product-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = '⏳ Uploading to Cloud...';
+
+    try {
+        const editId = document.getElementById('product-edit-id').value;
+        const imgFile = document.getElementById('product-img-file');
+        const chartFile = document.getElementById('size-chart-file');
+
+        let imageUrl = null;
+        let chartUrl = null;
+
+        if (imgFile.files[0]) {
+            imageUrl = await uploadFileToCloudinary(imgFile);
+        }
+        if (chartFile.files[0]) {
+            chartUrl = await uploadFileToCloudinary(chartFile);
+        }
+
+        // Construct Sizes Array
+        const sizesConfig = [
+            { name: "S", available: document.getElementById('size-S').checked },
+            { name: "M", available: document.getElementById('size-M').checked },
+            { name: "L", available: document.getElementById('size-L').checked },
+            { name: "XL", available: document.getElementById('size-XL').checked },
+            { name: "XXL", available: document.getElementById('size-XXL').checked }
+        ];
+
+        const colorsArr = document.getElementById('product-colors').value
+            ? document.getElementById('product-colors').value.split(',').map(s => s.trim()).filter(Boolean)
+            : ["Black"];
+
+        const productData = {
+            name: document.getElementById('product-name').value.trim(),
+            price: parseInt(document.getElementById('product-price').value),
+            originalPrice: document.getElementById('product-original-price').value ? parseInt(document.getElementById('product-original-price').value) : null,
+            category: document.getElementById('product-category').value,
+            description: document.getElementById('product-description').value,
+            altText: document.getElementById('product-alt-text').value || document.getElementById('product-name').value,
+            colors: colorsArr,
+            sizes: sizesConfig,
+            isOutOfStock: document.getElementById('product-stock').value === "0",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        const imagesArr = [];
+        if (imageUrl) imagesArr.push(imageUrl);
+        if (chartUrl) imagesArr.push(chartUrl);
+
+        if (imagesArr.length > 0) {
+            productData.images = imagesArr;
+        }
+
+        if (editId) {
+            await db.collection("products").doc(editId).update(productData);
+        } else {
+            productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            if (!imageUrl) productData.images = ["images/placeholder.jpg"];
+            await db.collection("products").add(productData);
+        }
+
+        Swal.fire({ icon: 'success', title: 'Product Live!', text: 'প্রোডাক্টটি ওয়েবসাইটে সেভ ও লাইভ হয়ে গেছে।' });
+        closeModal('product-modal');
+    } catch (err) {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Upload Failed', text: err.message });
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Save Product & Publish';
     }
 }
 
-function openAddOrderModal() {
-    document.getElementById('order-customer-name').value = '';
-    document.getElementById('order-customer-phone').value = '';
-    document.getElementById('order-items').value = '';
-    document.getElementById('order-amount').value = '';
-    document.getElementById('order-status').value = 'Pending';
-    document.getElementById('order-modal').classList.remove('hidden');
-    document.getElementById('order-modal').classList.add('flex');
-}
-
-function saveOrder() {
-    const name = document.getElementById('order-customer-name').value.trim();
-    const phone = document.getElementById('order-customer-phone').value.trim();
-    const items = document.getElementById('order-items').value.trim();
-    const amount = document.getElementById('order-amount').value.trim();
-    const status = document.getElementById('order-status').value;
-
-    if (!name || !phone || !amount) {
-        alert('Fill all required fields!');
+function renderProductsTab() {
+    const grid = document.getElementById('products-grid');
+    if (allProducts.length === 0) {
+        grid.innerHTML = '<p class="text-sm text-gray-500 col-span-3">কোনো প্রোডাক্ট পাওয়া যায়নি। উপর থেকে Add Product-এ চাপ দিন।</p>';
         return;
     }
 
-    adminOrders.push({
-        customerName: name,
-        customerPhone: phone,
-        items: items,
-        amount: amount,
-        status: status,
-        date: new Date().toISOString().split('T')[0]
-    });
-
-    localStorage.setItem('adminOrders', JSON.stringify(adminOrders));
-    updateOrders();
-    updateStats();
-    closeModal('order-modal');
-    alert('✓ Order added!');
+    grid.innerHTML = allProducts.map(p => {
+        const img = (p.images && p.images[0]) ? p.images[0] : 'images/placeholder.jpg';
+        return `
+            <div class="bg-white rounded-2xl p-3 md:p-4 card-shadow border border-gray-100 flex gap-3 items-center">
+                <img src="${img}" class="w-16 h-20 object-cover rounded-xl border border-gray-100 shrink-0">
+                <div class="flex-1 min-w-0">
+                    <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category}</span>
+                    <h3 class="font-black text-gray-900 text-xs md:text-sm mt-1 truncate">${p.name}</h3>
+                    <p class="text-xs font-bold text-gray-800 mt-0.5">৳${p.price} ${p.originalPrice ? `<span class="line-through text-gray-400 font-normal">৳${p.originalPrice}</span>` : ''}</p>
+                    <span class="inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}">
+                        ${p.isOutOfStock ? 'Stock Out' : 'In Stock'}
+                    </span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
-// ===== PROMO MANAGEMENT =====
-function updatePromos() {
-    const tbody = document.getElementById('promo-table');
-    if (!tbody) return;
+async function deleteProduct(id) {
+    if (confirm("সত্যিই ডিলিট করতে চান?")) {
+        await db.collection("products").doc(id).delete();
+    }
+}
 
-    tbody.innerHTML = adminPromos.map((p, i) => {
-        const categoryText = p.applicableCategories && p.applicableCategories.length > 0 
-            ? p.applicableCategories.join(', ') 
-            : 'All Products';
-        
-        return `
-        <tr>
-            <td class="px-6 py-4 font-bold text-red-600">${p.code}</td>
-            <td class="px-6 py-4 text-sm">${p.type === 'delivery' ? 'Free Delivery' : (p.type === 'percent' ? 'Percentage (%)' : 'Fixed (৳)')}</td>
-            <td class="px-6 py-4 font-bold">${p.type === 'delivery' ? 'FREE' : p.value}</td>
-            <td class="px-6 py-4 text-xs text-gray-600">${categoryText}</td>
-            <td class="px-6 py-4"><span class="text-xs text-gray-500">${p.uses}/${p.maxUses === 0 ? '∞' : p.maxUses}</span></td>
-            <td class="px-6 py-4">
-                <button onclick="deletePromo(${i})" class="text-red-600 font-bold text-sm"><i class="fa-solid fa-trash"></i></button>
+// 8. ORDERS & COURIER LOGISTICS
+function renderOrdersTab() {
+    const table = document.getElementById('orders-table');
+    if (allOrders.length === 0) {
+        table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো অর্ডার ডাটাবেজে নেই।</td></tr>';
+        return;
+    }
+
+    table.innerHTML = allOrders.map(o => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-bold text-gray-900">#${o.id.substring(0, 6)}</td>
+            <td class="px-4 py-3">
+                <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
+                <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || 'N/A'}</p>
+            </td>
+            <td class="px-4 py-3 font-black text-gray-900">${o.TOTAL_BILL || o.amount || '৳0'}</td>
+            <td class="px-4 py-3">
+                <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">${o.status || 'Pending'}</span>
+            </td>
+            <td class="px-4 py-3 flex items-center gap-2">
+                <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-truck-fast"></i> Book Courier
+                </button>
+                <button onclick="deleteOrder('${o.id}')" class="text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>
-    `}).join('');
+    `).join('');
 }
 
-function getCategories() {
-    const categories = [...new Set(allProducts.map(p => p.category))];
-    return categories;
-}
+function openCourierDispatchModal(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
 
-function openAddPromoModal() {
-    const categories = getCategories();
-    const categoryOptions = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    document.getElementById('courier-order-id').value = order.id;
+    document.getElementById('courier-cust-name').value = order.Customer_Name || order.customerName || '';
+    document.getElementById('courier-cust-phone').value = order.Customer_Phone || order.customerPhone || '';
+    document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
     
-    document.getElementById('promo-code').value = '';
-    document.getElementById('promo-type').value = 'percent';
-    document.getElementById('promo-value').value = '';
-    document.getElementById('promo-max-uses').value = '0';
-    document.getElementById('promo-categories').innerHTML = `
-        <p class="text-xs font-bold mb-2">Select categories (leave empty for all products):</p>
-        <select multiple class="w-full border rounded p-2">${categoryOptions}</select>
-    `;
-    document.getElementById('promo-modal').classList.remove('hidden');
-    document.getElementById('promo-modal').classList.add('flex');
+    let amountNum = order.TOTAL_BILL ? parseInt(order.TOTAL_BILL.replace(/[^0-9]/g, '')) : (order.amount || 0);
+    document.getElementById('courier-cod-amount').value = amountNum;
+
+    document.getElementById('courier-modal').classList.add('active');
 }
 
-function savePromo() {
-    const code = document.getElementById('promo-code').value.toUpperCase().trim();
-    const type = document.getElementById('promo-type').value;
-    const value = parseInt(document.getElementById('promo-value').value);
-    const maxUses = parseInt(document.getElementById('promo-max-uses').value) || 0;
-    
-    // Get selected categories
-    const selects = document.getElementById('promo-categories').querySelectorAll('option:checked');
-    let applicableCategories = [];
-    selects.forEach(opt => {
-        if (opt.value) applicableCategories.push(opt.value);
+async function dispatchCourierParcel(e) {
+    e.preventDefault();
+    const btn = document.getElementById('dispatch-btn');
+    btn.disabled = true;
+
+    const orderId = document.getElementById('courier-order-id').value;
+    const provider = document.getElementById('courier-provider').value;
+    const name = document.getElementById('courier-cust-name').value;
+    const phone = document.getElementById('courier-cust-phone').value;
+    const address = document.getElementById('courier-cust-address').value;
+    const cod = document.getElementById('courier-cod-amount').value;
+
+    const trackingCode = provider.toUpperCase() + "-" + Math.floor(100000 + Math.random() * 900000);
+
+    try {
+        await db.collection("courier_shipments").add({
+            orderId: orderId,
+            provider: provider.toUpperCase(),
+            trackingCode: trackingCode,
+            customerName: name,
+            customerPhone: phone,
+            address: address,
+            codAmount: cod,
+            status: 'In Transit',
+            bookedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await db.collection("orders").doc(orderId).update({
+            status: 'Shipped',
+            trackingCode: trackingCode
+        });
+
+        Swal.fire({ icon: 'success', title: 'Parcel Booked!', text: `Tracking Code: ${trackingCode}` });
+        closeModal('courier-modal');
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Booking Failed', text: err.message });
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function renderCourierTab() {
+    const table = document.getElementById('courier-shipments-table');
+    if (allCourierShipments.length === 0) {
+        table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো পার্সেল বুকিং দেওয়া হয়নি।</td></tr>';
+        return;
+    }
+
+    table.innerHTML = allCourierShipments.map(s => `
+        <tr>
+            <td class="px-4 py-3 font-black text-purple-600">${s.trackingCode}</td>
+            <td class="px-4 py-3 font-bold text-gray-900">${s.customerName}</td>
+            <td class="px-4 py-3 uppercase text-xs font-bold text-gray-600">${s.provider}</td>
+            <td class="px-4 py-3 font-black text-gray-900">৳${s.codAmount}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full font-bold">${s.status}</span></td>
+        </tr>
+    `).join('');
+}
+
+async function deleteOrder(id) {
+    if (confirm("অর্ডারটি ডিলিট করবেন?")) {
+        await db.collection("orders").doc(id).delete();
+    }
+}
+
+// 9. INVENTORY & GRANULAR SIZE TOGGLES
+function renderInventoryTab() {
+    const table = document.getElementById('inventory-table');
+    if (allProducts.length === 0) {
+        table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">কোনো প্রোডাক্ট নেই।</td></tr>';
+        return;
+    }
+
+    table.innerHTML = allProducts.map(p => {
+        let sizesHtml = '';
+        if (Array.isArray(p.sizes)) {
+            sizesHtml = p.sizes.map(s => `
+                <button onclick="toggleSingleSize('${p.id}', '${s.name}', ${!s.available})" class="px-2 py-1 text-[10px] font-black rounded-md mr-1 mb-1 transition ${s.available ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200 line-through opacity-60'}">
+                    ${s.name}: ${s.available ? 'In' : 'Out'}
+                </button>
+            `).join('');
+        } else {
+            sizesHtml = '<span class="text-xs text-gray-400">Standard Sizes</span>';
+        }
+
+        return `
+            <tr>
+                <td class="px-4 py-3 font-bold text-gray-900">${p.name}</td>
+                <td class="px-4 py-3 text-xs font-bold uppercase text-gray-500">${p.category}</td>
+                <td class="px-4 py-3">
+                    <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="px-2.5 py-1 text-xs rounded-xl font-bold ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">
+                        ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
+                    </button>
+                </td>
+                <td class="px-4 py-3">${sizesHtml}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function toggleOverallStock(id, newStatus) {
+    await db.collection("products").doc(id).update({ isOutOfStock: newStatus });
+}
+
+async function toggleSingleSize(productId, sizeName, newAvailability) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product || !Array.isArray(product.sizes)) return;
+
+    const updatedSizes = product.sizes.map(s => {
+        if (s.name === sizeName) {
+            return { ...s, available: newAvailability };
+        }
+        return s;
     });
 
-    if (!code || !value) {
-        alert('Fill all fields!');
-        return;
-    }
+    await db.collection("products").doc(productId).update({ sizes: updatedSizes });
+}
 
-    if (adminPromos.some(p => p.code === code)) {
-        alert('Promo code already exists!');
-        return;
-    }
+// 10. PROMO CODE ENGINE
+async function savePromo() {
+    const code = document.getElementById('promo-code').value.trim().toUpperCase();
+    const type = document.getElementById('promo-type').value;
+    const val = parseInt(document.getElementById('promo-value').value) || 0;
 
-    adminPromos.push({ code, type, value, applicableCategories, uses: 0, maxUses });
-    localStorage.setItem('adminPromos', JSON.stringify(adminPromos));
-    updatePromos();
+    if (!code) return;
+
+    await db.collection("promos").doc(code).set({
+        code: code,
+        type: type,
+        value: val,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    Swal.fire({ icon: 'success', title: 'Promo Created!' });
     closeModal('promo-modal');
-    alert('✓ Promo created!');
 }
 
-function deletePromo(i) {
-    if (confirm('Delete this promo?')) {
-        adminPromos.splice(i, 1);
-        localStorage.setItem('adminPromos', JSON.stringify(adminPromos));
-        updatePromos();
+function renderPromoTab() {
+    const table = document.getElementById('promo-table');
+    if (allPromos.length === 0) {
+        table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">কোনো প্রমো কোড তৈরি করা নেই।</td></tr>';
+        return;
     }
+
+    table.innerHTML = allPromos.map(p => `
+        <tr>
+            <td class="px-4 py-3 font-black text-red-600">${p.code}</td>
+            <td class="px-4 py-3 font-bold text-xs uppercase">${p.type}</td>
+            <td class="px-4 py-3 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
+            <td class="px-4 py-3"><button onclick="deletePromo('${p.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+    `).join('');
 }
 
-// ===== MODAL CONTROL =====
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-    document.getElementById(id).classList.remove('flex');
+async function deletePromo(id) {
+    await db.collection("promos").doc(id).delete();
 }
 
-// ===== INITIALIZE =====
-window.addEventListener('load', () => {
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-        document.getElementById('login-modal').classList.remove('hidden');
-    } else {
-        document.getElementById('login-modal').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        loadAdminData();
-        switchTab('dashboard');
-    }
-});
+function updateStats() {
+    document.getElementById('stat-revenue').innerText = allOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
+    document.getElementById('stat-orders').innerText = allOrders.length;
+    document.getElementById('stat-pending').innerText = allOrders.filter(o => o.status === 'Pending').length;
+    document.getElementById('stat-outofstock').innerText = allProducts.filter(p => p.isOutOfStock).length;
+}
