@@ -532,12 +532,15 @@ async function uploadFileToCloudinary(fileInput) {
     if (!fileInput || !fileInput.files[0]) return null;
     const file = fileInput.files[0];
 
+    const cloudName = "redamsbd";          // আপনার আপডেট করা Cloud Name
+    const uploadPreset = "redams_preset"; // আপনার Unsigned Upload Preset
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "redams_preset"); // নতুন সেভ করা প্রিসেটের নাম
+    formData.append("upload_preset", uploadPreset);
 
     try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/ktpipwbp/image/upload`, {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
             method: "POST",
             body: formData
         });
@@ -545,6 +548,7 @@ async function uploadFileToCloudinary(fileInput) {
         const data = await res.json();
 
         if (!res.ok) {
+            console.error("Cloudinary Detailed Error:", data);
             throw new Error(data.error ? data.error.message : "Cloudinary upload failed");
         }
 
@@ -554,7 +558,6 @@ async function uploadFileToCloudinary(fileInput) {
         throw new Error(err.message);
     }
 }
-
 
     // 5. DASHBOARD INIT & REALTIME LISTENERS
     function initDashboard() {
