@@ -240,7 +240,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="swiper-pagination"></div>
     </section>
     
-    <!-- REDAMS Premium 4:5 Campaign Slider (AAZ Style Carousel & Fixed Links) -->
+    <!-- REDAMS Premium 4:5 Campaign Slider (AAZ Style Carousel & Self-Initializing Engine) -->
 <section class="campaign-slider-section my-12 px-4 max-w-7xl mx-auto overflow-hidden">
     <!-- Swiper Container -->
     <div class="swiper azz-campaign-swiper relative">
@@ -258,10 +258,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </a>
             </div>
 
-            <!-- Slide 2  -->
-             <div class="swiper-slide">
-              <a href="shop.html?cat=henley" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
-                    <img src="images/henley tee banner summer clearence.jpg" alt="Polo Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+            <!-- Slide 2 (Henley Collection) -->
+            <div class="swiper-slide">
+                <a href="shop.html?cat=henley" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
+                    <img src="images/henley tee banner summer clearence.jpg" alt="Henley Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
                         <span class="bg-white/80 backdrop-blur-md text-black font-black text-xs md:text-sm px-6 py-3 rounded-full uppercase tracking-widest border border-gray-200 shadow-lg flex items-center gap-2 hover:bg-black hover:text-white transition-all duration-300">
                             Explore Henley ↘
@@ -270,9 +270,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </a>
             </div>
 
-
-            <!-- Slide 3 (Couple Spider Tee - Product 2) -->
-<div class="swiper-slide">
+            <!-- Slide 3 (Couple Spider Tee) -->
+            <div class="swiper-slide">
                 <a href="#product-3" onclick="openModal(3)" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
                     <img src="images/Spider man 01.jpg" alt="Casual Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute bottom-6 left-0 right-0 flex justify-center opacity-90 group-hover:opacity-100 transition-opacity">
@@ -283,8 +282,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </a>
             </div>
             
-           
-            <!-- Slide 4 (Polo Category Page Link - Fixed) -->
+            <!-- Slide 4 (Polo Collection) -->
             <div class="swiper-slide">
                 <a href="shop.html?cat=polo-tshirt" class="block relative aspect-[4/5] w-full overflow-hidden rounded-2xl group cursor-pointer">
                     <img src="images/polo olive model.jpeg" alt="Polo Collection" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
@@ -298,9 +296,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         </div>
         
-        <!-- Navigation Arrows (REDAMS Premium Glassmorphic UI) -->
+        <!-- Navigation Arrows -->
         <div class="swiper-button-next camp-next !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 right-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
-
         <div class="swiper-button-prev camp-prev !text-black after:!text-sm bg-white/75 backdrop-blur-md border border-white/40 w-11 h-11 rounded-full shadow-md hidden md:flex items-center justify-center absolute top-1/2 -translate-y-1/2 left-5 z-10 transition-all duration-300 hover:bg-black hover:!text-white hover:border-black hover:scale-110 active:scale-95"></div>
 
         <!-- Pagination Dots Container -->
@@ -308,15 +305,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 </section>
 
+<!-- Auto-Initializing Swiper Engine Script -->
+<script>
+(function() {
+    function initCampaignSlider() {
+        if (typeof Swiper !== 'undefined') {
+            new Swiper('.azz-campaign-swiper', {
+                slidesPerView: 1.15,
+                spaceBetween: 12,
+                loop: true,
+                grabCursor: true,
+                centeredSlides: false,
+                speed: 700,
+                autoplay: {
+                    delay: 3200,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                },
+                navigation: {
+                    nextEl: '.camp-next',
+                    prevEl: '.camp-prev',
+                },
+                pagination: {
+                    el: '.camp-pagination',
+                    clickable: true
+                },
+                breakpoints: {
+                    480: { slidesPerView: 1.25, spaceBetween: 14 },
+                    640: { slidesPerView: 1.8, spaceBetween: 16 },
+                    768: { slidesPerView: 2.2, spaceBetween: 18 },
+                    1024: { slidesPerView: 3, spaceBetween: 24 }
+                }
+            });
+        } else {
+            setTimeout(initCampaignSlider, 150);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCampaignSlider);
+    } else {
+        initCampaignSlider();
+    }
+})();
+</script>
+
 <style>
-/* 1. Aspect Ratio Engine */
+/* Aspect Ratio & Styling Engine */
 .aspect-\[4\/5\] {
     aspect-ratio: 4 / 5;
 }
 
-/* 2. Premium Swiper Pagination (REDAMS Luxury Style) */
 .camp-pagination .swiper-pagination-bullet {
-    background: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
     opacity: 1 !important;
     width: 8px;
     height: 8px;
@@ -327,10 +368,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     background: #ffffff !important;
     width: 24px !important;
     border-radius: 9999px !important;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
 }
 
-/* 3. Ultra-Smooth Hardware Accelerated Zoom Effect */
 .campaign-slider-section .group {
     isolation: isolate;
 }
@@ -344,23 +384,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     transform: scale(1.06);
 }
 
-/* 4. Luxury Navigation Buttons (Hover Polish) */
 .camp-next, .camp-prev {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.camp-next:hover, .camp-prev:hover {
-    transform: translateY(-50%) scale(1.1) !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
-}
-
-/* 5. Smooth Scroll Engine */
-html {
-    scroll-behavior: smooth;
 }
 </style>
+
     
   <div class="container mx-auto px-4 py-16">
         <h2 class="text-2xl font-black text-center mb-10 uppercase tracking-widest text-gray-900">Featured Categories</h2>
