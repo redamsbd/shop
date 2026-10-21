@@ -939,17 +939,26 @@ window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
 // =================================================================
-// ULTRA-PREMIUM DYNAMIC REVIEW SYSTEM (JSON + CUSTOMER REVIEWS)
+// REDAMS ULTRA-PREMIUM CUSTOMER REVIEW ENGINE (script.js)
 // =================================================================
 
 let currentSelectedRating = 5;
-// ===== 2. Review Modal Logic =====
+
+const RATING_LABELS = {
+    1: "1.0 - Poor",
+    2: "2.0 - Fair",
+    3: "3.0 - Good",
+    4: "4.0 - Very Good",
+    5: "5.0 - Outstanding"
+};
+
+// ===== 1. Modal Control & Rating System =====
 function openReviewModal() {
     const modal = document.getElementById('review-modal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        setReviewRating(5); // Default 5 star
+        setReviewRating(5); // Default to 5 stars
     }
 }
 
@@ -964,6 +973,12 @@ function closeReviewModal() {
 function setReviewRating(stars) {
     currentSelectedRating = stars;
     const starContainer = document.getElementById('modal-star-rating');
+    const statusText = document.getElementById('rating-status-text');
+
+    if (statusText) {
+        statusText.innerText = RATING_LABELS[stars] || `${stars}.0 Stars`;
+    }
+
     if (!starContainer) return;
 
     const starIcons = starContainer.querySelectorAll('i');
@@ -977,11 +992,8 @@ function setReviewRating(stars) {
         }
     });
 }
-// =================================================================
-// FIREBASE REALTIME CUSTOMER REVIEW SYSTEM
-// =================================================================
 
-// 1. Submit Customer Review directly to Firebase Firestore
+// ===== 2. Firebase Customer Review Submission =====
 function submitCustomerReview(e) {
     e.preventDefault();
 
@@ -991,7 +1003,12 @@ function submitCustomerReview(e) {
     const submitBtn = document.getElementById('submit-review-btn');
 
     if (!name || !email || !text) {
-        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Please fill in all required fields.' });
+        Swal.fire({
+            icon: 'warning',
+            title: 'ATTENTION',
+            text: 'Please complete all required fields.',
+            confirmButtonColor: '#000'
+        });
         return;
     }
 
@@ -1014,19 +1031,27 @@ function submitCustomerReview(e) {
         closeReviewModal();
         Swal.fire({
             icon: 'success',
-            title: 'REVIEW SUBMITTED!',
-            text: 'Thank you! Your review has been submitted and is pending admin approval.',
+            title: 'THANK YOU!',
+            text: 'Your review has been submitted successfully and is currently pending admin verification.',
             confirmButtonColor: '#000'
         });
 
-        // Reset form
-        document.getElementById('review-user-name').value = '';
-        document.getElementById('review-user-email').value = '';
-        document.getElementById('review-user-text').value = '';
+        // Reset input fields
+        const nameInput = document.getElementById('review-user-name');
+        const emailInput = document.getElementById('review-user-email');
+        const textInput = document.getElementById('review-user-text');
+        if (nameInput) nameInput.value = '';
+        if (emailInput) emailInput.value = '';
+        if (textInput) textInput.value = '';
     })
     .catch((error) => {
         console.error("Error submitting review:", error);
-        Swal.fire({ icon: 'error', title: 'Submission Failed', text: 'Something went wrong. Please try again.' });
+        Swal.fire({
+            icon: 'error',
+            title: 'SUBMISSION FAILED',
+            text: 'Something went wrong while submitting your review. Please try again.',
+            confirmButtonColor: '#000'
+        });
     })
     .finally(() => {
         if (submitBtn) {
@@ -1036,14 +1061,14 @@ function submitCustomerReview(e) {
     });
 }
 
-// 2. Realtime Loader for ONLY Approved Reviews on website
+// ===== 3. Realtime Loader for Approved Reviews =====
 function loadReviews() {
     const wrapper = document.getElementById('reviews-wrapper');
     if (!wrapper) return;
 
     const db = firebase.firestore();
 
-    // Fetch only reviews with status == "approved"
+    // Realtime query for reviews with status "approved"
     db.collection("reviews")
       .where("status", "==", "approved")
       .onSnapshot(async (snapshot) => {
@@ -1054,7 +1079,7 @@ function loadReviews() {
               const res = await fetch('reviews.json');
               if (res.ok) jsonReviews = await res.json();
           } catch (e) {
-              console.log("JSON fallback warning:", e);
+              console.log("JSON fallback notice:", e);
           }
 
           const allApproved = [...approvedFirebaseReviews, ...jsonReviews];
@@ -1065,7 +1090,7 @@ function loadReviews() {
           }
 
           if (allApproved.length === 0) {
-              wrapper.innerHTML = '<p class="text-zinc-400 text-xs font-bold uppercase py-4">No reviews available yet.</p>';
+              wrapper.innerHTML = '<p class="text-zinc-400 text-xs font-bold uppercase py-4">No community reviews available yet.</p>';
               return;
           }
 
