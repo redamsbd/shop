@@ -1,8 +1,8 @@
 // =================================================================
-// REDAMS Master Script Engine (script.js) - Fully Fixed & Synchronized
+// REDAMS Master Script Engine (script.js) - Full Checkout & Payment Fix
 // =================================================================
 
-// ===== গ্লোবাল ভেরিয়েবল =====
+// ===== Global Variables =====
 window.allProducts = [];
 window.localJsonProducts = [];
 window.firebaseProducts = [];
@@ -17,11 +17,11 @@ let selectedColorP2 = '';
 let modalQty = 1;
 let isPaymentVerified = false;
 let activePromo = null;
-let selectedSubMethod = "";
+let selectedSubMethod = "bKash"; // Default Online Method
 
 const WHATSAPP_NUMBER = "8801894357549";
 
-// ===== প্রোমো কোড লিস্ট =====
+// ===== Promo Code List =====
 const promoList = {
     "": { type: "delivery", value: 0, applicableCategories: [] },
     "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
@@ -33,30 +33,29 @@ const promoList = {
     "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
 };
 
-// ===== লোকাল স্টোরেজে কার্ট সেভ করা =====
+// ===== Save Cart to Storage =====
 function saveCartToStorage() {
     localStorage.setItem('redams_cart', JSON.stringify(cart));
 }
 
-// ===== ইউনিভার্সাল আইডি ফাইন্ডার (String & Number ID Safe) =====
+// ===== Universal Product Finder =====
 window.findProductById = function(id) {
     if (!window.allProducts || window.allProducts.length === 0) return null;
     return window.allProducts.find(p => String(p.id) === String(id));
 };
 
-// ===== URL থেকে ক্যাটাগরি বের করা =====
+// ===== URL Category Helper =====
 function getCategoryFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get('cat');
 }
 
 // =================================================================
-// 1. MASTER HYBRID DATA SYNC ENGINE (Firebase Firestore + products.json)
+// 1. MASTER HYBRID DATA SYNC ENGINE
 // =================================================================
 window.syncAndRenderAllProducts = function() {
     const combinedMap = new Map();
 
-    // Firebase এবং JSON এর ডাটা ডুপ্লিকেট ছাড়া একসাথে মার্জ করা
     [...(window.firebaseProducts || []), ...(window.localJsonProducts || []), ...(window.allProducts || [])].forEach(item => {
         if (item && item.id && !combinedMap.has(String(item.id))) {
             combinedMap.set(String(item.id), item);
@@ -80,7 +79,6 @@ window.syncAndRenderAllProducts = function() {
     }
 };
 
-// ===== ক্যাটাগরি ফিল্টারিং ফাংশন =====
 function filterCategory(catName) {
     if (!catName || catName === 'all') {
         displayProducts(window.allProducts, true);
@@ -99,7 +97,6 @@ function filterCategory(catName) {
     }
 }
 
-// ===== প্রোডাক্ট লোড করা =====
 function loadProducts() {
     fetch('products.json')
         .then(res => {
@@ -117,11 +114,10 @@ function loadProducts() {
         });
 }
 
-// ===== মোবাইল মেনু টগল =====
+// ===== Mobile Menu Toggle =====
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('menu-overlay');
-
     if (!menu || !overlay) return;
 
     if (menu.classList.contains('-translate-x-full')) {
@@ -135,7 +131,7 @@ function toggleMobileMenu() {
     }
 }
 
-// ===== কালার এবং সাইজ সিলেকশন ফাংশন =====
+// ===== Feature Selection Helper =====
 function selectFeature(type, val, el) {
     const buttons = el.parentElement.getElementsByTagName('button');
     for (let btn of buttons) {
@@ -153,7 +149,6 @@ function selectFeature(type, val, el) {
     else if (type === 'color-p2') selectedColorP2 = val;
 }
 
-// ===== কোয়ান্টিটি আপডেট =====
 function updateQty(val) {
     modalQty = Math.max(1, modalQty + val);
     const qtyElement = document.getElementById('modal-qty');
@@ -161,7 +156,7 @@ function updateQty(val) {
 }
 
 // =================================================================
-// 2. 3D CURVED RACK NEW ARRIVALS RENDER FUNCTION
+// 2. 3D CURVED RACK NEW ARRIVALS
 // =================================================================
 let hangerSwiperInstance = null;
 
@@ -234,17 +229,8 @@ function renderNewArrivals(products) {
             slidesPerView: 'auto',
             loop: newItems.length > 3,
             speed: 500,
-            coverflowEffect: {
-                rotate: 0,
-                stretch: 12,
-                depth: 140,
-                modifier: 1,
-                slideShadows: false
-            },
-            navigation: {
-                nextEl: '.new-hanger-next',
-                prevEl: '.new-hanger-prev',
-            },
+            coverflowEffect: { rotate: 0, stretch: 12, depth: 140, modifier: 1, slideShadows: false },
+            navigation: { nextEl: '.new-hanger-next', prevEl: '.new-hanger-prev' },
             on: {
                 init: function () { updateHangerCardInfo(this.realIndex); },
                 slideChange: function () { updateHangerCardInfo(this.realIndex); },
@@ -254,11 +240,8 @@ function renderNewArrivals(products) {
                         const absProgress = Math.abs(progress);
                         const translateY = - Math.pow(absProgress, 1.8) * 11; 
                         const rotateZ = progress * -3.5;
-
                         const cardItem = slide.querySelector('.hanger-card-item');
-                        if (cardItem) {
-                            cardItem.style.transform = `translate3d(0, ${translateY}px, 0) rotate(${rotateZ}deg)`;
-                        }
+                        if (cardItem) cardItem.style.transform = `translate3d(0, ${translateY}px, 0) rotate(${rotateZ}deg)`;
                     });
                 }
             }
@@ -324,7 +307,7 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. QUICK VIEW MODAL (Couple Variant & Size Chart Included)
+// 4. QUICK VIEW MODAL
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -334,7 +317,7 @@ function openModal(id) {
         Swal.fire({
             icon: 'warning',
             title: 'Out of Stock!',
-            text: 'This product is currently out of stock. Please check back later.',
+            text: 'This product is currently out of stock.',
             confirmButtonColor: '#000'
         });
         return;
@@ -418,7 +401,7 @@ function openModal(id) {
 
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images)) {
-        imagesHTML = p.images.map((img, index) => `
+        imagesHTML = p.images.map((img) => `
             <img src="${img}" onclick="document.getElementById('main-view').src='${img}'" 
                  class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition">
         `).join('');
@@ -472,7 +455,7 @@ function openModal(id) {
     }
 }
 
-// ===== কার্টে যোগ করা =====
+// ===== Add To Cart =====
 function addToCart(id) {
     const p = window.findProductById(id);
     if (!p) return;
@@ -514,49 +497,331 @@ function addToCart(id) {
 
 window.addToCartFromModal = addToCart;
 
-// ===== প্রোমো কোড প্রয়োগ =====
-function applyPromoCode() {
-    const input = document.getElementById('promo-input');
-    const msg = document.getElementById('promo-msg');
-    if (!input) return;
+// =================================================================
+// 5. PAYMENT & CHECKOUT UI CONTROLLER
+// =================================================================
+function updatePaymentUI(method) {
+    const onlineSubOptions = document.getElementById('online-sub-options');
+    const instructionBox = document.getElementById('payment-instruction');
+    const trnxInputWrapper = document.getElementById('trnx-wrapper') || document.getElementById('trnx-container');
+    const trnxInput = document.getElementById('trnx-id');
 
-    const code = input.value.toUpperCase().trim();
-
-    if (promoList[code]) {
-        const promo = promoList[code];
-        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
-            const isApplicable = cart.some(item => promo.applicableCategories.includes(item.category));
-            if (!isApplicable) {
-                activePromo = null;
-                msg.innerText = `✗ এই কোড শুধু ${promo.applicableCategories.join(', ')} এর জন্য কাজ করে`;
-                msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
-                input.value = '';
-                return;
-            }
-        }
-        activePromo = code;
-        msg.innerText = `✓ Promo "${code}" Applied!`;
-        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-green-600 block";
-        input.value = '';
+    if (method === 'COD') {
+        if (onlineSubOptions) onlineSubOptions.classList.add('hidden');
+        if (instructionBox) instructionBox.classList.add('hidden');
+        if (trnxInputWrapper) trnxInputWrapper.classList.add('hidden');
+        if (trnxInput) trnxInput.value = '';
+        selectedSubMethod = "";
     } else {
-        activePromo = null;
-        msg.innerText = "✗ Invalid Promo Code";
-        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
+        // ONLINE PAYMENT Selected
+        if (onlineSubOptions) onlineSubOptions.classList.remove('hidden');
+        if (instructionBox) instructionBox.classList.remove('hidden');
+        if (trnxInputWrapper) trnxInputWrapper.classList.remove('hidden');
+        setOnlineMethod(selectedSubMethod || 'bKash');
     }
 
-    updateCartUI();
+    validateOrder();
 }
 
-// ===== কার্ট UI আপডেট =====
+function setOnlineMethod(method) {
+    selectedSubMethod = method;
+    const instructionBox = document.getElementById('payment-instruction');
+    const methodHeader = document.getElementById('method-header');
+    const methodName = document.getElementById('method-name');
+    const displayNumber = document.getElementById('display-number');
+    const instructionContent = document.getElementById('instruction-content');
+
+    const bkashBtn = document.getElementById('bkash-btn');
+    const nagadBtn = document.getElementById('nagad-btn');
+
+    if (bkashBtn && nagadBtn) {
+        if (method === 'bKash') {
+            bkashBtn.className = "px-4 py-2 text-xs font-black rounded-xl bg-[#e2136e] text-white transition shadow";
+            nagadBtn.className = "px-4 py-2 text-xs font-bold rounded-xl bg-gray-100 text-gray-700 transition hover:bg-gray-200";
+        } else {
+            nagadBtn.className = "px-4 py-2 text-xs font-black rounded-xl bg-[#f7941d] text-white transition shadow";
+            bkashBtn.className = "px-4 py-2 text-xs font-bold rounded-xl bg-gray-100 text-gray-700 transition hover:bg-gray-200";
+        }
+    }
+
+    if (instructionBox) {
+        instructionBox.classList.remove('hidden');
+        instructionBox.style.display = 'flex';
+    }
+
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+    const areaCharge = deliveryRadio ? deliveryRadio.value : "80";
+    const advanceAmount = totalQty >= 3 ? "100" : areaCharge;
+
+    if (method === 'bKash') {
+        if (methodName) methodName.innerText = "Payment with bKash";
+        if (methodHeader) methodHeader.style.backgroundColor = "#e2136e";
+        if (displayNumber) displayNumber.innerText = "01740550559";
+        if (instructionContent) {
+            instructionContent.innerHTML = `
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠান (Personal)</p>
+                <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                    অগ্রিম <span class="text-[#e2136e]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+                </p>`;
+        }
+    } else if (method === 'Nagad') {
+        if (methodName) methodName.innerText = "Payment with Nagad";
+        if (methodHeader) methodHeader.style.backgroundColor = "#f7941d";
+        if (displayNumber) displayNumber.innerText = "01894357549";
+        if (instructionContent) {
+            instructionContent.innerHTML = `
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠান (Personal)</p>
+                <p class="text-[11px] font-bold text-black leading-tight mt-1">
+                    অগ্রিম <span class="text-[#f7941d]">৳${advanceAmount}</span> Send Money করে TRXID দিন।
+                </p>`;
+        }
+    }
+
+    validateOrder();
+}
+
+// ===== Order Validation =====
+function validateOrder() {
+    const nameInput = document.getElementById('final-name');
+    const phoneInput = document.getElementById('final-phone');
+    const addressInput = document.getElementById('final-address');
+    const trnxInput = document.getElementById('trnx-id');
+
+    const confirmBtn = document.getElementById('confirm-order-btn');
+    const whatsappBtn = document.getElementById('whatsapp-order-btn');
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const address = addressInput ? addressInput.value.trim() : "";
+    const trnxId = trnxInput ? trnxInput.value.trim() : "";
+
+    const selectedMethodRadio = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethodRadio ? selectedMethodRadio.value : "COD";
+
+    let isInfoValid = name !== "" && phone.length >= 11 && address !== "" && cart.length > 0;
+    let isPaymentValid = false;
+
+    if (paymentMethod === 'COD') {
+        isPaymentValid = true;
+    } else {
+        // Online Payment requires TrxID length >= 8
+        isPaymentValid = trnxId.length >= 8;
+    }
+
+    const isValid = isInfoValid && isPaymentValid;
+
+    // 1. Confirm Order Button State
+    if (confirmBtn) {
+        if (isValid) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.remove('opacity-50', 'bg-zinc-400', 'cursor-not-allowed', 'pointer-events-none');
+            confirmBtn.classList.add('!bg-black', 'hover:!bg-zinc-800');
+            confirmBtn.style.opacity = "1";
+            confirmBtn.style.cursor = "pointer";
+        } else {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('opacity-50', 'bg-zinc-400', 'cursor-not-allowed', 'pointer-events-none');
+            confirmBtn.classList.remove('!bg-black', 'hover:!bg-zinc-800');
+            confirmBtn.style.opacity = "0.5";
+            confirmBtn.style.cursor = "not-allowed";
+        }
+    }
+
+    // 2. WhatsApp Button State
+    if (whatsappBtn) {
+        if (isValid) {
+            whatsappBtn.disabled = false;
+            whatsappBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            whatsappBtn.style.opacity = "1";
+        } else {
+            whatsappBtn.disabled = true;
+            whatsappBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            whatsappBtn.style.opacity = "0.5";
+        }
+    }
+
+    if (typeof updateCartUI === "function") {
+        updateCartUI(isValid ? (paymentMethod !== 'COD' ? "Full Paid" : "Unpaid") : "Unpaid");
+    }
+}
+
+function clearCheckoutInputs() {
+    ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+    validateOrder();
+}
+
+// ===== Email Order Confirmation =====
+function confirmOrder() {
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
+    const trnxIdInput = document.getElementById('trnx-id');
+    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
+
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+
+    const eligibleQty = cart.filter(item => item.category !== 'henley').reduce((sum, item) => sum + item.qty, 0);
+
+    if (!name || phone.length < 11 || !address || cart.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'সঠিক নাম, ১১ ডিজিটের মোবাইল নম্বর এবং ঠিকানা দিন।' });
+        return;
+    }
+
+    if (paymentMethod !== 'COD' && trnxId.length < 8) {
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID দিন।' });
+        return;
+    }
+
+    let itemsText = "";
+    let subtotal = 0;
+    cart.forEach((item) => {
+        itemsText += `${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}\n`;
+        subtotal += item.price * item.qty;
+    });
+
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+    if (eligibleQty >= 3) baseCharge = 0;
+
+    let discount = 0;
+    let promoInfo = "NONE";
+
+    if (activePromo) {
+        const promo = promoList[activePromo];
+        promoInfo = activePromo;
+        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
+            const applicableSubtotal = cart.filter(item => promo.applicableCategories.includes(item.category)).reduce((sum, item) => sum + (item.price * item.qty), 0);
+            if (promo.type === "delivery") baseCharge = 0;
+            else if (promo.type === "percent") discount = (applicableSubtotal * promo.value) / 100;
+            else if (promo.type === "fixed") discount = promo.value;
+        } else {
+            if (promo.type === "delivery") baseCharge = 0;
+            else if (promo.type === "percent") discount = (subtotal * promo.value) / 100;
+            else if (promo.type === "fixed") discount = promo.value;
+        }
+    }
+
+    const totalBill = subtotal + baseCharge - discount;
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : `ONLINE PAID (${selectedSubMethod})`;
+    let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
+
+    Swal.fire({
+        title: 'Processing Order...',
+        text: 'Please wait while we submit your order.',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    const formData = {
+        access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
+        subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
+        from_name: "REDAMS Website",
+        replyto: "anmridwanulhassan@gmail.com",
+        email: "redams.official@gmail.com",
+        
+        Customer_Name: name,
+        Customer_Phone: phone,
+        Delivery_Address: address,
+        Ordered_Items: itemsText,
+        Subtotal: `৳${subtotal}`,
+        Promo_Used: promoInfo,
+        Discount: `৳${discount.toFixed(0)}`,
+        Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
+        TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
+        Payment_Method: `${paymentMethod} (${selectedSubMethod})`,
+        Payment_Status: paymentStatus,
+        Transaction_ID: trnxId,
+        Due_Amount: `৳${finalPayable.toFixed(0)}`
+    };
+
+    fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(async (response) => {
+        let json = await response.json();
+        if (response.status == 200) {
+            cart = [];
+            localStorage.removeItem('redams_cart');
+            activePromo = null;
+            
+            clearCheckoutInputs();
+            if (typeof updateCartUI === "function") updateCartUI();
+            if (typeof toggleCart === "function") toggleCart(false);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Order Confirmed!',
+                text: 'Thank you for shopping with REDAMS. We will review your order and contact you soon!',
+                confirmButtonColor: '#000'
+            });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Submission Failed', text: 'Server error. Please try again.' });
+        }
+    })
+    .catch(error => {
+        Swal.fire({ icon: 'error', title: 'Network Error', text: 'Please check your internet connection.' });
+    });
+}
+
+// ===== WhatsApp Order =====
+function orderByWhatsApp() {
+    const name = document.getElementById('final-name')?.value.trim();
+    const phone = document.getElementById('final-phone')?.value.trim();
+    const address = document.getElementById('final-address')?.value.trim();
+    const trnxIdInput = document.getElementById('trnx-id');
+    const trnxId = trnxIdInput ? trnxIdInput.value.trim() : "N/A";
+
+    const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
+    const paymentMethod = selectedMethod ? selectedMethod.value : "COD";
+
+    if (!name || phone.length < 11 || !address || cart.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'অসম্পূর্ণ তথ্য!', text: 'নাম, ১১ ডিজিটের ফোন নম্বর এবং ঠিকানা দিন।' });
+        return;
+    }
+
+    if (paymentMethod !== 'COD' && trnxId.length < 8) {
+        Swal.fire({ icon: 'warning', title: 'TRXID প্রয়োজন!', text: 'অনলাইন পেমেন্টের জন্য সঠিক Transaction ID দিন।' });
+        return;
+    }
+
+    let itemsText = "";
+    let subtotal = 0;
+    cart.forEach((item, index) => {
+        itemsText += `${index + 1}. ${item.name} (${item.selectedSize}/${item.selectedColor}) x ${item.qty} = ৳${item.price * item.qty}\n`;
+        subtotal += item.price * item.qty;
+    });
+
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked');
+    let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+
+    let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
+    message += `👤 *Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Address: ${address}\n\n`;
+    message += `🛒 *Ordered Items:*\n${itemsText}\n`;
+    message += `💰 *Total Bill:* ৳${subtotal + baseCharge}\n`;
+    message += `💳 *Payment Method:* ${paymentMethod} (${selectedSubMethod})\n`;
+    message += `• TrxID: ${trnxId}\n\nPlease confirm my order!`;
+
+    cart = [];
+    localStorage.removeItem('redams_cart');
+    clearCheckoutInputs();
+    updateCartUI();
+    toggleCart(false);
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+// ===== Cart UI Update =====
 function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
     const freeDeliveryMsg = document.getElementById('free-delivery-msg');
-    const paymentSection = document.getElementById('payment-options-wrapper');
-
-    if (isPaidOverride !== null) {
-        isPaymentVerified = (isPaidOverride === true || isPaidOverride === "Full Paid");
-    }
 
     if (!cartContainer) return;
 
@@ -585,55 +850,18 @@ function updateCartUI(isPaidOverride = null) {
     }
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    if (deliveryOption && paymentSection) {
-        paymentSection.classList.remove('hidden');
-    }
-
     let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 90);
-    const eligibleItemCount = cart.filter(item => item.category !== 'henley').reduce((sum, item) => sum + item.qty, 0);
 
-    if (eligibleItemCount >= 3) {
-        baseDeliveryCharge = 0;
-        if (freeDeliveryMsg) {
-            freeDeliveryMsg.classList.add('text-green-600', 'opacity-100');
-            freeDeliveryMsg.innerHTML = "✓ FREE DELIVERY UNLOCKED! 🚚";
-        }
-    } else {
-        if (freeDeliveryMsg) {
-            freeDeliveryMsg.classList.remove('text-green-600', 'opacity-100');
-            freeDeliveryMsg.innerHTML = "Buy 3 or more items to get FREE DELIVERY 🚚 (Henley Excluded)";
-        }
-    }
-
-    let discount = 0;
-    if (activePromo) {
-        const promo = promoList[activePromo];
-        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
-            const applicableSubtotal = cart.filter(item => promo.applicableCategories.includes(item.category)).reduce((sum, item) => sum + (item.price * item.qty), 0);
-            if (promo.type === "delivery") baseDeliveryCharge = 0;
-            else if (promo.type === "percent") discount = (applicableSubtotal * promo.value) / 100;
-            else if (promo.type === "fixed") discount = promo.value;
-        } else {
-            if (promo.type === "delivery") baseDeliveryCharge = 0;
-            else if (promo.type === "percent") discount = (subtotal * promo.value) / 100;
-            else if (promo.type === "fixed") discount = promo.value;
-        }
-    }
-
-    let finalDeliveryCharge = isPaymentVerified ? 0 : baseDeliveryCharge;
-    let finalTotal = subtotal + finalDeliveryCharge - discount;
-
-    const deliveryDisplay = isPaymentVerified ? '<span class="text-green-600 font-black">PAID</span>' : (baseDeliveryCharge === 0 ? '<span class="text-green-600 font-black">FREE</span>' : '৳' + baseDeliveryCharge);
+    let finalTotal = subtotal + baseDeliveryCharge;
 
     if (totalElement) {
         totalElement.innerHTML = `
             <div class="space-y-1 mb-3 pt-4 border-t text-left">
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold"><span>Subtotal</span><span>৳${subtotal}</span></div>
-                ${discount > 0 ? `<div class="flex justify-between text-[10px] text-red-600 uppercase font-bold italic"><span>Promo Discount</span><span>- ৳${discount.toFixed(0)}</span></div>` : ''}
-                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery</span><span>${deliveryDisplay}</span></div>
+                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery</span><span>৳${baseDeliveryCharge}</span></div>
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
-                    <span class="text-2xl font-black ${isPaymentVerified ? 'text-green-600' : 'text-black'}">৳${finalTotal.toFixed(0)}</span>
+                    <span class="text-2xl font-black text-black">৳${finalTotal.toFixed(0)}</span>
                 </div>
             </div>`;
     }
@@ -704,46 +932,29 @@ window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
 // =================================================================
-// 5. INITIALIZATION & SWIPER BINDINGS
+// 6. EVENT BINDINGS ON LOAD
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // ইমেইল/পেমেন্ট ফিল্ড লিসেনার
+    // 1. Inputs Live Listener for Order Validation
     ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', validateOrder);
     });
 
-    // ১. জেসন ডাটা লোড
+    // 2. Payment Method Radio Change Listener
+    const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            updatePaymentUI(e.target.value);
+        });
+    });
+
+    // Initial Payment UI Check
+    const selectedRadio = document.querySelector('input[name="payment-method"]:checked');
+    if (selectedRadio) {
+        updatePaymentUI(selectedRadio.value);
+    }
+
     loadProducts();
     updateCartUI();
-
-    // ২. এডভারটাইজ ব্যানার স্লাইডার ইনিশিয়ালাইজেশন (Azzbd-Style)
-    if (typeof Swiper !== 'undefined' && document.querySelector('.azz-campaign-swiper')) {
-        new Swiper('.azz-campaign-swiper', {
-            slidesPerView: 1.15,
-            spaceBetween: 12,
-            loop: true,
-            grabCursor: true,
-            speed: 700,
-            autoplay: {
-                delay: 3500,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true
-            },
-            navigation: {
-                nextEl: '.camp-next',
-                prevEl: '.camp-prev',
-            },
-            pagination: {
-                el: '.camp-pagination',
-                clickable: true
-            },
-            breakpoints: {
-                480: { slidesPerView: 1.25, spaceBetween: 14 },
-                640: { slidesPerView: 1.8, spaceBetween: 16 },
-                768: { slidesPerView: 2.2, spaceBetween: 18 },
-                1024: { slidesPerView: 3, spaceBetween: 24 }
-            }
-        });
-    }
 });
