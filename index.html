@@ -972,12 +972,12 @@ html {
     </div>
 </div>
 </div>
- <!-- Firebase Live Engine Integration for Main Website -->
+<!-- REDAMS Hybrid Data Sync Engine (Firebase + products.json) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-    // Firebase Configuration
+    // 1. Firebase Credentials
     const firebaseConfig = {
         apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
         authDomain: "redams-61f66.firebaseapp.com",
@@ -988,35 +988,60 @@ html {
         measurementId: "G-59WMZ7870M"
     };
     
-    // Initialize Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
 
-    // Realtime Products Sync
-    db.collection("products").onSnapshot(snapshot => {
-        let liveProducts = [];
-        snapshot.forEach(doc => {
-            liveProducts.push({ id: doc.id, ...doc.data() });
-        });
+    // Data Storage Arrays
+    window.localJsonProducts = [];
+    window.firebaseProducts = [];
 
-        if (liveProducts.length > 0) {
-            window.allProducts = liveProducts;
-            window.products = liveProducts;
+    // Master Render Engine
+    function syncAndRenderAllProducts() {
+        // নতুন ফায়ারবেজ প্রডাক্ট আগে থাকবে, তারপর পুরাতন products.json এর প্রডাক্ট থাকবে
+        const allCombined = [...window.firebaseProducts, ...window.localJsonProducts];
+        
+        // গ্লোবাল ভ্যারিয়েবলে ডাটা সেট
+        window.allProducts = allCombined;
+        window.products = allCombined;
 
-            // Render 3D Curved Hanger Rack
-            if (typeof renderNewArrivals === 'function') {
-                renderNewArrivals(liveProducts);
-            }
-            
-            // Render All Catalog Grid
-            if (typeof renderProducts === 'function') {
-                renderProducts(liveProducts);
-            }
+        // A. নিউ অ্যারাইভালস ৩ডি হ্যাঙ্গারে শুধু সর্বশেষ ১০টি প্রোডাক্ট ফিল্টার
+        const newArrivalsTop10 = allCombined.slice(0, 10);
+        if (typeof renderNewArrivals === 'function') {
+            renderNewArrivals(newArrivalsTop10);
         }
+
+        // B. ক্যাটালগ গ্রিড ও ক্যাটাগরি অনুযায়ী প্রডাক্ট রেন্ডার
+        if (typeof renderProducts === 'function') {
+            renderProducts(allCombined);
+        }
+
+        // C. ক্যাটাগরি ফিল্টার ও Quick View / Add to Cart ইভেন্ট রি-অ্যাক্টিভ করা
+        if (typeof filterCategory === 'function') {
+            filterCategory('all');
+        }
+        if (typeof attachProductEvents === 'function') {
+            attachProductEvents();
+        }
+    }
+
+    // Step 1: Load Old products.json File
+    fetch('products.json')
+        .then(res => res.json())
+        .then(data => {
+            window.localJsonProducts = data || [];
+            syncAndRenderAllProducts();
+        })
+        .catch(err => console.log("JSON Load Warning:", err));
+
+    // Step 2: Realtime Listen to Firebase Firestore New Products
+    db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+        window.firebaseProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        syncAndRenderAllProducts();
     });
-</script>   
+</script>
+
 
 </body>
 </html>  
