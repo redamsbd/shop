@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Firebase SDKs (Compat Version) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -22,44 +22,59 @@
         body { font-family: 'Inter', sans-serif; }
         .sidebar-active { background-color: #dc2626 !important; color: #ffffff !important; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 50; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 60; }
         .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<!-- Login Modal -->
-<div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[100]">
+<!-- 1. LOGIN MODAL (Password Hint Removed) -->
+<div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100]">
     <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-gray-100">
         <div class="text-center mb-6">
             <h1 class="text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
-            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Cloud Dashboard V3.0</p>
+            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Executive Portal</p>
         </div>
         <div class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Username</label>
-                <input type="text" id="login-username" value="redamsbd" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold">
+                <input type="text" id="login-username" placeholder="Enter Username" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Password</label>
-                <input type="password" id="login-password" value="redamsbd16" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold">
+                <input type="password" id="login-password" placeholder="••••••••" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
             </div>
             <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3.5 rounded-xl font-black hover:bg-red-700 shadow-lg shadow-red-600/30 transition active:scale-95">
                 LOGIN TO ENGINE ↘
             </button>
-            <p class="text-[11px] text-gray-400 text-center">Username: redamsbd | Password: redamsbd16</p>
         </div>
     </div>
 </div>
 
-<!-- Main Dashboard Container -->
-<div id="dashboard" class="hidden flex h-screen bg-gray-100 overflow-hidden">
+<!-- 2. MAIN DASHBOARD CONTAINER -->
+<div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
     
-    <!-- Sidebar -->
-    <div class="w-64 bg-gray-950 text-white flex flex-col fixed h-screen z-30 border-r border-gray-800">
-        <div class="p-6 border-b border-gray-800/80">
-            <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">ADMIN HUB</span></h2>
-            <span class="inline-block mt-2 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-bold">● Live Sync Active</span>
+    <!-- Mobile Top Navigation Bar -->
+    <div class="md:hidden bg-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800 sticky top-0 z-30">
+        <h2 class="text-xl font-black tracking-tighter">REDAMS <span class="text-red-600">ADMIN</span></h2>
+        <button onclick="toggleMobileSidebar()" class="text-white bg-gray-800 p-2 rounded-lg focus:outline-none">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Drawer Backdrop Overlay -->
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+
+    <!-- Sidebar (Fully Mobile Responsive) -->
+    <div id="sidebar-drawer" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 border-r border-gray-800 h-full">
+        <div class="p-6 border-b border-gray-800/80 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">ADMIN HUB</span></h2>
+                <span class="inline-block mt-2 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-bold">● Live Sync Active</span>
+            </div>
+            <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
         
         <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
@@ -83,7 +98,10 @@
             </button>
         </nav>
         
-        <div class="p-4 border-t border-gray-800/80">
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <button onclick="openChangePasswordModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-key text-yellow-500"></i> Change Password
+            </button>
             <button onclick="adminLogout()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2">
                 <i class="fa-solid fa-sign-out-alt"></i> Logout Engine
             </button>
@@ -91,255 +109,194 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="ml-64 flex-1 overflow-y-auto">
-        <div class="p-8">
+    <div class="flex-1 md:ml-64 overflow-y-auto p-4 md:p-8">
+        
+        <!-- 📊 TAB 1: DASHBOARD OVERVIEW -->
+        <div id="dashboard-content" class="tab-content">
+            <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6">Executive Overview</h1>
             
-            <!-- 📊 TAB 1: DASHBOARD OVERVIEW -->
-            <div id="dashboard-content" class="tab-content">
-                <h1 class="text-3xl font-black text-gray-900 mb-6">Executive Dashboard Overview</h1>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Total Revenue</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2">৳<span id="stat-revenue">0</span></p>
+                </div>
                 
-                <!-- Stats Cards Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-xs font-black uppercase tracking-wider">Total Revenue</p>
-                                <p class="text-3xl font-black text-gray-900 mt-2">৳<span id="stat-revenue">0</span></p>
-                            </div>
-                            <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-wallet text-red-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-xs font-black uppercase tracking-wider">Total Orders</p>
-                                <p class="text-3xl font-black text-gray-900 mt-2"><span id="stat-orders">0</span></p>
-                            </div>
-                            <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-shopping-bag text-blue-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-xs font-black uppercase tracking-wider">Pending Orders</p>
-                                <p class="text-3xl font-black text-gray-900 mt-2"><span id="stat-pending">0</span></p>
-                            </div>
-                            <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-hourglass-end text-yellow-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-xs font-black uppercase tracking-wider">Out of Stock</p>
-                                <p class="text-3xl font-black text-gray-900 mt-2"><span id="stat-outofstock">0</span></p>
-                            </div>
-                            <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Total Orders</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-orders">0</span></p>
                 </div>
-
-                <!-- Analytics Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <h3 class="text-base font-black text-gray-900 mb-4">Sales Analytics Chart</h3>
-                        <canvas id="salesChart" height="100"></canvas>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                        <h3 class="text-base font-black text-gray-900 mb-4">Top Performing Products</h3>
-                        <div id="top-products" class="space-y-3"></div>
-                    </div>
+                
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Pending Orders</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-pending">0</span></p>
+                </div>
+                
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Out of Stock</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-outofstock">0</span></p>
                 </div>
             </div>
 
-            <!-- 📦 TAB 2: PRODUCTS MANAGEMENT -->
-            <div id="products-content" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 class="text-3xl font-black text-gray-900">Products Catalog</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-1">Manage live items synced with Cloudinary & Firebase</p>
-                    </div>
-                    <button onclick="openAddProductModal()" class="bg-red-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-600/20 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-plus"></i> Add Product
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
-                    <p class="text-sm text-gray-500 col-span-3">Loading live products...</p>
-                </div>
+            <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                <h3 class="text-sm font-black text-gray-900 mb-4">Sales Analytics Chart</h3>
+                <canvas id="salesChart" height="100"></canvas>
             </div>
-
-            <!-- 🛒 TAB 3: ORDERS MANAGEMENT -->
-            <div id="orders-content" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 class="text-3xl font-black text-gray-900">Orders Management</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-1">Manage incoming Web & WhatsApp customer orders</p>
-                    </div>
-                    <button onclick="openAddOrderModal()" class="bg-red-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-600/20 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-plus"></i> Add Manual Order
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-100">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Order ID</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Customer</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Amount</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Status</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Action & Dispatch</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table" class="divide-y divide-gray-100 text-sm">
-                            <tr><td colspan="5" class="p-6 text-center text-gray-400">Loading orders...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 🚚 TAB 4: COURIER & LOGISTICS HANDLING -->
-            <div id="courier-content" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 class="text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-1">Automated dispatch via Steadfast & Pathao Courier APIs</p>
-                    </div>
-                    <button onclick="openCourierSettingsModal()" class="bg-gray-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-black shadow-lg transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-key"></i> Courier API Credentials
-                    </button>
-                </div>
-
-                <!-- Courier Config Warning -->
-                <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 mb-8 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-truck-ramp-box"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-900 text-sm">Steadfast & Pathao API Ready</h3>
-                            <p class="text-xs text-gray-600">অর্ডার টেবিল থেকে "Book Courier" এ চাপ দিলেই পার্সেল সরাসরি কুড়িয়ার ড্যাশবোর্ডে বুকিং হয়ে ট্র্যাকিং কোড পেয়ে যাবেন।</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Courier Shipments Table -->
-                <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-100">
-                    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-black text-gray-900 text-sm uppercase">Active Courier Bookings</h3>
-                    </div>
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Tracking Code</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Customer & Phone</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Courier Provider</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">COD Amount</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Live Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-sm">
-                            <tr><td colspan="5" class="p-6 text-center text-gray-400">কোনো পার্সেল বুকিং দেওয়া হয়নি। Orders ট্যাব থেকে সরাসরি বুক করুন।</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 🏬 TAB 5: INVENTORY MANAGEMENT -->
-            <div id="inventory-content" class="tab-content hidden">
-                <h1 class="text-3xl font-black text-gray-900 mb-6">Inventory Control</h1>
-
-                <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-100">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Product</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Category</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Stock Status</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table" class="divide-y divide-gray-100 text-sm">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 🏷️ TAB 6: PROMO CODE MANAGEMENT -->
-            <div id="promo-content" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 class="text-3xl font-black text-gray-900">Promo Code Management</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-1">Control active promo discounts for checkout</p>
-                    </div>
-                    <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-600/20 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-plus"></i> Create Promo
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-100">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Code</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Type</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Value</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Max Uses</th>
-                                <th class="px-6 py-4 font-black text-xs uppercase text-gray-500">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="promo-table" class="divide-y divide-gray-100 text-sm">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
+
+        <!-- 📦 TAB 2: PRODUCTS MANAGEMENT -->
+        <div id="products-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Products Catalog</h1>
+                <button onclick="openAddProductModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 shadow-md text-xs md:text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Add Product
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="products-grid">
+                <p class="text-sm text-gray-500">Loading products...</p>
+            </div>
+        </div>
+
+        <!-- 🛒 TAB 3: ORDERS MANAGEMENT -->
+        <div id="orders-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Orders</h1>
+                <button onclick="openAddOrderModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
+                    <i class="fa-solid fa-plus"></i> Add Order
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Order ID</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Amount</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🚚 TAB 4: COURIER & LOGISTICS -->
+        <div id="courier-content" class="tab-content hidden">
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Courier Logistics</h1>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Courier</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🏬 TAB 5: INVENTORY -->
+        <div id="inventory-content" class="tab-content hidden">
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Inventory Control</h1>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[500px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Product</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Category</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🏷️ TAB 6: PROMO CODES -->
+        <div id="promo-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Promo Codes</h1>
+                <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
+                    <i class="fa-solid fa-plus"></i> Create Promo
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[500px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Code</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Type</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Value</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <!-- ================= MODALS SECTION ================= -->
 
-<!-- 1. Product Modal (With Cloudinary Uploader) -->
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-sm w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Change Admin Password</h2>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Current Password</label>
+                <input type="password" id="old-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">New Password</label>
+                <input type="password" id="new-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Confirm New Password</label>
+                <input type="password" id="confirm-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div class="flex gap-3 pt-3">
+                <button onclick="saveNewPassword()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 text-xs">Update Password</button>
+                <button onclick="closeModal('change-password-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
 <div id="product-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-3xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <h2 class="text-2xl font-black mb-6 text-gray-900" id="product-form-title">Add New Product</h2>
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900" id="product-form-title">Add New Product</h2>
         <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
             <input type="hidden" id="product-edit-id">
             
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="col-span-1 md:col-span-2">
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
-                    <input type="text" id="product-name" required placeholder="Product Title (e.g. Cloudspun White Henley)" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
+                    <input type="text" id="product-name" required placeholder="Cloudspun White Henley" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Selling Price (৳)</label>
-                    <input type="number" id="product-price" required placeholder="390" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Price (৳)</label>
+                    <input type="number" id="product-price" required placeholder="390" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Original Price (৳)</label>
-                    <input type="number" id="product-original-price" placeholder="650" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Old Price (৳)</label>
+                    <input type="number" id="product-original-price" placeholder="650" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
                 </div>
                 
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apparel Category</label>
-                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
-                        <option value="">-- Select Category --</option>
-                        <option value="henley">Henley T-Shirt (Full/Half Sleeve)</option>
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
+                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="henley">Henley T-Shirt</option>
                         <option value="drop-shoulder">Drop Shoulder</option>
                         <option value="acid-wash">Acid Wash</option>
                         <option value="regular-tshirt">Regular T-Shirt</option>
@@ -350,164 +307,110 @@
                     </select>
                 </div>
 
-                <div class="col-span-2">
+                <div class="col-span-1 md:col-span-2">
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
-                    <textarea id="product-description" placeholder="Product details & fabric specifications..." class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold h-20"></textarea>
+                    <textarea id="product-description" placeholder="Product details..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold h-20"></textarea>
                 </div>
                 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Colors (Comma Separated)</label>
-                    <input type="text" id="product-colors" placeholder="Ash, Olive, Navy, White" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">Product Image</label>
+                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sizes (Comma Separated)</label>
-                    <input type="text" id="product-sizes" placeholder="M, L, XL, XXL" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
-                </div>
-                
-                <!-- Cloudinary Direct Image Uploaders -->
-                <div class="col-span-2 bg-gray-50 border border-gray-200 p-4 rounded-2xl">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📸 Main Product Image (Upload File)</label>
-                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-gray-900 file:text-white file:font-bold">
-                    <p class="text-[10px] text-gray-400 mt-1">গিটহাব ছাড়াই সরাসরি Cloudinary Cloud Storage-এ আপলোড হয়ে যাবে।</p>
-                </div>
-
-                <div class="col-span-2 bg-gray-50 border border-gray-200 p-4 rounded-2xl">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📐 Size Chart Image (Optional Upload File)</label>
-                    <input type="file" id="size-chart-file" accept="image/*" class="text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-gray-900 file:text-white file:font-bold">
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Stock Availability</label>
-                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
-                        <option value="1">✓ In Stock (ইন স্টক)</option>
-                        <option value="0">✗ Out of Stock (স্টক আউট)</option>
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Stock</label>
+                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="1">✓ In Stock</option>
+                        <option value="0">✗ Out of Stock</option>
                     </select>
                 </div>
             </div>
             
-            <div class="flex gap-4 mt-6">
-                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-600/20 transition">Save Product & Publish</button>
-                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold hover:bg-gray-300 transition">Cancel</button>
+            <div class="flex gap-3 mt-4">
+                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-red-700">Save Product</button>
+                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- 2. Courier Booking Dispatch Modal -->
+<!-- Courier Dispatch Modal -->
 <div id="courier-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-2xl font-black mb-2 text-gray-900">Book Courier Parcel</h2>
-        <p class="text-xs text-gray-500 mb-6 font-semibold">Send order details directly to Steadfast/Pathao Courier</p>
-        
-        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-4">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-2 text-gray-900">Book Courier</h2>
+        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-3">
             <input type="hidden" id="courier-order-id">
-            
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Courier Service</label>
-                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl focus:border-red-600 outline-none text-sm font-semibold">
-                    <option value="steadfast">Steadfast Courier (Recommended)</option>
+                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+                    <option value="steadfast">Steadfast Courier</option>
                     <option value="pathao">Pathao Courier</option>
                 </select>
             </div>
-
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Customer Name</label>
-                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-semibold">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Name</label>
+                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
             </div>
-
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone Number</label>
-                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-semibold">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
+                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
             </div>
-
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Address</label>
-                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-semibold h-16"></textarea>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Address</label>
+                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
             </div>
-
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Cash On Delivery (COD Amount ৳)</label>
-                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-sm">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">COD Amount (৳)</label>
+                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-xs">
             </div>
-
-            <div class="flex gap-4 mt-6">
-                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-600/20 transition">Confirm Booking</button>
-                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold hover:bg-gray-300 transition">Cancel</button>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-purple-700">Confirm Booking</button>
+                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- 3. Courier API Credentials Settings Modal -->
-<div id="courier-settings-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-4 text-gray-900">Courier API Keys Setup</h2>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Steadfast API Key</label>
-                <input type="text" id="steadfast-api-key" placeholder="Enter Steadfast API Key" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Steadfast Secret Key</label>
-                <input type="password" id="steadfast-secret-key" placeholder="Enter Secret Key" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div class="flex gap-4 pt-2">
-                <button onclick="saveCourierKeys()" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition">Save Credentials</button>
-                <button onclick="closeModal('courier-settings-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300 transition">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 4. Order Modal (Add/Edit Manual Order) -->
+<!-- Manual Order Modal -->
 <div id="order-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-3xl max-w-xl w-full mx-4 shadow-2xl">
-        <h2 class="text-2xl font-black mb-6 text-gray-900">Add Manual Order</h2>
-        <div class="space-y-4">
-            <input type="text" id="order-customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-            <input type="tel" id="order-customer-phone" placeholder="Phone Number (11 Digits)" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-            <textarea id="order-customer-address" placeholder="Delivery Address" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm h-16"></textarea>
-            <textarea id="order-items" placeholder="Ordered Items Details..." class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm h-20"></textarea>
-            <input type="number" id="order-amount" placeholder="Total Amount (৳)" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-            <select id="order-status" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-                <option value="Pending">Pending</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-            </select>
-            <div class="flex gap-4 pt-2">
-                <button onclick="saveOrder()" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold hover:bg-red-700 transition">Save Order</button>
-                <button onclick="closeModal('order-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold hover:bg-gray-300 transition">Cancel</button>
+    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Add Order</h2>
+        <div class="space-y-3">
+            <input type="text" id="order-customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <input type="tel" id="order-customer-phone" placeholder="Phone Number" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <textarea id="order-customer-address" placeholder="Address" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
+            <input type="number" id="order-amount" placeholder="Total Amount (৳)" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveOrder()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Save Order</button>
+                <button onclick="closeModal('order-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 5. Promo Modal -->
+<!-- Promo Modal -->
 <div id="promo-modal" class="modal-overlay">
-    <div class="bg-white p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-2xl font-black mb-6 text-gray-900">Create Promo Code</h2>
-        <div class="space-y-4">
-            <input type="text" id="promo-code" placeholder="PROMO CODE (e.g. REDAMS100)" class="w-full p-3 border border-gray-200 rounded-xl outline-none uppercase font-bold text-sm">
-            <select id="promo-type" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-                <option value="percent">Percentage Discount (%)</option>
-                <option value="fixed">Fixed Amount Discount (৳)</option>
+    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Create Promo</h2>
+        <div class="space-y-3">
+            <input type="text" id="promo-code" placeholder="PROMO CODE" class="w-full p-3 border border-gray-200 rounded-xl font-bold text-xs uppercase">
+            <select id="promo-type" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+                <option value="percent">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (৳)</option>
                 <option value="delivery">Free Delivery</option>
             </select>
-            <input type="number" id="promo-value" placeholder="Discount Value (e.g., 10 or 100)" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-            <input type="number" id="promo-max-uses" placeholder="Max Uses (0 = unlimited)" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
-            <div class="flex gap-4 pt-2">
-                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold hover:bg-red-700 transition">Create Promo</button>
-                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold hover:bg-gray-300 transition">Cancel</button>
+            <input type="number" id="promo-value" placeholder="Value" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <div class="flex gap-3 pt-2">
+                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Create</button>
+                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ================= JAVASCRIPT CORE ENGINE ================= -->
+<!-- ================= JAVASCRIPT ENGINE ================= -->
 <script>
-    // 1. FIREBASE INITIALIZATION
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
         authDomain: "redams-61f66.firebaseapp.com",
@@ -520,21 +423,31 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 2. CLOUDINARY CONFIG
     const CLOUD_NAME = "ktpipwbp";
     const UPLOAD_PRESET = "REDAMS PRESET";
 
-    // Global State Variables
     let allProducts = [];
     let allOrders = [];
     let allPromos = [];
     let allCourierShipments = [];
 
-    // Auth Engine
+    // Mobile Drawer Toggle Helper
+    function toggleMobileSidebar() {
+        const drawer = document.getElementById('sidebar-drawer');
+        const overlay = document.getElementById('sidebar-overlay');
+        drawer.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    }
+
+    // 2. AUTHENTICATION & DYNAMIC PASSWORD ENGINE
     function adminLogin() {
         const u = document.getElementById('login-username').value.trim();
         const p = document.getElementById('login-password').value.trim();
-        if (u === 'redamsbd' && p === 'redamsbd16') {
+        
+        const storedUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
+        const storedPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
+
+        if (u === storedUser && p === storedPass) {
             document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             initDashboard();
@@ -543,12 +456,43 @@
         }
     }
 
+    function openChangePasswordModal() {
+        document.getElementById('old-pass').value = '';
+        document.getElementById('new-pass').value = '';
+        document.getElementById('confirm-pass').value = '';
+        document.getElementById('change-password-modal').classList.add('active');
+    }
+
+    function saveNewPassword() {
+        const oldP = document.getElementById('old-pass').value.trim();
+        const newP = document.getElementById('new-pass').value.trim();
+        const confirmP = document.getElementById('confirm-pass').value.trim();
+        const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
+
+        if (oldP !== currentPass) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'বর্তমান পাসওয়ার্ডটি সঠিক নয়!' });
+            return;
+        }
+        if (newP.length < 6) {
+            Swal.fire({ icon: 'warning', title: 'Weak Password', text: 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।' });
+            return;
+        }
+        if (newP !== confirmP) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'নতুন পাসওয়ার্ড দুটি মিলছে না!' });
+            return;
+        }
+
+        localStorage.setItem('redams_admin_pass', newP);
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।' });
+        closeModal('change-password-modal');
+    }
+
     function adminLogout() {
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('login-modal').classList.remove('hidden');
     }
 
-    // Tab Switching Engine
+    // 3. TAB SWITCHING ENGINE
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('sidebar-active'));
@@ -556,9 +500,14 @@
         document.getElementById(`${tabId}-content`).classList.remove('hidden');
         const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
         if (activeBtn) activeBtn.classList.add('sidebar-active');
+
+        // Close Mobile Drawer on selection
+        if (window.innerWidth < 768) {
+            document.getElementById('sidebar-drawer').classList.add('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+        }
     }
 
-    // Modal Helpers
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('active');
     }
@@ -578,20 +527,7 @@
         document.getElementById('promo-modal').classList.add('active');
     }
 
-    function openCourierSettingsModal() {
-        document.getElementById('steadfast-api-key').value = localStorage.getItem('steadfast_api_key') || '';
-        document.getElementById('steadfast-secret-key').value = localStorage.getItem('steadfast_secret_key') || '';
-        document.getElementById('courier-settings-modal').classList.add('active');
-    }
-
-    function saveCourierKeys() {
-        localStorage.setItem('steadfast_api_key', document.getElementById('steadfast-api-key').value);
-        localStorage.setItem('steadfast_secret_key', document.getElementById('steadfast-secret-key').value);
-        Swal.fire({ icon: 'success', title: 'Saved!', text: 'Courier API Keys saved locally.' });
-        closeModal('courier-settings-modal');
-    }
-
-    // 3. CLOUDINARY UPLOAD HELPER
+    // 4. CLOUDINARY UPLOADER
     async function uploadFileToCloudinary(fileInput) {
         if (!fileInput || !fileInput.files[0]) return null;
         const file = fileInput.files[0];
@@ -610,11 +546,10 @@
         return data.secure_url;
     }
 
-    // 4. REALTIME FIREBASE LISTENERS & SYNC
+    // 5. DASHBOARD INIT & REALTIME LISTENERS
     function initDashboard() {
         switchTab('dashboard');
 
-        // Products Listener
         db.collection("products").onSnapshot(snapshot => {
             allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderProductsTab();
@@ -622,46 +557,37 @@
             updateStats();
         });
 
-        // Orders Listener
         db.collection("orders").onSnapshot(snapshot => {
             allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderOrdersTab();
             updateStats();
         });
 
-        // Promos Listener
         db.collection("promos").onSnapshot(snapshot => {
             allPromos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderPromoTab();
         });
 
-        // Courier Shipments Listener
         db.collection("courier_shipments").onSnapshot(snapshot => {
             allCourierShipments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderCourierTab();
         });
     }
 
-    // 5. PRODUCT CRUD OPERATIONS
+    // 6. PRODUCT MANAGEMENT
     async function saveProduct(e) {
         e.preventDefault();
         const submitBtn = document.getElementById('save-product-btn');
         submitBtn.disabled = true;
-        submitBtn.innerText = '⏳ Uploading Image to Cloud...';
+        submitBtn.innerText = '⏳ Uploading...';
 
         try {
             const editId = document.getElementById('product-edit-id').value;
             const imgFile = document.getElementById('product-img-file');
-            const chartFile = document.getElementById('size-chart-file');
 
             let imageUrl = null;
-            let chartUrl = null;
-
             if (imgFile.files[0]) {
                 imageUrl = await uploadFileToCloudinary(imgFile);
-            }
-            if (chartFile.files[0]) {
-                chartUrl = await uploadFileToCloudinary(chartFile);
             }
 
             const productData = {
@@ -670,14 +596,11 @@
                 originalPrice: document.getElementById('product-original-price').value ? parseInt(document.getElementById('product-original-price').value) : null,
                 category: document.getElementById('product-category').value,
                 description: document.getElementById('product-description').value,
-                colors: document.getElementById('product-colors').value.split(',').map(s => s.trim()).filter(Boolean),
-                sizes: document.getElementById('product-sizes').value.split(',').map(s => s.trim()).filter(Boolean),
                 isOutOfStock: document.getElementById('product-stock').value === "0",
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             if (imageUrl) productData.images = [imageUrl];
-            if (chartUrl) productData.sizeChart = chartUrl;
 
             if (editId) {
                 await db.collection("products").doc(editId).update(productData);
@@ -687,62 +610,39 @@
                 await db.collection("products").add(productData);
             }
 
-            Swal.fire({ icon: 'success', title: 'Saved!', text: 'প্রোডাক্ট সাথে সাথে ওয়েবসাইটে লাইভ হয়ে গেছে।' });
+            Swal.fire({ icon: 'success', title: 'Saved!', text: 'প্রোডাক্ট লাইভ হয়েছে।' });
             closeModal('product-modal');
         } catch (err) {
-            console.error(err);
             Swal.fire({ icon: 'error', title: 'Error', text: err.message });
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerText = 'Save Product & Publish';
+            submitBtn.innerText = 'Save Product';
         }
     }
 
     function renderProductsTab() {
         const grid = document.getElementById('products-grid');
         if (allProducts.length === 0) {
-            grid.innerHTML = '<p class="text-sm text-gray-500 col-span-3">কোনো প্রোডাক্ট পাওয়া যায়নি।</p>';
+            grid.innerHTML = '<p class="text-sm text-gray-500">কোনো প্রোডাক্ট নেই।</p>';
             return;
         }
 
         grid.innerHTML = allProducts.map(p => {
             const img = (p.images && p.images[0]) ? p.images[0] : 'images/placeholder.jpg';
             return `
-                <div class="bg-white rounded-2xl p-4 card-shadow border border-gray-100 flex gap-4 items-center">
-                    <img src="${img}" class="w-20 h-24 object-cover rounded-xl border border-gray-100 shrink-0">
+                <div class="bg-white rounded-2xl p-3 md:p-4 card-shadow border border-gray-100 flex gap-3 items-center">
+                    <img src="${img}" class="w-16 h-20 object-cover rounded-xl border border-gray-100 shrink-0">
                     <div class="flex-1 min-w-0">
-                        <span class="text-[10px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category}</span>
-                        <h3 class="font-black text-gray-900 text-sm mt-1 truncate">${p.name}</h3>
-                        <p class="text-xs font-bold text-gray-800 mt-1">৳${p.price} ${p.originalPrice ? `<span class="line-through text-gray-400 font-normal">৳${p.originalPrice}</span>` : ''}</p>
-                        <span class="inline-block mt-2 text-[9px] font-bold px-2 py-0.5 rounded ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}">
-                            ${p.isOutOfStock ? 'Stock Out' : 'In Stock'}
-                        </span>
+                        <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category}</span>
+                        <h3 class="font-black text-gray-900 text-xs md:text-sm mt-1 truncate">${p.name}</h3>
+                        <p class="text-xs font-bold text-gray-800 mt-1">৳${p.price}</p>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="editProduct('${p.id}')" class="text-gray-600 hover:text-black p-2"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `;
         }).join('');
-    }
-
-    function editProduct(id) {
-        const p = allProducts.find(item => item.id === id);
-        if (!p) return;
-
-        document.getElementById('product-edit-id').value = p.id;
-        document.getElementById('product-name').value = p.name || '';
-        document.getElementById('product-price').value = p.price || '';
-        document.getElementById('product-original-price').value = p.originalPrice || '';
-        document.getElementById('product-category').value = p.category || '';
-        document.getElementById('product-description').value = p.description || '';
-        document.getElementById('product-colors').value = p.colors ? p.colors.join(', ') : '';
-        document.getElementById('product-sizes').value = p.sizes ? p.sizes.join(', ') : '';
-        document.getElementById('product-stock').value = p.isOutOfStock ? "0" : "1";
-
-        document.getElementById('product-form-title').innerText = 'Edit Product';
-        document.getElementById('product-modal').classList.add('active');
     }
 
     async function deleteProduct(id) {
@@ -751,30 +651,29 @@
         }
     }
 
-    // 6. ORDERS & COURIER DISPATCH OPERATIONS
+    // 7. ORDERS & COURIER
     function renderOrdersTab() {
         const table = document.getElementById('orders-table');
         if (allOrders.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">কোনো অর্ডার ডাটাবেজে নেই।</td></tr>';
+            table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td></tr>';
             return;
         }
 
         table.innerHTML = allOrders.map(o => `
-            <tr class="hover:bg-gray-50/50">
-                <td class="px-6 py-4 font-bold text-gray-900">#${o.id.substring(0, 8)}</td>
-                <td class="px-6 py-4">
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-bold text-gray-900">#${o.id.substring(0, 6)}</td>
+                <td class="px-4 py-3">
                     <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
                     <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || 'N/A'}</p>
                 </td>
-                <td class="px-6 py-4 font-black text-gray-900">${o.TOTAL_BILL || o.amount || '৳0'}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">${o.status || 'Pending'}</span>
+                <td class="px-4 py-3 font-black text-gray-900">${o.TOTAL_BILL || o.amount || '৳0'}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">${o.status || 'Pending'}</span>
                 </td>
-                <td class="px-6 py-4 flex items-center gap-2">
-                    <button onclick="openCourierDispatchModal('${o.id}')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-truck-fast"></i> Book Courier
+                <td class="px-4 py-3 flex items-center gap-2">
+                    <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1">
+                        <i class="fa-solid fa-truck-fast"></i> Courier
                     </button>
-                    <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -799,7 +698,6 @@
         e.preventDefault();
         const btn = document.getElementById('dispatch-btn');
         btn.disabled = true;
-        btn.innerText = 'Booking Parcel...';
 
         const orderId = document.getElementById('courier-order-id').value;
         const provider = document.getElementById('courier-provider').value;
@@ -808,7 +706,6 @@
         const address = document.getElementById('courier-cust-address').value;
         const cod = document.getElementById('courier-cod-amount').value;
 
-        // Auto Generate Demo Tracking Code if API keys not present
         const trackingCode = provider.toUpperCase() + "-" + Math.floor(100000 + Math.random() * 900000);
 
         try {
@@ -829,61 +726,41 @@
                 trackingCode: trackingCode
             });
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Parcel Booked Successfully!',
-                text: `${provider.toUpperCase()} Tracking Code: ${trackingCode}`
-            });
-
+            Swal.fire({ icon: 'success', title: 'Parcel Booked!', text: `Tracking Code: ${trackingCode}` });
             closeModal('courier-modal');
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Booking Failed', text: err.message });
         } finally {
             btn.disabled = false;
-            btn.innerText = 'Confirm Booking';
         }
     }
 
     function renderCourierTab() {
         const table = document.getElementById('courier-shipments-table');
         if (allCourierShipments.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">কোনো পার্সেল বুকিং দেওয়া হয়নি।</td></tr>';
+            table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো বুকিং নেই।</td></tr>';
             return;
         }
 
         table.innerHTML = allCourierShipments.map(s => `
-            <tr class="hover:bg-gray-50/50">
-                <td class="px-6 py-4 font-black text-purple-600">${s.trackingCode}</td>
-                <td class="px-6 py-4">
-                    <p class="font-bold text-gray-900">${s.customerName}</p>
-                    <p class="text-xs text-gray-400">${s.customerPhone}</p>
-                </td>
-                <td class="px-6 py-4 font-bold text-xs uppercase">${s.provider}</td>
-                <td class="px-6 py-4 font-black text-gray-900">৳${s.codAmount}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">${s.status || 'In Transit'}</span>
-                </td>
+            <tr>
+                <td class="px-4 py-3 font-black text-purple-600">${s.trackingCode}</td>
+                <td class="px-4 py-3 font-bold">${s.customerName}</td>
+                <td class="px-4 py-3 uppercase text-xs">${s.provider}</td>
+                <td class="px-4 py-3 font-black">৳${s.codAmount}</td>
+                <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full font-bold">${s.status}</span></td>
             </tr>
         `).join('');
     }
 
-    // 7. INVENTORY TAB RENDER
     function renderInventoryTab() {
         const table = document.getElementById('inventory-table');
         table.innerHTML = allProducts.map(p => `
             <tr>
-                <td class="px-6 py-4 font-bold text-gray-900">${p.name}</td>
-                <td class="px-6 py-4 text-xs font-bold uppercase text-gray-500">${p.category}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-xs font-bold rounded-full ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">
-                        ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
-                    </span>
-                </td>
-                <td class="px-6 py-4">
-                    <button onclick="toggleStockStatus('${p.id}', ${!p.isOutOfStock})" class="px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-xl hover:bg-black">
-                        ${p.isOutOfStock ? 'Make In-Stock' : 'Stock Out'}
-                    </button>
-                </td>
+                <td class="px-4 py-3 font-bold text-gray-900">${p.name}</td>
+                <td class="px-4 py-3 text-xs uppercase">${p.category}</td>
+                <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs rounded-full font-bold ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}</span></td>
+                <td class="px-4 py-3"><button onclick="toggleStockStatus('${p.id}', ${!p.isOutOfStock})" class="px-2.5 py-1 bg-gray-900 text-white text-xs rounded-lg">Toggle</button></td>
             </tr>
         `).join('');
     }
@@ -892,12 +769,10 @@
         await db.collection("products").doc(id).update({ isOutOfStock: newStatus });
     }
 
-    // 8. PROMO CRUD OPERATIONS
     async function savePromo() {
         const code = document.getElementById('promo-code').value.trim().toUpperCase();
         const type = document.getElementById('promo-type').value;
         const val = parseInt(document.getElementById('promo-value').value) || 0;
-        const max = parseInt(document.getElementById('promo-max-uses').value) || 0;
 
         if (!code) return;
 
@@ -905,11 +780,10 @@
             code: code,
             type: type,
             value: val,
-            maxUses: max,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        Swal.fire({ icon: 'success', title: 'Promo Created!', text: `Code ${code} is live.` });
+        Swal.fire({ icon: 'success', title: 'Promo Created!' });
         closeModal('promo-modal');
     }
 
@@ -917,13 +791,10 @@
         const table = document.getElementById('promo-table');
         table.innerHTML = allPromos.map(p => `
             <tr>
-                <td class="px-6 py-4 font-black text-red-600">${p.code}</td>
-                <td class="px-6 py-4 font-bold text-xs uppercase">${p.type}</td>
-                <td class="px-6 py-4 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
-                <td class="px-6 py-4 text-xs text-gray-500">${p.maxUses === 0 ? 'Unlimited' : p.maxUses}</td>
-                <td class="px-6 py-4">
-                    <button onclick="deletePromo('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
-                </td>
+                <td class="px-4 py-3 font-black text-red-600">${p.code}</td>
+                <td class="px-4 py-3 font-bold text-xs uppercase">${p.type}</td>
+                <td class="px-4 py-3 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
+                <td class="px-4 py-3"><button onclick="deletePromo('${p.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
             </tr>
         `).join('');
     }
@@ -932,7 +803,6 @@
         await db.collection("promos").doc(id).delete();
     }
 
-    // Stats & Chart Logic
     function updateStats() {
         document.getElementById('stat-revenue').innerText = allOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
         document.getElementById('stat-orders').innerText = allOrders.length;
