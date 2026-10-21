@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REDAMS Executive Admin Engine</title>
+    <title>REDAMS Executive Master Admin Engine</title>
     <link rel="icon" type="image/png" href="images/redams logo.jpg">
     
     <!-- Tailwind CSS & FontAwesome -->
@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -22,18 +22,20 @@
         body { font-family: 'Inter', sans-serif; }
         .sidebar-active { background-color: #dc2626 !important; color: #ffffff !important; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 60; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 60; }
         .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen text-gray-800">
 
-<!-- 1. LOGIN MODAL (Password Hint Removed) -->
+<!-- LOGIN GATEWAY -->
 <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100]">
     <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-gray-100">
         <div class="text-center mb-6">
             <h1 class="text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
-            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Executive Portal</p>
+            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Executive Master Portal V3.0</p>
         </div>
         <div class="space-y-4">
             <div>
@@ -45,53 +47,53 @@
                 <input type="password" id="login-password" placeholder="••••••••" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
             </div>
             <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3.5 rounded-xl font-black hover:bg-red-700 shadow-lg shadow-red-600/30 transition active:scale-95">
-                LOGIN TO ENGINE ↘
+                LOGIN TO DASHBOARD ↘
             </button>
         </div>
     </div>
 </div>
 
-<!-- 2. MAIN DASHBOARD CONTAINER -->
+<!-- MAIN DASHBOARD CONTAINER -->
 <div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
     
     <!-- Mobile Top Navigation Bar -->
     <div class="md:hidden bg-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800 sticky top-0 z-30">
         <h2 class="text-xl font-black tracking-tighter">REDAMS <span class="text-red-600">ADMIN</span></h2>
-        <button onclick="toggleMobileSidebar()" class="text-white bg-gray-800 p-2 rounded-lg focus:outline-none">
-            <i class="fa-solid fa-bars text-xl"></i>
+        <button onclick="toggleMobileSidebar()" class="text-white bg-gray-800 p-2.5 rounded-xl focus:outline-none">
+            <i class="fa-solid fa-bars text-lg"></i>
         </button>
     </div>
 
-    <!-- Mobile Drawer Backdrop Overlay -->
+    <!-- Mobile Drawer Overlay -->
     <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
-    <!-- Sidebar (Fully Mobile Responsive) -->
+    <!-- Sidebar Drawer -->
     <div id="sidebar-drawer" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 border-r border-gray-800 h-full">
         <div class="p-6 border-b border-gray-800/80 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">ADMIN HUB</span></h2>
-                <span class="inline-block mt-2 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-bold">● Live Sync Active</span>
+                <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">HUB ENGINE</span></h2>
+                <span class="inline-block mt-2 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-bold">● Firebase Live Sync</span>
             </div>
             <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
         </div>
         
-        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
             <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="dashboard">
                 <i class="fa-solid fa-chart-line text-red-500"></i> Dashboard
             </button>
             <button onclick="switchTab('products')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="products">
-                <i class="fa-solid fa-box text-orange-500"></i> Products
+                <i class="fa-solid fa-box text-orange-500"></i> Products Catalog
             </button>
             <button onclick="switchTab('orders')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="orders">
-                <i class="fa-solid fa-shopping-bag text-blue-500"></i> Orders
+                <i class="fa-solid fa-shopping-bag text-blue-500"></i> Orders Manager
             </button>
             <button onclick="switchTab('courier')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="courier">
                 <i class="fa-solid fa-truck-fast text-purple-500"></i> Courier & Logistics
             </button>
             <button onclick="switchTab('inventory')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="inventory">
-                <i class="fa-solid fa-warehouse text-emerald-500"></i> Inventory
+                <i class="fa-solid fa-warehouse text-emerald-500"></i> Size & Inventory
             </button>
             <button onclick="switchTab('promo')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="promo">
                 <i class="fa-solid fa-tag text-yellow-500"></i> Promo Codes
@@ -108,14 +110,14 @@
         </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Panel -->
     <div class="flex-1 md:ml-64 overflow-y-auto p-4 md:p-8">
         
-        <!-- 📊 TAB 1: DASHBOARD OVERVIEW -->
+        <!-- DASHBOARD OVERVIEW -->
         <div id="dashboard-content" class="tab-content">
-            <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6">Executive Overview</h1>
+            <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6">Executive Dashboard Overview</h1>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
                     <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Total Revenue</p>
                     <p class="text-xl md:text-3xl font-black text-gray-900 mt-2">৳<span id="stat-revenue">0</span></p>
@@ -138,41 +140,44 @@
             </div>
 
             <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
-                <h3 class="text-sm font-black text-gray-900 mb-4">Sales Analytics Chart</h3>
+                <h3 class="text-sm font-black text-gray-900 mb-4">Store Order Performance</h3>
                 <canvas id="salesChart" height="100"></canvas>
             </div>
         </div>
 
-        <!-- 📦 TAB 2: PRODUCTS MANAGEMENT -->
+        <!-- PRODUCTS CATALOG MANAGEMENT -->
         <div id="products-content" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-xl md:text-3xl font-black text-gray-900">Products Catalog</h1>
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Products Catalog</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Cloudinary + Firebase Realtime Product Engine</p>
+                </div>
                 <button onclick="openAddProductModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 shadow-md text-xs md:text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-plus"></i> Add Product
                 </button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="products-grid">
-                <p class="text-sm text-gray-500">Loading products...</p>
+                <p class="text-sm text-gray-500 col-span-3">Loading products from Firebase...</p>
             </div>
         </div>
 
-        <!-- 🛒 TAB 3: ORDERS MANAGEMENT -->
+        <!-- ORDERS MANAGEMENT -->
         <div id="orders-content" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-xl md:text-3xl font-black text-gray-900">Orders</h1>
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Orders Management</h1>
                 <button onclick="openAddOrderModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
-                    <i class="fa-solid fa-plus"></i> Add Order
+                    <i class="fa-solid fa-plus"></i> Add Manual Order
                 </button>
             </div>
             <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[600px]">
+                <table class="w-full text-left min-w-[650px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
                             <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Order ID</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer & Phone</th>
                             <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Amount</th>
                             <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action & Dispatch</th>
                         </tr>
                     </thead>
                     <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
@@ -180,18 +185,24 @@
             </div>
         </div>
 
-        <!-- 🚚 TAB 4: COURIER & LOGISTICS -->
+        <!-- COURIER & LOGISTICS -->
         <div id="courier-content" class="tab-content hidden">
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Courier Logistics</h1>
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated dispatch via Steadfast & Pathao Courier APIs</p>
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[600px]">
+                <table class="w-full text-left min-w-[650px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking Code</th>
                             <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Courier</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Courier Provider</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD Amount</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Live Status</th>
                         </tr>
                     </thead>
                     <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
@@ -199,17 +210,17 @@
             </div>
         </div>
 
-        <!-- 🏬 TAB 5: INVENTORY -->
+        <!-- SIZE & INVENTORY CONTROL -->
         <div id="inventory-content" class="tab-content hidden">
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Inventory Control</h1>
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Size Availability & Inventory</h1>
             <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[500px]">
+                <table class="w-full text-left min-w-[600px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Product</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Product Title</th>
                             <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Category</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Overall Stock</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Size Toggles (S / M / L / XL / XXL)</th>
                         </tr>
                     </thead>
                     <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
@@ -217,12 +228,12 @@
             </div>
         </div>
 
-        <!-- 🏷️ TAB 6: PROMO CODES -->
+        <!-- PROMO CODES -->
         <div id="promo-content" class="tab-content hidden">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-xl md:text-3xl font-black text-gray-900">Promo Codes</h1>
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Promo Code Management</h1>
                 <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
-                    <i class="fa-solid fa-plus"></i> Create Promo
+                    <i class="fa-solid fa-plus"></i> Create Promo Code
                 </button>
             </div>
             <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
@@ -244,6 +255,145 @@
 </div>
 
 <!-- ================= MODALS SECTION ================= -->
+
+<!-- Product Modal -->
+<div id="product-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl custom-scrollbar">
+        <h2 class="text-xl font-black mb-4 text-gray-900" id="product-form-title">Add New Product</h2>
+        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+            <input type="hidden" id="product-edit-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
+                    <input type="text" id="product-name" required placeholder="Spider Man-02" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Price (৳)</label>
+                    <input type="number" id="product-price" required placeholder="490" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Original Price (৳)</label>
+                    <input type="number" id="product-original-price" placeholder="560" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+                
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
+                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="drop-shoulder">Drop Shoulder</option>
+                        <option value="acid-wash">Acid Wash</option>
+                        <option value="regular-tshirt">Regular T-Shirt</option>
+                        <option value="hoodie">Hoodie</option>
+                        <option value="couple-tshirt">Couple T-Shirt</option>
+                        <option value="polo-tshirt">Polo T-Shirt</option>
+                        <option value="henley">Henley T-Shirt</option>
+                        <option value="combo">Combo Offer</option>
+                    </select>
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Description (HTML Formatting Supported)</label>
+                    <textarea id="product-description" placeholder="<b>Fabric:</b> Premium Organic 100% Cotton...<br><b>Style:</b> Streetwear..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold h-24"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Colors (Comma Separated)</label>
+                    <input type="text" id="product-colors" placeholder="Black, White, Olive" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">SEO Alt Text</label>
+                    <input type="text" id="product-alt-text" placeholder="REDAMS Spider Man Special T-Shirt BD" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <!-- Sizes Configuration -->
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-2">Available Sizes Configuration</label>
+                    <div class="flex flex-wrap gap-4 text-xs font-bold text-gray-700">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-S" checked class="w-4 h-4 accent-red-600 rounded"> S
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-M" checked class="w-4 h-4 accent-red-600 rounded"> M
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-L" checked class="w-4 h-4 accent-red-600 rounded"> L
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-XL" checked class="w-4 h-4 accent-red-600 rounded"> XL
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-XXL" checked class="w-4 h-4 accent-red-600 rounded"> XXL
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Cloudinary Direct Image Uploaders -->
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📸 Main Product Image (Cloudinary Upload)</label>
+                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500">
+                </div>
+
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📐 Size Chart Image (Optional Cloudinary Upload)</label>
+                    <input type="file" id="size-chart-file" accept="image/*" class="text-xs text-gray-500">
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Overall Stock Status</label>
+                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="1">✓ In Stock (ইন স্টক)</option>
+                        <option value="0">✗ Out of Stock (স্টক আউট)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-4">
+                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold text-xs hover:bg-red-700 transition">Save Product & Publish</button>
+                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold text-xs hover:bg-gray-300 transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Courier Dispatch Modal -->
+<div id="courier-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-2 text-gray-900">Book Courier Parcel</h2>
+        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-3">
+            <input type="hidden" id="courier-order-id">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Courier Service</label>
+                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+                    <option value="steadfast">Steadfast Courier</option>
+                    <option value="pathao">Pathao Courier</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Customer Name</label>
+                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
+                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Address</label>
+                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">COD Amount (৳)</label>
+                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-xs">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-purple-700">Confirm Booking</button>
+                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Change Password Modal -->
 <div id="change-password-modal" class="modal-overlay">
@@ -267,107 +417,6 @@
                 <button onclick="closeModal('change-password-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Product Modal -->
-<div id="product-modal" class="modal-overlay">
-    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <h2 class="text-xl font-black mb-4 text-gray-900" id="product-form-title">Add New Product</h2>
-        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
-            <input type="hidden" id="product-edit-id">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
-                    <input type="text" id="product-name" required placeholder="Cloudspun White Henley" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Price (৳)</label>
-                    <input type="number" id="product-price" required placeholder="390" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Old Price (৳)</label>
-                    <input type="number" id="product-original-price" placeholder="650" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                </div>
-                
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
-                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                        <option value="henley">Henley T-Shirt</option>
-                        <option value="drop-shoulder">Drop Shoulder</option>
-                        <option value="acid-wash">Acid Wash</option>
-                        <option value="regular-tshirt">Regular T-Shirt</option>
-                        <option value="hoodie">Hoodie</option>
-                        <option value="couple-tshirt">Couple T-Shirt</option>
-                        <option value="polo-tshirt">Polo T-Shirt</option>
-                        <option value="combo">Combo Offer</option>
-                    </select>
-                </div>
-
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
-                    <textarea id="product-description" placeholder="Product details..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold h-20"></textarea>
-                </div>
-                
-                <div class="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded-2xl border border-gray-200">
-                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">Product Image</label>
-                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500">
-                </div>
-
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Stock</label>
-                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                        <option value="1">✓ In Stock</option>
-                        <option value="0">✗ Out of Stock</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="flex gap-3 mt-4">
-                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-red-700">Save Product</button>
-                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Courier Dispatch Modal -->
-<div id="courier-modal" class="modal-overlay">
-    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-2 text-gray-900">Book Courier</h2>
-        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-3">
-            <input type="hidden" id="courier-order-id">
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Courier Service</label>
-                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-                    <option value="steadfast">Steadfast Courier</option>
-                    <option value="pathao">Pathao Courier</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Name</label>
-                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
-                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Address</label>
-                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">COD Amount (৳)</label>
-                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-xs">
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-purple-700">Confirm Booking</button>
-                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -408,421 +457,8 @@
     </div>
 </div>
 
-<!-- ================= JAVASCRIPT ENGINE ================= -->
-<script>
-    // 1. FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
-        authDomain: "redams-61f66.firebaseapp.com",
-        projectId: "redams-61f66",
-        storageBucket: "redams-61f66.firebasestorage.app",
-        messagingSenderId: "852974979706",
-        appId: "1:852974979706:web:0f332bafadc653565fc9c3",
-        measurementId: "G-59WMZ7870M"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const CLOUD_NAME = "ktpipwbp";
-    const UPLOAD_PRESET = "REDAMS PRESET";
-
-    let allProducts = [];
-    let allOrders = [];
-    let allPromos = [];
-    let allCourierShipments = [];
-
-    // Mobile Drawer Toggle Helper
-    function toggleMobileSidebar() {
-        const drawer = document.getElementById('sidebar-drawer');
-        const overlay = document.getElementById('sidebar-overlay');
-        drawer.classList.toggle('-translate-x-full');
-        overlay.classList.toggle('hidden');
-    }
-
-    // 2. AUTHENTICATION & DYNAMIC PASSWORD ENGINE
-    function adminLogin() {
-        const u = document.getElementById('login-username').value.trim();
-        const p = document.getElementById('login-password').value.trim();
-        
-        const storedUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
-        const storedPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
-
-        if (u === storedUser && p === storedPass) {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            initDashboard();
-        } else {
-            Swal.fire({ icon: 'error', title: 'Login Failed', text: 'ভুল ইউজারনেম বা পাসওয়ার্ড!' });
-        }
-    }
-
-    function openChangePasswordModal() {
-        document.getElementById('old-pass').value = '';
-        document.getElementById('new-pass').value = '';
-        document.getElementById('confirm-pass').value = '';
-        document.getElementById('change-password-modal').classList.add('active');
-    }
-
-    function saveNewPassword() {
-        const oldP = document.getElementById('old-pass').value.trim();
-        const newP = document.getElementById('new-pass').value.trim();
-        const confirmP = document.getElementById('confirm-pass').value.trim();
-        const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
-
-        if (oldP !== currentPass) {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'বর্তমান পাসওয়ার্ডটি সঠিক নয়!' });
-            return;
-        }
-        if (newP.length < 6) {
-            Swal.fire({ icon: 'warning', title: 'Weak Password', text: 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।' });
-            return;
-        }
-        if (newP !== confirmP) {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'নতুন পাসওয়ার্ড দুটি মিলছে না!' });
-            return;
-        }
-
-        localStorage.setItem('redams_admin_pass', newP);
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।' });
-        closeModal('change-password-modal');
-    }
-
-    function adminLogout() {
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('login-modal').classList.remove('hidden');
-    }
-
-    // 3. TAB SWITCHING ENGINE
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('sidebar-active'));
-        
-        document.getElementById(`${tabId}-content`).classList.remove('hidden');
-        const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
-        if (activeBtn) activeBtn.classList.add('sidebar-active');
-
-        // Close Mobile Drawer on selection
-        if (window.innerWidth < 768) {
-            document.getElementById('sidebar-drawer').classList.add('-translate-x-full');
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-        }
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-    }
-
-    function openAddProductModal() {
-        document.getElementById('product-form').reset();
-        document.getElementById('product-edit-id').value = '';
-        document.getElementById('product-form-title').innerText = 'Add New Product';
-        document.getElementById('product-modal').classList.add('active');
-    }
-
-    function openAddOrderModal() {
-        document.getElementById('order-modal').classList.add('active');
-    }
-
-    function openAddPromoModal() {
-        document.getElementById('promo-modal').classList.add('active');
-    }
-
-// Updated Cloudinary Direct Upload Engine
-async function uploadFileToCloudinary(fileInput) {
-    if (!fileInput || !fileInput.files[0]) return null;
-    const file = fileInput.files[0];
-
-    const cloudName = "redamsbd";          // আপনার আপডেট করা Cloud Name
-    const uploadPreset = "redams_preset"; // আপনার Unsigned Upload Preset
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", uploadPreset);
-
-    try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            console.error("Cloudinary Detailed Error:", data);
-            throw new Error(data.error ? data.error.message : "Cloudinary upload failed");
-        }
-
-        return data.secure_url;
-    } catch (err) {
-        console.error("Upload Error:", err);
-        throw new Error(err.message);
-    }
-}
-
-    // 5. DASHBOARD INIT & REALTIME LISTENERS
-    function initDashboard() {
-        switchTab('dashboard');
-
-        db.collection("products").onSnapshot(snapshot => {
-            allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderProductsTab();
-            renderInventoryTab();
-            updateStats();
-        });
-
-        db.collection("orders").onSnapshot(snapshot => {
-            allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderOrdersTab();
-            updateStats();
-        });
-
-        db.collection("promos").onSnapshot(snapshot => {
-            allPromos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderPromoTab();
-        });
-
-        db.collection("courier_shipments").onSnapshot(snapshot => {
-            allCourierShipments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderCourierTab();
-        });
-    }
-
-    // 6. PRODUCT MANAGEMENT
-    async function saveProduct(e) {
-        e.preventDefault();
-        const submitBtn = document.getElementById('save-product-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = '⏳ Uploading...';
-
-        try {
-            const editId = document.getElementById('product-edit-id').value;
-            const imgFile = document.getElementById('product-img-file');
-
-            let imageUrl = null;
-            if (imgFile.files[0]) {
-                imageUrl = await uploadFileToCloudinary(imgFile);
-            }
-
-            const productData = {
-                name: document.getElementById('product-name').value.trim(),
-                price: parseInt(document.getElementById('product-price').value),
-                originalPrice: document.getElementById('product-original-price').value ? parseInt(document.getElementById('product-original-price').value) : null,
-                category: document.getElementById('product-category').value,
-                description: document.getElementById('product-description').value,
-                isOutOfStock: document.getElementById('product-stock').value === "0",
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (imageUrl) productData.images = [imageUrl];
-
-            if (editId) {
-                await db.collection("products").doc(editId).update(productData);
-            } else {
-                productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                if (!imageUrl) productData.images = ["images/placeholder.jpg"];
-                await db.collection("products").add(productData);
-            }
-
-            Swal.fire({ icon: 'success', title: 'Saved!', text: 'প্রোডাক্ট লাইভ হয়েছে।' });
-            closeModal('product-modal');
-        } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'Save Product';
-        }
-    }
-
-    function renderProductsTab() {
-        const grid = document.getElementById('products-grid');
-        if (allProducts.length === 0) {
-            grid.innerHTML = '<p class="text-sm text-gray-500">কোনো প্রোডাক্ট নেই।</p>';
-            return;
-        }
-
-        grid.innerHTML = allProducts.map(p => {
-            const img = (p.images && p.images[0]) ? p.images[0] : 'images/placeholder.jpg';
-            return `
-                <div class="bg-white rounded-2xl p-3 md:p-4 card-shadow border border-gray-100 flex gap-3 items-center">
-                    <img src="${img}" class="w-16 h-20 object-cover rounded-xl border border-gray-100 shrink-0">
-                    <div class="flex-1 min-w-0">
-                        <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category}</span>
-                        <h3 class="font-black text-gray-900 text-xs md:text-sm mt-1 truncate">${p.name}</h3>
-                        <p class="text-xs font-bold text-gray-800 mt-1">৳${p.price}</p>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    async function deleteProduct(id) {
-        if (confirm("সত্যিই এই প্রোডাক্টটি ডিলিট করতে চান?")) {
-            await db.collection("products").doc(id).delete();
-        }
-    }
-
-    // 7. ORDERS & COURIER
-    function renderOrdersTab() {
-        const table = document.getElementById('orders-table');
-        if (allOrders.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td></tr>';
-            return;
-        }
-
-        table.innerHTML = allOrders.map(o => `
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-bold text-gray-900">#${o.id.substring(0, 6)}</td>
-                <td class="px-4 py-3">
-                    <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
-                    <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || 'N/A'}</p>
-                </td>
-                <td class="px-4 py-3 font-black text-gray-900">${o.TOTAL_BILL || o.amount || '৳0'}</td>
-                <td class="px-4 py-3">
-                    <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">${o.status || 'Pending'}</span>
-                </td>
-                <td class="px-4 py-3 flex items-center gap-2">
-                    <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1">
-                        <i class="fa-solid fa-truck-fast"></i> Courier
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function openCourierDispatchModal(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-
-        document.getElementById('courier-order-id').value = order.id;
-        document.getElementById('courier-cust-name').value = order.Customer_Name || order.customerName || '';
-        document.getElementById('courier-cust-phone').value = order.Customer_Phone || order.customerPhone || '';
-        document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
-        
-        let amountNum = order.TOTAL_BILL ? parseInt(order.TOTAL_BILL.replace(/[^0-9]/g, '')) : (order.amount || 0);
-        document.getElementById('courier-cod-amount').value = amountNum;
-
-        document.getElementById('courier-modal').classList.add('active');
-    }
-
-    async function dispatchCourierParcel(e) {
-        e.preventDefault();
-        const btn = document.getElementById('dispatch-btn');
-        btn.disabled = true;
-
-        const orderId = document.getElementById('courier-order-id').value;
-        const provider = document.getElementById('courier-provider').value;
-        const name = document.getElementById('courier-cust-name').value;
-        const phone = document.getElementById('courier-cust-phone').value;
-        const address = document.getElementById('courier-cust-address').value;
-        const cod = document.getElementById('courier-cod-amount').value;
-
-        const trackingCode = provider.toUpperCase() + "-" + Math.floor(100000 + Math.random() * 900000);
-
-        try {
-            await db.collection("courier_shipments").add({
-                orderId: orderId,
-                provider: provider.toUpperCase(),
-                trackingCode: trackingCode,
-                customerName: name,
-                customerPhone: phone,
-                address: address,
-                codAmount: cod,
-                status: 'In Transit',
-                bookedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            await db.collection("orders").doc(orderId).update({
-                status: 'Shipped',
-                trackingCode: trackingCode
-            });
-
-            Swal.fire({ icon: 'success', title: 'Parcel Booked!', text: `Tracking Code: ${trackingCode}` });
-            closeModal('courier-modal');
-        } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Booking Failed', text: err.message });
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
-    function renderCourierTab() {
-        const table = document.getElementById('courier-shipments-table');
-        if (allCourierShipments.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">কোনো বুকিং নেই।</td></tr>';
-            return;
-        }
-
-        table.innerHTML = allCourierShipments.map(s => `
-            <tr>
-                <td class="px-4 py-3 font-black text-purple-600">${s.trackingCode}</td>
-                <td class="px-4 py-3 font-bold">${s.customerName}</td>
-                <td class="px-4 py-3 uppercase text-xs">${s.provider}</td>
-                <td class="px-4 py-3 font-black">৳${s.codAmount}</td>
-                <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full font-bold">${s.status}</span></td>
-            </tr>
-        `).join('');
-    }
-
-    function renderInventoryTab() {
-        const table = document.getElementById('inventory-table');
-        table.innerHTML = allProducts.map(p => `
-            <tr>
-                <td class="px-4 py-3 font-bold text-gray-900">${p.name}</td>
-                <td class="px-4 py-3 text-xs uppercase">${p.category}</td>
-                <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs rounded-full font-bold ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}</span></td>
-                <td class="px-4 py-3"><button onclick="toggleStockStatus('${p.id}', ${!p.isOutOfStock})" class="px-2.5 py-1 bg-gray-900 text-white text-xs rounded-lg">Toggle</button></td>
-            </tr>
-        `).join('');
-    }
-
-    async function toggleStockStatus(id, newStatus) {
-        await db.collection("products").doc(id).update({ isOutOfStock: newStatus });
-    }
-
-    async function savePromo() {
-        const code = document.getElementById('promo-code').value.trim().toUpperCase();
-        const type = document.getElementById('promo-type').value;
-        const val = parseInt(document.getElementById('promo-value').value) || 0;
-
-        if (!code) return;
-
-        await db.collection("promos").doc(code).set({
-            code: code,
-            type: type,
-            value: val,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        Swal.fire({ icon: 'success', title: 'Promo Created!' });
-        closeModal('promo-modal');
-    }
-
-    function renderPromoTab() {
-        const table = document.getElementById('promo-table');
-        table.innerHTML = allPromos.map(p => `
-            <tr>
-                <td class="px-4 py-3 font-black text-red-600">${p.code}</td>
-                <td class="px-4 py-3 font-bold text-xs uppercase">${p.type}</td>
-                <td class="px-4 py-3 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
-                <td class="px-4 py-3"><button onclick="deletePromo('${p.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
-            </tr>
-        `).join('');
-    }
-
-    async function deletePromo(id) {
-        await db.collection("promos").doc(id).delete();
-    }
-
-    function updateStats() {
-        document.getElementById('stat-revenue').innerText = allOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
-        document.getElementById('stat-orders').innerText = allOrders.length;
-        document.getElementById('stat-pending').innerText = allOrders.filter(o => o.status === 'Pending').length;
-        document.getElementById('stat-outofstock').innerText = allProducts.filter(p => p.isOutOfStock).length;
-    }
-</script>
+<!-- EXTERNAL JAVASCRIPT LINK -->
+<script src="admin.js"></script>
 
 </body>
 </html>
