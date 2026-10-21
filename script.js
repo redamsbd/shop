@@ -1503,3 +1503,77 @@ const azzCampaignSwiper = new Swiper('.azz-campaign-swiper', {
         }
     }
 });
+// REDAMS Universal Product Finder & Event Binder
+window.findProductById = function(id) {
+    if (!window.allProducts) return null;
+    // == ব্যবহার করা হয়েছে যাতে String (Firestore ID) এবং Number (JSON ID) দুটোই কাজ করে
+    return window.allProducts.find(p => p.id == id);
+};
+
+// Quick View Modal খোলার ফিক্সড ফাংশন
+window.openModal = function(id) {
+    const product = window.findProductById(id);
+    if (!product) {
+        console.error("Product not found for ID:", id);
+        return;
+    }
+
+    const modalContent = document.getElementById('modal-content');
+    const modal = document.getElementById('product-modal');
+    if (!modal || !modalContent) return;
+
+    // ইমেজ চেক
+    const mainImg = (product.images && product.images[0]) ? product.images[0] : 'images/placeholder.jpg';
+    
+    // সাইজ অপশন রেন্ডার
+    let sizeOptionsHtml = '';
+    if (Array.isArray(product.sizes)) {
+        sizeOptionsHtml = product.sizes.map(s => `
+            <button onclick="selectModalSize(this, '${s.name}')" 
+                class="px-3.5 py-2 border rounded-xl font-black text-xs transition ${s.available ? 'border-zinc-300 hover:border-black text-black' : 'disabled-size-option text-gray-300'}"
+                ${!s.available ? 'disabled' : ''}>
+                ${s.name}
+            </button>
+        `).join('');
+    }
+
+    modalContent.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div>
+                <img src="${mainImg}" class="w-full h-auto rounded-2xl object-cover border border-gray-100">
+            </div>
+            <div class="space-y-4">
+                <span class="text-[10px] font-black uppercase text-red-600 bg-red-50 px-3 py-1 rounded-full">${product.category}</span>
+                <h2 class="text-2xl font-black text-gray-900 uppercase">${product.name}</h2>
+                <div class="text-xl font-black text-red-600">
+                    ৳${product.price} ${product.originalPrice ? `<span class="line-through text-gray-400 text-sm font-normal ml-2">৳${product.originalPrice}</span>` : ''}
+                </div>
+                <div class="text-xs text-gray-600 leading-relaxed border-y border-gray-100 py-3">
+                    ${product.description || 'No description available.'}
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-gray-700 mb-2">Select Size:</label>
+                    <div class="flex flex-wrap gap-2" id="modal-size-container">
+                        ${sizeOptionsHtml}
+                    </div>
+                </div>
+                <button onclick="addToCartFromModal('${product.id}')" class="w-full bg-black text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition shadow-lg mt-4">
+                    Add To Bag
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+// মডাল ক্লোজ ফাংশন
+window.closeModal = function() {
+    const modal = document.getElementById('product-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
