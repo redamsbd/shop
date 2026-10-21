@@ -275,33 +275,42 @@
 </div>
 
 <!-- ================= MODALS SECTION ================= -->
-
-<!-- Product Modal -->
+<!-- ULTRA-PREMIUM PRODUCT MANAGEMENT MODAL -->
 <div id="product-modal" class="modal-overlay">
-    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl custom-scrollbar">
-        <h2 class="text-xl font-black mb-4 text-gray-900" id="product-form-title">Add New Product</h2>
-        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-3xl w-full mx-4 max-h-[92vh] overflow-y-auto shadow-2xl custom-scrollbar">
+        <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">Catalog Engine</span>
+                <h2 class="text-2xl font-black text-gray-900 mt-1" id="product-form-title">Add New Product</h2>
+            </div>
+            <button onclick="closeModal('product-modal')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-black hover:text-white text-gray-500 font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-5">
             <input type="hidden" id="product-edit-id">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
-                    <input type="text" id="product-name" required placeholder="Spider Man-02" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+
+            <!-- Title & Pricing -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Product Title</label>
+                    <input type="text" id="product-name" required placeholder="e.g. Spider Man-02" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Price (৳)</label>
-                    <input type="number" id="product-price" required placeholder="490" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Price (৳)</label>
+                    <input type="number" id="product-price" required placeholder="490" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Original Price (৳)</label>
-                    <input type="number" id="product-original-price" placeholder="560" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Original Price (৳)</label>
+                    <input type="number" id="product-original-price" placeholder="560" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
                 </div>
-                
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
-                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Category Selector</label>
+                    <select id="product-category" onchange="handleCategoryChange()" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
                         <option value="drop-shoulder">Drop Shoulder</option>
                         <option value="acid-wash">Acid Wash</option>
                         <option value="regular-tshirt">Regular T-Shirt</option>
@@ -312,38 +321,116 @@
                         <option value="combo">Combo Offer</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Description (HTML Formatting Supported)</label>
-                    <textarea id="product-description" placeholder="<b>Fabric:</b> Premium Organic 100% Cotton...<br><b>Style:</b> Streetwear..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold h-24"></textarea>
-                </div>
+            <!-- SEO & Description -->
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">SEO Alt Text</label>
+                <input type="text" id="product-alt-text" placeholder="e.g. REDAMS Special Streetwear Drop Shoulder T-Shirt BD" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
+            </div>
 
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Product Description (HTML Supported)</label>
+                <textarea id="product-description" placeholder="<b>Fabric:</b> Premium Organic Cotton...<br><b>Fit:</b> Oversized Drop Shoulder..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-medium text-gray-900 h-24 focus:border-black transition resize-none"></textarea>
+            </div>
+
+            <!-- DYNAMIC SECTION: STANDARD T-SHIRT CONFIGURATION -->
+            <div id="standard-options-container" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Colors (Comma Separated)</label>
-                    <input type="text" id="product-colors" placeholder="Black, White, Olive" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Available Colors (Comma Separated)</label>
+                    <input type="text" id="product-colors" placeholder="Black, White, Navy Blue" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Main Image URL</label>
-                    <input type="text" id="product-image-url" placeholder="images/spider-01.jpg" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                </div>
-
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Overall Stock Status</label>
-                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
-                        <option value="1">✓ In Stock</option>
-                        <option value="0">✗ Out of Stock</option>
-                    </select>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-black uppercase text-gray-800 mb-2">Available Sizes Configuration</label>
+                    <div class="flex flex-wrap gap-4 text-xs font-bold text-gray-700">
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="size-S" checked class="w-4 h-4 accent-red-600 rounded"> S</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="size-M" checked class="w-4 h-4 accent-red-600 rounded"> M</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="size-L" checked class="w-4 h-4 accent-red-600 rounded"> L</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="size-XL" checked class="w-4 h-4 accent-red-600 rounded"> XL</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="size-XXL" checked class="w-4 h-4 accent-red-600 rounded"> XXL</label>
+                    </div>
                 </div>
             </div>
-            
-            <div class="flex gap-3 mt-4">
-                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold text-xs hover:bg-red-700 transition">Save Product & Publish</button>
-                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold text-xs hover:bg-gray-300 transition">Cancel</button>
+
+            <!-- DYNAMIC SECTION: COUPLE T-SHIRT CONFIGURATION -->
+            <div id="couple-options-container" class="space-y-4 hidden bg-red-50/40 p-5 rounded-2xl border border-red-200">
+                <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-100 px-3 py-1 rounded-full">Couple Collection Engine</span>
+
+                <!-- Partner 1 -->
+                <div class="bg-white p-4 rounded-xl border border-red-100 space-y-3">
+                    <h4 class="text-xs font-black uppercase text-black">Partner 1 Options</h4>
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Colors (Comma Separated)</label>
+                        <input type="text" id="partner1-colors" placeholder="Black, White" class="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Sizes</label>
+                        <div class="flex gap-3 text-xs font-bold text-gray-700">
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p1-size-S" checked class="accent-red-600"> S</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p1-size-M" checked class="accent-red-600"> M</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p1-size-L" checked class="accent-red-600"> L</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p1-size-XL" checked class="accent-red-600"> XL</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p1-size-XXL" checked class="accent-red-600"> XXL</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partner 2 -->
+                <div class="bg-white p-4 rounded-xl border border-red-100 space-y-3">
+                    <h4 class="text-xs font-black uppercase text-black">Partner 2 Options</h4>
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Colors (Comma Separated)</label>
+                        <input type="text" id="partner2-colors" placeholder="White, Black" class="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1">Sizes</label>
+                        <div class="flex gap-3 text-xs font-bold text-gray-700">
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p2-size-S" checked class="accent-red-600"> S</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p2-size-M" checked class="accent-red-600"> M</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p2-size-L" checked class="accent-red-600"> L</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p2-size-XL" checked class="accent-red-600"> XL</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="p2-size-XXL" checked class="accent-red-600"> XXL</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MULTIPLE IMAGE UPLOAD SECTION -->
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+                <label class="block text-xs font-black text-gray-800 uppercase">📸 Product Images (Multiple Upload Supported)</label>
+                <input type="file" id="product-img-files" accept="image/*" multiple class="w-full text-xs text-gray-500">
+                <p class="text-[10px] text-gray-400 font-medium">Select front, back, and size chart images together.</p>
+                
+                <!-- Existing Images Container (For Product Edit Mode) -->
+                <div id="existing-images-preview" class="hidden pt-2 border-t border-gray-200">
+                    <span class="text-[10px] font-bold uppercase text-gray-400 block mb-2">Current Saved Images:</span>
+                    <div id="existing-images-list" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            <!-- Stock Status -->
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Overall Stock Status</label>
+                <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-xs font-bold text-gray-900 focus:border-black transition">
+                    <option value="1">✓ In Stock</option>
+                    <option value="0">✗ Out of Stock</option>
+                </select>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit" id="save-product-btn" class="flex-1 bg-black hover:bg-red-600 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition shadow-lg">
+                    Save Product & Publish ↘
+                </button>
+                <button type="button" onclick="closeModal('product-modal')" class="bg-gray-200 hover:bg-gray-300 text-black py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition">
+                    Cancel
+                </button>
             </div>
         </form>
     </div>
 </div>
+
 
 <!-- Change Password Modal -->
 <div id="change-password-modal" class="modal-overlay">
