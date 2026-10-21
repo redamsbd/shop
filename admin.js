@@ -28,6 +28,7 @@ let allOrders = [];
 let allPromos = [];
 let allCourierShipments = [];
 let allReviews = [];
+let currentEditImages = [];
 
 // Mobile Drawer Toggle (Left-aligned Sidebar)
 function toggleMobileSidebar() {
@@ -134,6 +135,12 @@ function openAddProductModal() {
     if (form) form.reset();
     document.getElementById('product-edit-id').value = '';
     document.getElementById('product-form-title').innerText = 'Add New Product';
+    
+    currentEditImages = [];
+    const previewContainer = document.getElementById('existing-images-preview');
+    if (previewContainer) previewContainer.classList.add('hidden');
+
+    handleCategoryChange();
     document.getElementById('product-modal').classList.add('active');
 }
 
@@ -147,30 +154,49 @@ function openAddPromoModal() {
     if (promoModal) promoModal.classList.add('active'); 
 }
 
-// 5. CLOUDINARY DIRECT FILE UPLOADER ENGINE
-async function uploadFileToCloudinary(fileInput) {
-    if (!fileInput || !fileInput.files[0]) return null;
-    const file = fileInput.files[0];
+// 5. CLOUDINARY MULTI-FILE UPLOADER ENGINE
+async function uploadMultipleFilesToCloudinary(fileInput) {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return [];
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    const files = Array.from(fileInput.files);
+    const uploadPromises = files.map(file => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-        method: "POST",
-        body: formData
+        return fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.secure_url) return data.secure_url;
+            throw new Error(data.error ? data.error.message : "Image upload failed");
+        });
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ? data.error.message : "Cloudinary upload failed");
-    return data.secure_url;
+    return await Promise.all(uploadPromises);
+}
+
+// Dynamic Category Toggle (Couple T-Shirt vs Standard Fields)
+function handleCategoryChange() {
+    const category = document.getElementById('product-category')?.value;
+    const stdContainer = document.getElementById('standard-options-container');
+    const coupleContainer = document.getElementById('couple-options-container');
+
+    if (category === 'couple-tshirt') {
+        if (stdContainer) stdContainer.classList.add('hidden');
+        if (coupleContainer) coupleContainer.classList.remove('hidden');
+    } else {
+        if (stdContainer) stdContainer.classList.remove('hidden');
+        if (coupleContainer) coupleContainer.classList.add('hidden');
+    }
 }
 
 // 6. REALTIME LISTENERS & DASHBOARD INIT
 function initDashboard() {
     switchTab('dashboard');
 
-    // Realtime Products Listener
     db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
         allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderProductsTab();
@@ -178,92 +204,105 @@ function initDashboard() {
         updateStats();
     }, err => console.log("Products Sync Warning:", err));
 
-    // Realtime Orders Listener
     db.collection("orders").orderBy("createdAt", "desc").onSnapshot(snapshot => {
         allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderOrdersTab();
         updateStats();
     }, err => console.log("Orders Sync Warning:", err));
 
-    // Realtime Promos Listener
     db.collection("promos").onSnapshot(snapshot => {
         allPromos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderPromoTab();
     }, err => console.log("Promos Sync Warning:", err));
 
-    // Realtime Courier Shipments Listener
     db.collection("courier_shipments").onSnapshot(snapshot => {
         allCourierShipments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderCourierTab();
     }, err => console.log("Courier Sync Warning:", err));
 
-    // Realtime Customer Reviews Listener
     initAdminReviewManager();
 }
 
-// 7. SAVE & PUBLISH PRODUCT (Matches REDAMS Schema)
+// 7. SAVE & PUBLISH PRODUCT (Full Schema Matching products.json)
 async function saveProduct(e) {
     e.preventDefault();
     const submitBtn = document.getElementById('save-product-btn');
-    submitBtn.disabled = true;
-    submitBtn.innerText = '⏳ Uploading to Cloud...';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = '⏳ UPLOADING IMAGES & SAVING...';
+    }
 
     try {
-        const editId = document.getElementById('product-edit-id').value;
-        const imgFile = document.getElementById('product-img-file');
-        const chartFile = document.getElementById('size-chart-file');
+        const editId = document.getElementById('product-edit-id')?.value;
+        const fileInput = document.getElementById('product-img-files');
+        const category = document.getElementById('product-category')?.value;
 
-        let imageUrl = null;
-        let chartUrl = null;
+        const newlyUploadedUrls = await uploadMultipleFilesToCloudinary(fileInput);
 
-        if (imgFile && imgFile.files[0]) {
-            imageUrl = await uploadFileToCloudinary(imgFile);
+        let finalImages = [...currentEditImages, ...newlyUploadedUrls];
+        if (finalImages.length === 0) {
+            finalImages = ["images/placeholder.jpg"];
         }
-        if (chartFile && chartFile.files[0]) {
-            chartUrl = await uploadFileToCloudinary(chartFile);
-        }
-
-        const sizesConfig = [
-            { name: "S", available: document.getElementById('size-S')?.checked ?? true },
-            { name: "M", available: document.getElementById('size-M')?.checked ?? true },
-            { name: "L", available: document.getElementById('size-L')?.checked ?? true },
-            { name: "XL", available: document.getElementById('size-XL')?.checked ?? true },
-            { name: "XXL", available: document.getElementById('size-XXL')?.checked ?? true }
-        ];
-
-        const colorsArr = document.getElementById('product-colors').value
-            ? document.getElementById('product-colors').value.split(',').map(s => s.trim()).filter(Boolean)
-            : ["Black"];
 
         const productData = {
             name: document.getElementById('product-name').value.trim(),
             price: parseInt(document.getElementById('product-price').value),
             originalPrice: document.getElementById('product-original-price').value ? parseInt(document.getElementById('product-original-price').value) : null,
-            category: document.getElementById('product-category').value,
+            category: category,
             description: document.getElementById('product-description').value,
-            altText: document.getElementById('product-alt-text').value || document.getElementById('product-name').value,
-            colors: colorsArr,
-            sizes: sizesConfig,
+            altText: document.getElementById('product-alt-text').value.trim() || document.getElementById('product-name').value.trim(),
+            images: finalImages,
             isOutOfStock: document.getElementById('product-stock').value === "0",
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        const imagesArr = [];
-        if (imageUrl) imagesArr.push(imageUrl);
-        if (chartUrl) imagesArr.push(chartUrl);
+        if (category === 'couple-tshirt') {
+            const p1Colors = document.getElementById('partner1-colors').value
+                ? document.getElementById('partner1-colors').value.split(',').map(s => s.trim()).filter(Boolean)
+                : ["Black"];
+            const p2Colors = document.getElementById('partner2-colors').value
+                ? document.getElementById('partner2-colors').value.split(',').map(s => s.trim()).filter(Boolean)
+                : ["White"];
 
-        if (imagesArr.length > 0) {
-            productData.images = imagesArr;
+            productData.colors = { partner1: p1Colors, partner2: p2Colors };
+            productData.sizes = {
+                partner1: [
+                    { name: "S", available: document.getElementById('p1-size-S')?.checked ?? true },
+                    { name: "M", available: document.getElementById('p1-size-M')?.checked ?? true },
+                    { name: "L", available: document.getElementById('p1-size-L')?.checked ?? true },
+                    { name: "XL", available: document.getElementById('p1-size-XL')?.checked ?? true },
+                    { name: "XXL", available: document.getElementById('p1-size-XXL')?.checked ?? true }
+                ],
+                partner2: [
+                    { name: "S", available: document.getElementById('p2-size-S')?.checked ?? true },
+                    { name: "M", available: document.getElementById('p2-size-M')?.checked ?? true },
+                    { name: "L", available: document.getElementById('p2-size-L')?.checked ?? true },
+                    { name: "XL", available: document.getElementById('p2-size-XL')?.checked ?? true },
+                    { name: "XXL", available: document.getElementById('p2-size-XXL')?.checked ?? true }
+                ]
+            };
+        } else {
+            const colorsArr = document.getElementById('product-colors').value
+                ? document.getElementById('product-colors').value.split(',').map(s => s.trim()).filter(Boolean)
+                : ["Black"];
+
+            productData.colors = colorsArr;
+            productData.sizes = [
+                { name: "S", available: document.getElementById('size-S')?.checked ?? true },
+                { name: "M", available: document.getElementById('size-M')?.checked ?? true },
+                { name: "L", available: document.getElementById('size-L')?.checked ?? true },
+                { name: "XL", available: document.getElementById('size-XL')?.checked ?? true },
+                { name: "XXL", available: document.getElementById('size-XXL')?.checked ?? true }
+            ];
         }
 
         if (editId) {
             await db.collection("products").doc(editId).update(productData);
-            Swal.fire({ icon: 'success', title: 'Product Updated!', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'PRODUCT UPDATED!', timer: 1500, showConfirmButton: false });
         } else {
             productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            if (!imageUrl) productData.images = ["images/placeholder.jpg"];
             await db.collection("products").add(productData);
-            Swal.fire({ icon: 'success', title: 'Product Published Live!', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'PRODUCT PUBLISHED!', timer: 1500, showConfirmButton: false });
         }
 
         closeModal('product-modal');
@@ -271,12 +310,14 @@ async function saveProduct(e) {
         console.error(err);
         Swal.fire({ icon: 'error', title: 'Upload Failed', text: err.message });
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Save Product & Publish';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Save Product & Publish ↘";
+        }
     }
 }
 
-// RENDER & EDIT PRODUCTS
+// Render Products in Admin Catalog Grid
 function renderProductsTab() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
@@ -312,8 +353,9 @@ function renderProductsTab() {
     }).join('');
 }
 
+// Edit Product Handler
 function editProduct(id) {
-    const product = allProducts.find(p => p.id === id);
+    const product = allProducts.find(p => p.id === id || String(p.id) === String(id));
     if (!product) return;
 
     document.getElementById('product-edit-id').value = product.id;
@@ -322,20 +364,70 @@ function editProduct(id) {
     document.getElementById('product-original-price').value = product.originalPrice || '';
     document.getElementById('product-category').value = product.category || 'drop-shoulder';
     document.getElementById('product-description').value = product.description || '';
-    document.getElementById('product-colors').value = Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors || '');
     document.getElementById('product-alt-text').value = product.altText || '';
     document.getElementById('product-stock').value = product.isOutOfStock ? "0" : "1";
 
-    if (Array.isArray(product.sizes)) {
-        ['S', 'M', 'L', 'XL', 'XXL'].forEach(size => {
-            const sizeObj = product.sizes.find(s => s.name === size);
-            const chk = document.getElementById(`size-${size}`);
-            if (chk) chk.checked = sizeObj ? sizeObj.available : false;
-        });
+    currentEditImages = Array.isArray(product.images) ? [...product.images] : [];
+    const previewContainer = document.getElementById('existing-images-preview');
+    const imagesList = document.getElementById('existing-images-list');
+
+    if (currentEditImages.length > 0 && previewContainer && imagesList) {
+        previewContainer.classList.remove('hidden');
+        imagesList.innerHTML = currentEditImages.map((img, idx) => `
+            <div class="relative group">
+                <img src="${img}" class="w-12 h-14 object-cover rounded-lg border border-gray-200">
+                <button type="button" onclick="removeExistingImage(${idx})" class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 text-[9px] font-bold flex items-center justify-center shadow">&times;</button>
+            </div>
+        `).join('');
+    } else if (previewContainer) {
+        previewContainer.classList.add('hidden');
+    }
+
+    handleCategoryChange();
+
+    if (product.category === 'couple-tshirt') {
+        if (product.colors && typeof product.colors === 'object') {
+            document.getElementById('partner1-colors').value = Array.isArray(product.colors.partner1) ? product.colors.partner1.join(', ') : '';
+            document.getElementById('partner2-colors').value = Array.isArray(product.colors.partner2) ? product.colors.partner2.join(', ') : '';
+        }
+
+        if (product.sizes && typeof product.sizes === 'object') {
+            ['S', 'M', 'L', 'XL', 'XXL'].forEach(sz => {
+                const p1Size = Array.isArray(product.sizes.partner1) ? product.sizes.partner1.find(s => s.name === sz) : null;
+                const p2Size = Array.isArray(product.sizes.partner2) ? product.sizes.partner2.find(s => s.name === sz) : null;
+                const chkP1 = document.getElementById(`p1-size-${sz}`);
+                const chkP2 = document.getElementById(`p2-size-${sz}`);
+                if (chkP1) chkP1.checked = p1Size ? p1Size.available : false;
+                if (chkP2) chkP2.checked = p2Size ? p2Size.available : false;
+            });
+        }
+    } else {
+        document.getElementById('product-colors').value = Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors || '');
+
+        if (Array.isArray(product.sizes)) {
+            ['S', 'M', 'L', 'XL', 'XXL'].forEach(sz => {
+                const sizeObj = product.sizes.find(s => s.name === sz);
+                const chk = document.getElementById(`size-${sz}`);
+                if (chk) chk.checked = sizeObj ? sizeObj.available : false;
+            });
+        }
     }
 
     document.getElementById('product-form-title').innerText = 'Edit Product Details';
     document.getElementById('product-modal').classList.add('active');
+}
+
+function removeExistingImage(index) {
+    currentEditImages.splice(index, 1);
+    const imagesList = document.getElementById('existing-images-list');
+    if (imagesList) {
+        imagesList.innerHTML = currentEditImages.map((img, idx) => `
+            <div class="relative group">
+                <img src="${img}" class="w-12 h-14 object-cover rounded-lg border border-gray-200">
+                <button type="button" onclick="removeExistingImage(${idx})" class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 text-[9px] font-bold flex items-center justify-center shadow">&times;</button>
+            </div>
+        `).join('');
+    }
 }
 
 async function deleteProduct(id) {
@@ -525,7 +617,7 @@ function renderInventoryTab() {
                 </button>
             `).join('');
         } else {
-            sizesHtml = '<span class="text-xs text-gray-400">Standard Sizes</span>';
+            sizesHtml = '<span class="text-xs text-gray-400">Couple Special Sizes</span>';
         }
 
         return `
