@@ -1,17 +1,17 @@
 // =================================================================
-// REDAMS Master Frontend Script Engine (script.js)
+// REDAMS Master Engine (script.js) - Fixed Layout, Measurements & Category Routing
 // =================================================================
 
-// ===== গ্লোবাল ভেরিয়েবল =====
-window.allProducts = window.allProducts || [];
+window.allProducts = [];
+window.localJsonProducts = [];
+window.firebaseProducts = [];
+
 let cart = JSON.parse(localStorage.getItem('redams_cart')) || [];
 
 let selectedSize = '';
 let selectedColor = '';
-let selectedSizeP1 = '';
-let selectedSizeP2 = '';
-let selectedColorP1 = '';
-let selectedColorP2 = '';
+let selectedSizeP1 = '', selectedSizeP2 = '';
+let selectedColorP1 = '', selectedColorP2 = '';
 
 let modalQty = 1;
 let isPaymentVerified = false;
@@ -32,16 +32,15 @@ const promoList = {
     "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
 };
 
-// ===== কার্ট লোকাল স্টোরেজে সেভ করা =====
+// ===== কার্ট ডাটা লোকালস্টোরেজে সেভ =====
 function saveCartToStorage() {
     localStorage.setItem('redams_cart', JSON.stringify(cart));
 }
 
-// ===== ইউনিভার্সাল প্রোডাক্ট ফাইন্ডার (String/Number ID Safety) =====
+// ===== ইউনিভার্সাল আইডি ফাইন্ডার (String & Number ID Safety) =====
 window.findProductById = function(id) {
-    const list = (window.allProducts && window.allProducts.length > 0) ? window.allProducts : [];
-    if (!list || list.length === 0) return null;
-    return list.find(p => String(p.id) === String(id));
+    if (!window.allProducts || window.allProducts.length === 0) return null;
+    return window.allProducts.find(p => String(p.id) === String(id));
 };
 
 // ===== URL থেকে ক্যাটাগরি বের করা =====
@@ -50,69 +49,64 @@ function getCategoryFromURL() {
     return params.get('cat');
 }
 
-// ===== প্রোডাক্ট লোড এবং মাস্টার সিঙ্ক =====
-function loadProducts() {
-    fetch('products.json')
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to load products.json');
-            return res.json();
-        })
-        .then(data => {
-            window.localJsonProducts = data || [];
-            if (typeof syncAndRenderAllProducts === 'function') {
-                syncAndRenderAllProducts();
-            } else {
-                window.allProducts = data;
-                renderProducts(window.allProducts);
-            }
-        })
-        .catch(err => console.error("JSON Load Warning:", err));
-}
+// =================================================================
+// 1. MASTER HYBRID DATA SYNC & CATEGORY ROUTING ENGINE
+// =================================================================
+window.syncAndRenderAllProducts = function() {
+    // ফায়ারবেজ ও লোকাল জেসনের প্রোডাক্ট সিঙ্ক করা (ডুপ্লিকেট রিমুভ সহ)
+    const combinedMap = new Map();
+    
+    [...window.firebaseProducts, ...window.localJsonProducts].forEach(item => {
+        if (item && item.id && !combinedMap.has(String(item.id))) {
+            combinedMap.set(String(item.id), item);
+        }
+    });
 
-// ===== মোবাইল মেনু টগল =====
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    const overlay = document.getElementById('menu-overlay');
-    if (!menu || !overlay) return;
+    window.allProducts = Array.from(combinedMap.values());
+    
+    const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
+    const selectedCat = getCategoryFromURL();
 
-    if (menu.classList.contains('-translate-x-full')) {
-        menu.classList.remove('-translate-x-full');
-        menu.classList.add('translate-x-0');
-        overlay.classList.add('active');
+    if (isShopPage) {
+        if (selectedCat) {
+            filterCategory(selectedCat);
+        } else {
+            renderProducts(window.allProducts);
+        }
     } else {
-        menu.classList.remove('translate-x-0');
-        menu.classList.add('-translate-x-full');
-        overlay.classList.remove('active');
+        // index.html এর জন্য ৩ডি হ্যাঙ্গার স্লাইডার ও মেইন গ্রিড রেন্ডার
+        renderNewArrivals(window.allProducts);
+        renderProducts(window.allProducts);
     }
-}
+};
 
-// ===== কালার এবং সাইজ সিলেকশন ফাংশন =====
-function selectFeature(type, val, el) {
-    const buttons = el.parentElement.getElementsByTagName('button');
-    for (let btn of buttons) {
-        btn.classList.remove('bg-black', 'text-white', 'border-black');
-        btn.classList.add('border-gray-100');
+// ===== ক্যাটাগরি ফিল্টারিং ফাংশন =====
+window.filterCategory = function(catName) {
+    if (!catName || catName === 'all') {
+        renderProducts(window.allProducts);
+        updateCategoryHeading("ALL PRODUCTS");
+        return;
     }
-    el.classList.add('bg-black', 'text-white', 'border-black');
-    el.classList.remove('border-gray-100');
 
-    if (type === 'size') selectedSize = val;
-    else if (type === 'color') selectedColor = val;
-    else if (type === 'size-p1') selectedSizeP1 = val;
-    else if (type === 'size-p2') selectedSizeP2 = val;
-    else if (type === 'color-p1') selectedColorP1 = val;
-    else if (type === 'color-p2') selectedColorP2 = val;
-}
+    const filtered = window.allProducts.filter(p => 
+        p.category && p.category.trim().toLowerCase() === catName.trim().toLowerCase()
+    );
 
-// ===== কোয়ান্টিটি আপডেট =====
-function updateQty(val) {
-    modalQty = Math.max(1, modalQty + val);
-    const qtyElement = document.getElementById('modal-qty');
-    if (qtyElement) qtyElement.innerText = modalQty;
+    renderProducts(filtered);
+    
+    const formattedTitle = catName.replace(/-/g, ' ').toUpperCase() + ' COLLECTION';
+    updateCategoryHeading(formattedTitle);
+};
+
+function updateCategoryHeading(titleText) {
+    const headingEl = document.querySelector('h2.text-3xl, h2.text-2xl, #category-title');
+    if (headingEl) {
+        headingEl.innerText = titleText;
+    }
 }
 
 // =================================================================
-// 1. MAIN CATALOG GRID RENDERER (#product-grid)
+// 2. MAIN CATALOG GRID RENDERER (Exact 4:5 Measurement Restored)
 // =================================================================
 window.renderProducts = function(productsToRender) {
     const grid = document.getElementById('product-grid');
@@ -120,8 +114,8 @@ window.renderProducts = function(productsToRender) {
 
     const items = productsToRender || window.allProducts || [];
     
-    if (!items || items.length === 0) {
-        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-10 font-bold uppercase tracking-widest text-xs">কোনো প্রোডাক্ট পাওয়া যায়নি।</p>';
+    if (items.length === 0) {
+        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12 font-bold uppercase tracking-widest text-xs">এই ক্যাটাগরিতে কোনো প্রোডাক্ট পাওয়া যায়নি।</p>';
         return;
     }
 
@@ -133,30 +127,30 @@ window.renderProducts = function(productsToRender) {
         const isOutOfStock = p.isOutOfStock === true;
 
         return `
-            <div class="bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-2xl transition duration-500 cursor-pointer group relative ${isOutOfStock ? 'opacity-60' : ''}">
-                ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md">-${discPer}% OFF</div>` : ''}
+            <div class="product-card group relative bg-white rounded-2xl p-3 border border-gray-100 shadow-sm transition hover:shadow-xl ${isOutOfStock ? 'product-card-out' : ''}">
+                ${hasDiscount ? `<div class="absolute top-5 left-5 z-10 bg-red-600 text-white text-[9px] font-black px-2.5 py-1 rounded-md shadow-sm">-${discPer}% OFF</div>` : ''}
                 
-                ${isOutOfStock ? `<div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center z-20 top-3 left-3 right-3 bottom-3">
-                    <span class="bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-full border border-white/20">Out of Stock</span>
+                ${isOutOfStock ? `<div class="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center z-20 top-3 left-3 right-3 bottom-3 backdrop-blur-[2px]">
+                    <span class="premium-out-badge">OUT OF STOCK</span>
                 </div>` : ''}
                 
-                <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-gray-50" onclick="${isOutOfStock ? 'return false;' : `openModal('${p.id}')`}">
-                    <img src="${firstImage}" class="w-full h-full object-cover ${isOutOfStock ? '' : 'group-hover:scale-110'} transition duration-700" alt="${p.altText || p.name}">
+                <div class="relative overflow-hidden rounded-xl aspect-[4/5] bg-gray-50 mb-3" onclick="${isOutOfStock ? 'return false;' : `openModal('${p.id}')`}">
+                    <img src="${firstImage}" class="w-full h-full object-cover ${isOutOfStock ? 'product-img-blur' : 'group-hover:scale-105'} transition duration-700" alt="${p.altText || p.name}">
+                    
+                    ${!isOutOfStock ? `
+                        <button onclick="openModal('${p.id}')" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition duration-300 shadow-md hover:bg-black hover:text-white">
+                            Quick View
+                        </button>
+                    ` : ''}
                 </div>
 
-                <div class="p-3 text-center">
-                    <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category || 'Apparel'}</span>
-                    <h3 class="font-bold text-gray-800 text-[11px] uppercase tracking-tighter mb-1 line-clamp-2 mt-1.5">${p.name}</h3>
-                    <div class="flex items-center justify-center gap-2 mb-3">
-                        <span class="font-black text-black text-sm">৳ ${p.price}</span>
-                        ${hasDiscount ? `<span class="text-gray-400 text-[10px] line-through">৳ ${p.originalPrice}</span>` : ''}
+                <div class="space-y-1 text-left">
+                    <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">${p.category || 'Apparel'}</span>
+                    <h3 class="font-bold text-gray-900 text-xs truncate mt-1">${p.name}</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="font-black text-gray-900 text-xs">৳${p.price}</span>
+                        ${hasDiscount ? `<span class="line-through text-gray-400 text-[10px]">৳${p.originalPrice}</span>` : ''}
                     </div>
-                    
-                    <button onclick="${isOutOfStock ? 'alert(\"This product is out of stock\"); return false;' : `openModal('${p.id}')`}" 
-                            class="w-full ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-red-600'} text-white py-2 rounded-xl font-black uppercase text-[10px] mt-1 transition"
-                            ${isOutOfStock ? 'disabled' : ''}>
-                        ${isOutOfStock ? 'Out of Stock' : 'Quick View ↘'}
-                    </button>
                 </div>
             </div>`;
     }).join('');
@@ -165,7 +159,7 @@ window.renderProducts = function(productsToRender) {
 window.displayProducts = window.renderProducts;
 
 // =================================================================
-// 2. 3D CURVED RACK NEW ARRIVALS RENDER FUNCTION
+// 3. 3D BOUTIQUE HANGER RACK RENDERER
 // =================================================================
 let hangerSwiperInstance = null;
 
@@ -196,7 +190,7 @@ window.renderNewArrivals = function(products) {
                         </svg>
                     </div>
 
-                    <div class="w-44 md:w-50 aspect-[3/4] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
+                    <div class="w-44 md:w-50 aspect-[4/5] relative z-10 rounded-2xl overflow-hidden border border-zinc-200 bg-white shadow-[0_15px_30px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_20px_40px_rgba(220,38,38,0.2)] group-hover:border-red-500/40">
                         <img src="${imgSrc}" alt="${p.name}" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-30"></div>
                         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-zinc-900 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
@@ -258,8 +252,25 @@ window.renderNewArrivals = function(products) {
 };
 
 // =================================================================
-// 3. FULL-FEATURED QUICK VIEW MODAL ENGINE
+// 4. QUICK VIEW MODAL (Couple Options & Size Chart Support)
 // =================================================================
+function selectFeature(type, val, el) {
+    const buttons = el.parentElement.getElementsByTagName('button');
+    for (let btn of buttons) {
+        btn.classList.remove('bg-black', 'text-white', 'border-black');
+        btn.classList.add('border-gray-100');
+    }
+    el.classList.add('bg-black', 'text-white', 'border-black');
+    el.classList.remove('border-gray-100');
+
+    if (type === 'size') selectedSize = val;
+    else if (type === 'color') selectedColor = val;
+    else if (type === 'size-p1') selectedSizeP1 = val;
+    else if (type === 'size-p2') selectedSizeP2 = val;
+    else if (type === 'color-p1') selectedColorP1 = val;
+    else if (type === 'color-p2') selectedColorP2 = val;
+}
+
 window.openModal = function(id) {
     const p = window.findProductById(id);
     if (!p) return;
@@ -349,7 +360,7 @@ window.openModal = function(id) {
 
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images)) {
-        imagesHTML = p.images.map((img, index) => `
+        imagesHTML = p.images.map((img) => `
             <img src="${img}" onclick="document.getElementById('main-view').src='${img}'" 
                  class="w-20 h-24 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition">
         `).join('');
@@ -358,7 +369,7 @@ window.openModal = function(id) {
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
             <div class="space-y-4">
-                <div class="relative overflow-hidden rounded-2xl bg-gray-50 aspect-[3/4]">
+                <div class="relative overflow-hidden rounded-2xl bg-gray-50 aspect-[4/5]">
                     <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg'}" class="w-full h-full object-cover transition duration-500">
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">${imagesHTML}</div>
@@ -415,7 +426,7 @@ window.closeModal = function() {
 };
 
 // =================================================================
-// 4. ADD TO CART & UI ENGINE
+// 5. ADD TO CART & CHECKOUT ENGINE
 // =================================================================
 function addToCart(id) {
     const p = window.findProductById(id);
@@ -458,40 +469,6 @@ function addToCart(id) {
 
 window.addToCartFromModal = addToCart;
 
-// ===== প্রোমো কোড ফিল্টার =====
-function applyPromoCode() {
-    const input = document.getElementById('promo-input');
-    const msg = document.getElementById('promo-msg');
-    if (!input) return;
-
-    const code = input.value.toUpperCase().trim();
-
-    if (promoList[code]) {
-        const promo = promoList[code];
-        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
-            const isApplicable = cart.some(item => promo.applicableCategories.includes(item.category));
-            if (!isApplicable) {
-                activePromo = null;
-                msg.innerText = `✗ এই কোড শুধু ${promo.applicableCategories.join(', ')} এর জন্য কাজ করে`;
-                msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
-                input.value = '';
-                return;
-            }
-        }
-        activePromo = code;
-        msg.innerText = `✓ Promo "${code}" Applied!`;
-        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-green-600 block";
-        input.value = '';
-    } else {
-        activePromo = null;
-        msg.innerText = "✗ Invalid Promo Code";
-        msg.className = "mt-2 ml-2 text-[9px] font-bold uppercase text-red-600 block";
-    }
-
-    updateCartUI();
-}
-
-// ===== কার্ট UI আপডেট =====
 function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
@@ -674,7 +651,6 @@ function clearCheckoutInputs() {
     validateOrder();
 }
 
-// ===== ইমেইল অর্ডার কনফার্ম (Web3Forms) =====
 function confirmOrder() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
@@ -723,7 +699,6 @@ function confirmOrder() {
     });
 }
 
-// ===== WhatsApp এ অর্ডার =====
 function orderByWhatsApp() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
@@ -746,7 +721,6 @@ function orderByWhatsApp() {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
-// ===== শেয়ার প্রোডাক্ট লিংক =====
 function shareProductLink(id) {
     const shareUrl = `${window.location.origin}${window.location.pathname}#product-${id}`;
     if (navigator.share) {
@@ -782,13 +756,25 @@ function checkUrlAndOpenModal() {
 window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
-// ===== ইনিশিয়ালাইজেশন =====
+// =================================================================
+// 6. INITIALIZATION & REVIEWS ENGINE
+// =================================================================
 document.addEventListener('DOMContentLoaded', () => {
     ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', validateOrder);
     });
 
-    loadProducts();
+    // জেসন ফাইল লোড করা
+    fetch('products.json')
+        .then(res => res.json())
+        .then(data => {
+            window.localJsonProducts = data || [];
+            if (typeof syncAndRenderAllProducts === 'function') {
+                syncAndRenderAllProducts();
+            }
+        })
+        .catch(err => console.log("JSON Load Warning:", err));
+
     updateCartUI();
 });
