@@ -972,5 +972,51 @@ html {
     </div>
 </div>
 </div>
+ <!-- Firebase Live Engine Integration for Main Website -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAg3XAOu45DdQ1lruqmOZtTboqfk8tfMjw",
+        authDomain: "redams-61f66.firebaseapp.com",
+        projectId: "redams-61f66",
+        storageBucket: "redams-61f66.firebasestorage.app",
+        messagingSenderId: "852974979706",
+        appId: "1:852974979706:web:0f332bafadc653565fc9c3",
+        measurementId: "G-59WMZ7870M"
+    };
+    
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Realtime Products Sync
+    db.collection("products").onSnapshot(snapshot => {
+        let liveProducts = [];
+        snapshot.forEach(doc => {
+            liveProducts.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (liveProducts.length > 0) {
+            window.allProducts = liveProducts;
+            window.products = liveProducts;
+
+            // Render 3D Curved Hanger Rack
+            if (typeof renderNewArrivals === 'function') {
+                renderNewArrivals(liveProducts);
+            }
+            
+            // Render All Catalog Grid
+            if (typeof renderProducts === 'function') {
+                renderProducts(liveProducts);
+            }
+        }
+    });
+</script>   
+
 </body>
 </html>  
