@@ -3,90 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - REDAMS</title>
+    <title>REDAMS Executive Master Admin Engine</title>
+    <link rel="icon" type="image/png" href="images/redams logo.jpg">
+    
+    <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js & SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Firebase SDKs (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .sidebar-active { background-color: #dc2626 !important; color: #ffffff !important; }
+        .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 60; }
+        .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-[#fafafa] text-gray-900">
-    <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-black tracking-tighter uppercase">RED<span class="text-red-600">AMS</span></a>
-            <a href="index.html" class="text-[10px] font-black uppercase tracking-widest border border-black px-4 py-2 rounded-full hover:bg-black hover:text-white transition">Home</a>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+<!-- LOGIN GATEWAY -->
+<div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100]">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-gray-100">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
+            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Executive Master Portal V3.0</p>
         </div>
-    </header>
-
-   <main class="container mx-auto px-6 pt-32 pb-20 max-w-4xl">
-    <div class="bg-white p-8 md:p-16 rounded-[2.5rem] shadow-sm border border-gray-100">
-        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 italic text-center md:text-left">
-            Behind The <span class="text-red-600">Brand</span>
-        </h1>
-        <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 text-center md:text-left border-b border-gray-50 pb-8">
-            Est. 2024 • Premium Streetwear
-        </p>
-        
-        <div class="space-y-16 text-gray-600 leading-relaxed">
-            
-            <section>
-                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-[2px] bg-red-600"></span> আমাদের পরিচয়
-                </h2>
-                <p class="text-sm md:text-base">
-                    <span class="font-bold text-black italic">REDAMS</span> শুধুমাত্র একটি পোশাকের নাম নয়, এটি একটি মডার্ন মুভমেন্ট। আমরা বিশ্বাস করি স্ট্রিটওয়্যার মানেই অগোছালো কিছু নয়; বরং এটি হলো আভিজাত্য এবং আরামের এক অনন্য সংমিশ্রণ। বাংলাদেশের ফ্যাশন সচেতন তরুণ প্রজন্মের জন্য প্রিমিয়াম ড্রেসিং কালচার তৈরি করতেই আমাদের এই পথচলা।
-                </p>
-            </section>
-
-            <section class="bg-gray-50 p-8 rounded-[2rem]">
-                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight">Our Philosophy</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-[11px] font-black uppercase text-red-600 mb-2 italic">Minimalism</h3>
-                        <p class="text-xs leading-relaxed">আমরা "Less is More" তত্ত্বে বিশ্বাসী। অতিরিক্ত ডিজাইন নয়, বরং সঠিক কালার এবং স্ট্রাকচারের মাধ্যমে আমরা প্রতিটি পোশাকে আভিজাত্য ফুটিয়ে তুলি।</p>
-                    </div>
-                    <div>
-                        <h3 class="text-[11px] font-black uppercase text-red-600 mb-2 italic">Ethical Production</h3>
-                        <p class="text-xs leading-relaxed">আমাদের প্রতিটি পণ্য শতভাগ স্থানীয় কারিগরদের নিপুণ হাতের স্পর্শে তৈরি। আমরা টেকসই ফ্যাশন এবং স্থানীয় কর্মসংস্থানে বিশ্বাস করি।</p>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight flex items-center gap-3">
-                    <span class="w-8 h-[2px] bg-red-600"></span> কারিগরি উৎকর্ষতা
-                </h2>
-                <div class="space-y-6">
-                    <div class="border-l-4 border-black pl-5">
-                        <h4 class="text-black font-black uppercase text-xs mb-1 italic">The Fabric</h4>
-                        <p class="text-sm">আমরা ব্যবহার করি <span class="font-bold text-black uppercase">Heavyweight Premium Cotton</span>। আমাদের কাপড়গুলো বিশেষভাবে জিএসএম (GSM) কন্ট্রোল করা হয় যাতে এটি গরমে আরামদায়ক এবং দীর্ঘস্থায়ী হয়।</p>
-                    </div>
-                    <div class="border-l-4 border-gray-200 pl-5">
-                        <h4 class="text-black font-black uppercase text-xs mb-1 italic">The Fit</h4>
-                        <p class="text-sm">ড্রপ শোল্ডার থেকে শুরু করে বক্সি ফিট—প্রতিটি প্যাটার্ন তৈরি করা হয়েছে আমাদের দেশের মানুষের শারীরিক গঠন এবং মডার্ন স্ট্রিট স্টাইল মাথায় রেখে।</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="text-center py-10 border-t border-b border-gray-50">
-                <h2 class="text-xl font-bold text-black uppercase mb-4 tracking-tighter">"Clothing that speaks for you"</h2>
-                <p class="text-sm italic text-gray-500 max-w-lg mx-auto">
-                    আমাদের লক্ষ্য হলো আগামী ৫ বছরের মধ্যে REDAMS-কে বাংলাদেশের সেরা প্রিমিয়াম স্ট্রিটওয়্যার ব্র্যান্ড হিসেবে প্রতিষ্ঠিত করা এবং আন্তর্জাতিক বাজারে মেইড ইন বাংলাদেশ ট্যাগটিকে গর্বের সাথে উপস্থাপন করা।
-                </p>
-            </section>
-
-            <section>
-                <h2 class="text-xl font-bold text-black uppercase mb-5 tracking-tight">Community & Loyalty</h2>
-                <p class="text-sm">
-                    REDAMS এর প্রতিটি কাস্টমার আমাদের পরিবারের সদস্য। আপনার ফিডব্যাক আমাদের প্রতিটি ডিজাইন উন্নত করতে সাহায্য করে। আমরা শুধু পোশাক বিক্রি করি না, আমরা একটি আস্থার সম্পর্ক তৈরি করি।
-                </p>
-            </section>
-
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Username</label>
+                <input type="text" id="login-username" placeholder="Enter Username" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
+            </div>
+            <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3.5 rounded-xl font-black hover:bg-red-700 shadow-lg shadow-red-600/30 transition active:scale-95">
+                LOGIN TO DASHBOARD ↘
+            </button>
         </div>
     </div>
-</main>
-    <footer class="py-10 text-center text-gray-400 text-[10px] uppercase tracking-widest">
-        &copy; 2026 REDAMS. All rights reserved.
-    </footer>
+</div>
+
+<!-- MAIN DASHBOARD CONTAINER -->
+<div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
+    
+    <!-- Mobile Top Navigation Bar -->
+    <div class="md:hidden bg-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800 sticky top-0 z-30">
+        <h2 class="text-xl font-black tracking-tighter">REDAMS <span class="text-red-600">ADMIN</span></h2>
+        <button onclick="toggleMobileSidebar()" class="text-white bg-gray-800 p-2.5 rounded-xl focus:outline-none">
+            <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Drawer Overlay -->
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+
+    <!-- Sidebar Drawer -->
+    <div id="sidebar-drawer" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 border-r border-gray-800 h-full">
+        <div class="p-6 border-b border-gray-800/80 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-black tracking-tighter">REDAMS<br><span class="text-red-600">HUB ENGINE</span></h2>
+                <span class="inline-block mt-2 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-0.5 rounded-full font-bold">● Firebase Live Sync</span>
+            </div>
+            <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+            <button onclick="switchTab('dashboard')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="dashboard">
+                <i class="fa-solid fa-chart-line text-red-500"></i> Dashboard
+            </button>
+            <button onclick="switchTab('products')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="products">
+                <i class="fa-solid fa-box text-orange-500"></i> Products Catalog
+            </button>
+            <button onclick="switchTab('orders')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="orders">
+                <i class="fa-solid fa-shopping-bag text-blue-500"></i> Orders Manager
+            </button>
+            <button onclick="switchTab('courier')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="courier">
+                <i class="fa-solid fa-truck-fast text-purple-500"></i> Courier & Logistics
+            </button>
+            <button onclick="switchTab('inventory')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="inventory">
+                <i class="fa-solid fa-warehouse text-emerald-500"></i> Size & Inventory
+            </button>
+            <button onclick="switchTab('promo')" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800/60 transition flex items-center gap-3 font-bold text-sm text-gray-300" data-tab="promo">
+                <i class="fa-solid fa-tag text-yellow-500"></i> Promo Codes
+            </button>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-800/80 space-y-2">
+            <button onclick="openChangePasswordModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-key text-yellow-500"></i> Change Password
+            </button>
+            <button onclick="adminLogout()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout Engine
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Panel -->
+    <div class="flex-1 md:ml-64 overflow-y-auto p-4 md:p-8">
+        
+        <!-- DASHBOARD OVERVIEW -->
+        <div id="dashboard-content" class="tab-content">
+            <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6">Executive Dashboard Overview</h1>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Total Revenue</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2">৳<span id="stat-revenue">0</span></p>
+                </div>
+                
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Total Orders</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-orders">0</span></p>
+                </div>
+                
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Pending Orders</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-pending">0</span></p>
+                </div>
+                
+                <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                    <p class="text-gray-400 text-[10px] md:text-xs font-black uppercase">Out of Stock</p>
+                    <p class="text-xl md:text-3xl font-black text-gray-900 mt-2"><span id="stat-outofstock">0</span></p>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 md:p-6 rounded-2xl card-shadow border border-gray-100">
+                <h3 class="text-sm font-black text-gray-900 mb-4">Store Order Performance</h3>
+                <canvas id="salesChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- PRODUCTS CATALOG MANAGEMENT -->
+        <div id="products-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Products Catalog</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Cloudinary + Firebase Realtime Product Engine</p>
+                </div>
+                <button onclick="openAddProductModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 shadow-md text-xs md:text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Add Product
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="products-grid">
+                <p class="text-sm text-gray-500 col-span-3">Loading products from Firebase...</p>
+            </div>
+        </div>
+
+        <!-- ORDERS MANAGEMENT -->
+        <div id="orders-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Orders Management</h1>
+                <button onclick="openAddOrderModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
+                    <i class="fa-solid fa-plus"></i> Add Manual Order
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[650px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Order ID</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer & Phone</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Amount</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Status</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action & Dispatch</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- COURIER & LOGISTICS -->
+        <div id="courier-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated dispatch via Steadfast & Pathao Courier APIs</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[650px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking Code</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Courier Provider</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD Amount</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Live Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SIZE & INVENTORY CONTROL -->
+        <div id="inventory-content" class="tab-content hidden">
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Size Availability & Inventory</h1>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[600px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Product Title</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Category</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Overall Stock</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Size Toggles (S / M / L / XL / XXL)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PROMO CODES -->
+        <div id="promo-content" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900">Promo Code Management</h1>
+                <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
+                    <i class="fa-solid fa-plus"></i> Create Promo Code
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+                <table class="w-full text-left min-w-[500px]">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Code</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Type</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Value</th>
+                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODALS SECTION ================= -->
+
+<!-- Product Modal -->
+<div id="product-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl custom-scrollbar">
+        <h2 class="text-xl font-black mb-4 text-gray-900" id="product-form-title">Add New Product</h2>
+        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+            <input type="hidden" id="product-edit-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
+                    <input type="text" id="product-name" required placeholder="Spider Man-02" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Price (৳)</label>
+                    <input type="number" id="product-price" required placeholder="490" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Original Price (৳)</label>
+                    <input type="number" id="product-original-price" placeholder="560" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+                
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
+                    <select id="product-category" required class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="drop-shoulder">Drop Shoulder</option>
+                        <option value="acid-wash">Acid Wash</option>
+                        <option value="regular-tshirt">Regular T-Shirt</option>
+                        <option value="hoodie">Hoodie</option>
+                        <option value="couple-tshirt">Couple T-Shirt</option>
+                        <option value="polo-tshirt">Polo T-Shirt</option>
+                        <option value="henley">Henley T-Shirt</option>
+                        <option value="combo">Combo Offer</option>
+                    </select>
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Description (HTML Formatting Supported)</label>
+                    <textarea id="product-description" placeholder="<b>Fabric:</b> Premium Organic 100% Cotton...<br><b>Style:</b> Streetwear..." class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold h-24"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Colors (Comma Separated)</label>
+                    <input type="text" id="product-colors" placeholder="Black, White, Olive" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">SEO Alt Text</label>
+                    <input type="text" id="product-alt-text" placeholder="REDAMS Spider Man Special T-Shirt BD" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                </div>
+
+                <!-- Sizes Configuration -->
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-2">Available Sizes Configuration</label>
+                    <div class="flex flex-wrap gap-4 text-xs font-bold text-gray-700">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-S" checked class="w-4 h-4 accent-red-600 rounded"> S
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-M" checked class="w-4 h-4 accent-red-600 rounded"> M
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-L" checked class="w-4 h-4 accent-red-600 rounded"> L
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-XL" checked class="w-4 h-4 accent-red-600 rounded"> XL
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="size-XXL" checked class="w-4 h-4 accent-red-600 rounded"> XXL
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Cloudinary Direct Image Uploaders -->
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📸 Main Product Image (Cloudinary Upload)</label>
+                    <input type="file" id="product-img-file" accept="image/*" class="text-xs text-gray-500">
+                </div>
+
+                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-800 uppercase mb-1">📐 Size Chart Image (Optional Cloudinary Upload)</label>
+                    <input type="file" id="size-chart-file" accept="image/*" class="text-xs text-gray-500">
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Overall Stock Status</label>
+                    <select id="product-stock" class="w-full p-3 border border-gray-200 rounded-xl outline-none text-sm font-semibold">
+                        <option value="1">✓ In Stock (ইন স্টক)</option>
+                        <option value="0">✗ Out of Stock (স্টক আউট)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-4">
+                <button type="submit" id="save-product-btn" class="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-bold text-xs hover:bg-red-700 transition">Save Product & Publish</button>
+                <button type="button" onclick="closeModal('product-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold text-xs hover:bg-gray-300 transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Courier Dispatch Modal -->
+<div id="courier-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-2 text-gray-900">Book Courier Parcel</h2>
+        <form id="courier-dispatch-form" onsubmit="dispatchCourierParcel(event)" class="space-y-3">
+            <input type="hidden" id="courier-order-id">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Courier Service</label>
+                <select id="courier-provider" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+                    <option value="steadfast">Steadfast Courier</option>
+                    <option value="pathao">Pathao Courier</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Customer Name</label>
+                <input type="text" id="courier-cust-name" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone</label>
+                <input type="tel" id="courier-cust-phone" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Address</label>
+                <textarea id="courier-cust-address" required class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">COD Amount (৳)</label>
+                <input type="number" id="courier-cod-amount" required class="w-full p-3 border border-gray-200 rounded-xl font-bold text-red-600 text-xs">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="submit" id="dispatch-btn" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-purple-700">Confirm Booking</button>
+                <button type="button" onclick="closeModal('courier-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-sm w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Change Admin Password</h2>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Current Password</label>
+                <input type="password" id="old-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">New Password</label>
+                <input type="password" id="new-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Confirm New Password</label>
+                <input type="password" id="confirm-pass" placeholder="••••••••" class="w-full p-3 border border-gray-200 rounded-xl outline-none font-semibold text-sm">
+            </div>
+            <div class="flex gap-3 pt-3">
+                <button onclick="saveNewPassword()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 text-xs">Update Password</button>
+                <button onclick="closeModal('change-password-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Order Modal -->
+<div id="order-modal" class="modal-overlay">
+    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Add Order</h2>
+        <div class="space-y-3">
+            <input type="text" id="order-customer-name" placeholder="Customer Name" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <input type="tel" id="order-customer-phone" placeholder="Phone Number" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <textarea id="order-customer-address" placeholder="Address" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold h-16"></textarea>
+            <input type="number" id="order-amount" placeholder="Total Amount (৳)" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveOrder()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Save Order</button>
+                <button onclick="closeModal('order-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Promo Modal -->
+<div id="promo-modal" class="modal-overlay">
+    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
+        <h2 class="text-xl font-black mb-4 text-gray-900">Create Promo</h2>
+        <div class="space-y-3">
+            <input type="text" id="promo-code" placeholder="PROMO CODE" class="w-full p-3 border border-gray-200 rounded-xl font-bold text-xs uppercase">
+            <select id="promo-type" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+                <option value="percent">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (৳)</option>
+                <option value="delivery">Free Delivery</option>
+            </select>
+            <input type="number" id="promo-value" placeholder="Value" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
+            <div class="flex gap-3 pt-2">
+                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Create</button>
+                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EXTERNAL JAVASCRIPT LINK -->
+<script src="admin.js"></script>
+
 </body>
 </html>
