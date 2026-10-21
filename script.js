@@ -250,7 +250,7 @@ function renderNewArrivals(products) {
 }
 
 // =================================================================
-// 3. MAIN PRODUCT GRID DISPLAY
+// MAIN PRODUCT GRID DISPLAY (Index-e 8-ti & Shop-e Shob Product)
 // =================================================================
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
@@ -261,14 +261,18 @@ function displayProducts(products, showAll = false) {
         return;
     }
 
-    const productsToShow = showAll ? products : products.slice(0, 8);
+    // Current page shop.html kina check
+    const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
+
+    // index.html-e shobshomoy prothom 8-ti product dekhabe, shop.html-e shob dekhabe
+    const productsToShow = isShopPage ? products : products.slice(0, 8);
 
     grid.innerHTML = productsToShow.map(p => {
         if (!p) return '';
 
         const hasDiscount = p.originalPrice && p.originalPrice > p.price;
         const discPer = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
-        const firstImage = p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg';
+        const firstImage = p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg');
         const isOutOfStock = p.isOutOfStock === true;
 
         return `
@@ -300,11 +304,14 @@ function displayProducts(products, showAll = false) {
             </div>`;
     }).join('');
 
+    // VIEW ALL ITEMS Button Display Control
     const viewAllBtn = document.getElementById('view-all-container');
-    if (viewAllBtn) viewAllBtn.style.display = (showAll || products.length <= 8) ? 'none' : 'block';
+    if (viewAllBtn) {
+        // index.html-e button dekhabe, shop.html-e hide thakbe
+        viewAllBtn.style.display = isShopPage ? 'none' : 'block';
+    }
 }
 
-window.renderProducts = displayProducts;
 
 // =================================================================
 // 4. QUICK VIEW MODAL
