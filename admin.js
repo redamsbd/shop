@@ -107,7 +107,9 @@ function checkAdminSession() {
     }
 }
 
-// 2. SECURE ADMIN LOGIN (WITH FIRESTORE & LOCALSTORAGE DOUBLE-SYNC)
+// =================================================================
+// 2. SECURE ADMIN LOGIN (STRICT SINGLE-PASSWORD AUTHENTICATION)
+// =================================================================
 async function adminLogin(e) {
     if (e) e.preventDefault();
     
@@ -121,6 +123,7 @@ async function adminLogin(e) {
     }
 
     let validPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
+    let validUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
 
     // Firestore Sync with 2-second timeout protection to prevent hanging
     if (typeof db !== 'undefined' && db) {
@@ -131,20 +134,24 @@ async function adminLogin(e) {
             );
 
             const docSnap = await Promise.race([fetchPromise, timeoutPromise]);
-            if (docSnap && docSnap.exists && docSnap.data()?.adminPass) {
-                validPass = docSnap.data().adminPass;
-                localStorage.setItem('redams_admin_pass', validPass);
+            if (docSnap && docSnap.exists) {
+                const data = docSnap.data();
+                if (data.adminPass) {
+                    validPass = data.adminPass;
+                    localStorage.setItem('redams_admin_pass', validPass);
+                }
+                if (data.adminUser) {
+                    validUser = data.adminUser;
+                    localStorage.setItem('redams_admin_user', validUser);
+                }
             }
         } catch (err) {
-            console.warn("Firestore auth bypass/timeout, using fallback local pass.");
+            console.warn("Firestore auth sync fallback to local credentials.");
         }
     }
 
-    const storedUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
-
-    // Multi-credential fallback logic (Supports 'redamsbd', 'admin' / updated pass or 'redamsbd16' / 'redams123')
-    if ((u === storedUser || u === 'admin' || u === 'redamsbd') && 
-        (p === validPass || p === 'redamsbd16' || p === 'redams123')) {
+    // Strict Check: Only exact active username & active password will pass
+    if (u === validUser && p === validPass) {
         
         localStorage.setItem('redams_admin_session', 'active');
         
@@ -213,7 +220,8 @@ async function saveNewPassword() {
     const confirmP = document.getElementById('confirm-pass')?.value.trim();
     const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    if (oldP !== currentPass && oldP !== 'redamsbd16' && oldP !== 'redams123') {
+    // Strict Check: Old password must match exact current active password
+    if (oldP !== currentPass) {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Current password is incorrect!' });
         return;
     }
