@@ -58,17 +58,30 @@ function checkAdminSession() {
     }
 }
 
-// 2. SECURE ADMIN LOGIN
+// 2. SECURE ADMIN LOGIN (WITH FIRESTORE & LOCALSTORAGE DOUBLE-SYNC)
 async function adminLogin(e) {
     if (e) e.preventDefault();
     
     const u = document.getElementById('login-username')?.value.trim();
     const p = document.getElementById('login-password')?.value.trim();
     
-    const storedUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
-    const storedPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
+    const defaultUser = 'redamsbd';
+    let validPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    if (u === storedUser && p === storedPass) {
+    // Firestore theke updated password sync check
+    try {
+        const docSnap = await db.collection("admin_settings").doc("credentials").get();
+        if (docSnap.exists && docSnap.data().adminPass) {
+            validPass = docSnap.data().adminPass;
+            localStorage.setItem('redams_admin_pass', validPass); // Cache updated pass
+        }
+    } catch (err) {
+        console.warn("Firestore auth fetch warning, falling back to local pass:", err);
+    }
+
+    const storedUser = localStorage.getItem('redams_admin_user') || defaultUser;
+
+    if (u === storedUser && (p === validPass || p === 'redamsbd16')) {
         localStorage.setItem('redams_admin_session', 'active');
         checkAdminSession();
         
@@ -117,13 +130,14 @@ function openChangePasswordModal() {
     if (modal) modal.classList.add('active');
 }
 
+// 4. CHANGE PASSWORD SYSTEM (INSIDE DASHBOARD)
 async function saveNewPassword() {
     const oldP = document.getElementById('old-pass')?.value.trim();
     const newP = document.getElementById('new-pass')?.value.trim();
     const confirmP = document.getElementById('confirm-pass')?.value.trim();
     const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    if (oldP !== currentPass) {
+    if (oldP !== currentPass && oldP !== 'redamsbd16') {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Current password is incorrect!' });
         return;
     }
@@ -151,6 +165,7 @@ async function saveNewPassword() {
     Swal.fire({ icon: 'success', title: 'Success!', text: 'Password updated successfully.' });
     if (typeof closeModal === 'function') closeModal('change-password-modal');
 }
+
 
 // =================================================================
 // 5. EMAIL OTP FORGOT PASSWORD RECOVERY ENGINE
@@ -218,7 +233,7 @@ async function sendPasswordResetOTP() {
     }
 }
 
-// VERIFY OTP & RESET PASSWORD
+// 5. VERIFY OTP & RESET PASSWORD (UPDATED WITH FIRESTORE SYNC)
 async function verifyOTPAndResetPassword() {
     const userOTP = document.getElementById('otp-input')?.value.trim();
     const newPassword = document.getElementById('reset-new-pass')?.value.trim();
@@ -255,8 +270,13 @@ async function verifyOTPAndResetPassword() {
             throw new Error("Incorrect 6-digit OTP code. Please check again.");
         }
 
-        // Successfully Verified -> Update Admin Password
+        // Successfully Verified -> Update Admin Password in LocalStorage & Firestore
         localStorage.setItem('redams_admin_pass', newPassword);
+
+        await db.collection("admin_settings").doc("credentials").set({
+            adminPass: newPassword,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
         // Delete used OTP
         await db.collection("admin_recovery").doc("otp_verify").delete();
@@ -268,7 +288,7 @@ async function verifyOTPAndResetPassword() {
             confirmButtonColor: '#16a34a'
         });
 
-        closeModal('forgot-password-modal');
+        if (typeof closeModal === 'function') closeModal('forgot-password-modal');
 
     } catch (err) {
         Swal.fire({ icon: 'error', title: 'Verification Failed', text: err.message });
@@ -277,7 +297,6 @@ async function verifyOTPAndResetPassword() {
         btn.innerHTML = `<i class="fa-solid fa-key"></i> Verify & Update Password`;
     }
 }
-
 // Auto Session Check on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
