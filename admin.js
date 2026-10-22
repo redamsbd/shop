@@ -787,27 +787,98 @@ async function dispatchCourierParcel(e) {
         }
     }
 }
+// =================================================================
+// COURIER TAB RENDER, SEARCH & KPI METRICS ENGINE
+// =================================================================
 
-// ৮. কুরিয়ার শিফটমেন্ট টেবিল রেন্ডার করা
-function renderCourierTab() {
+// Live Filter Handler
+function filterCourierShipments() {
+    const query = document.getElementById('courier-search-input')?.value.toLowerCase().trim() || '';
+    const selectedProvider = document.getElementById('courier-provider-filter')?.value || 'all';
+    const selectedStatus = document.getElementById('courier-status-filter')?.value || 'all';
+
+    const filtered = allCourierShipments.filter(s => {
+        const matchesQuery = (s.trackingCode || '').toLowerCase().includes(query) ||
+                             (s.customerName || '').toLowerCase().includes(query) ||
+                             (s.customerPhone || '').toLowerCase().includes(query);
+        const matchesProvider = selectedProvider === 'all' || s.provider === selectedProvider;
+        const matchesStatus = selectedStatus === 'all' || s.status === selectedStatus;
+
+        return matchesQuery && matchesProvider && matchesStatus;
+    });
+
+    renderCourierTab(filtered);
+}
+
+// Render Courier Table & Update Stats
+function renderCourierTab(shipmentsToRender = allCourierShipments) {
     const table = document.getElementById('courier-shipments-table');
     if (!table) return;
 
-    if (allCourierShipments.length === 0) {
-        table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No courier parcels booked yet.</td></tr>';
+    // 1. Update KPI Summary Cards
+    const total = allCourierShipments.length;
+    const transit = allCourierShipments.filter(s => s.status === 'In Transit').length;
+    const delivered = allCourierShipments.filter(s => s.status === 'Delivered').length;
+    const totalCod = allCourierShipments.reduce((sum, s) => sum + (parseInt(s.codAmount) || 0), 0);
+
+    if (document.getElementById('stat-courier-total')) document.getElementById('stat-courier-total').innerText = total;
+    if (document.getElementById('stat-courier-transit')) document.getElementById('stat-courier-transit').innerText = transit;
+    if (document.getElementById('stat-courier-delivered')) document.getElementById('stat-courier-delivered').innerText = delivered;
+    if (document.getElementById('stat-courier-cod')) document.getElementById('stat-courier-cod').innerText = `৳${totalCod}`;
+
+    // 2. Empty State
+    if (shipmentsToRender.length === 0) {
+        table.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400 font-bold uppercase text-xs">No parcel shipment records found.</td></tr>';
         return;
     }
 
-    table.innerHTML = allCourierShipments.map(s => `
-        <tr>
-            <td class="px-4 py-3 font-black text-purple-600">${s.trackingCode}</td>
-            <td class="px-4 py-3 font-bold text-gray-900">${s.customerName}</td>
-            <td class="px-4 py-3 uppercase text-xs font-bold text-gray-600">${s.provider}</td>
-            <td class="px-4 py-3 font-black text-gray-900">৳${s.codAmount}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full font-bold">${s.status}</span></td>
-        </tr>
-    `).join('');
+    // 3. Render Table Rows
+    table.innerHTML = shipmentsToRender.map(s => {
+        const providerBadge = s.provider === 'STEADFAST' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-red-100 text-red-800 border-red-200';
+        const statusBadge = s.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : (s.status === 'In Transit' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800');
+        const hubName = s.pickupLocationId ? (s.pickupLocationId.includes('saidpur') ? 'Saidpur Hub' : 'Dhaka Hub') : 'Main Hub';
+
+        return `
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3">
+                    <span class="font-black text-purple-700 font-mono text-xs block">${s.trackingCode}</span>
+                    <span class="text-[9px] font-bold text-gray-400">${s.bookedAt ? new Date(s.bookedAt.seconds * 1000).toLocaleDateString() : 'Recently'}</span>
+                </td>
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-900">${s.customerName}</p>
+                    <p class="text-xs text-gray-400 font-mono">${s.customerPhone || ''}</p>
+                    <p class="text-[10px] text-gray-500 truncate max-w-[180px]">${s.address || ''}</p>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2.5 py-0.5 text-[10px] font-black rounded-md border uppercase ${providerBadge}">${s.provider}</span>
+                    <p class="text-[10px] font-bold text-gray-500 mt-1"><i class="fa-solid fa-location-dot text-red-500"></i> ${hubName}</p>
+                </td>
+                <td class="px-4 py-3">
+                    <p class="font-black text-gray-900 text-sm">৳${s.codAmount}</p>
+                    <p class="text-[9px] text-gray-400">Prod: ৳${s.productAmount || (s.codAmount - 60)} + Del: ৳${s.deliveryCharge || 60}</p>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${statusBadge}">${s.status || 'In Transit'}</span>
+                </td>
+                <td class="px-4 py-3 flex items-center gap-1.5 pt-4">
+                    <button onclick="copyTrackingCode('${s.trackingCode}')" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-bold" title="Copy Tracking ID">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <a href="${s.provider === 'STEADFAST' ? 'https://steadfast.com.bd/t/' + s.trackingCode : 'https://pathao.com/tracking/'}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Track
+                    </a>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
+
+// Copy Tracking Code Helper
+function copyTrackingCode(code) {
+    navigator.clipboard.writeText(code);
+    Swal.fire({ icon: 'success', title: 'Copied!', text: `Tracking Code: ${code}`, timer: 1000, showConfirmButton: false });
+}
+
 
 // ৯. অর্ডার ডিলিট
 async function deleteOrder(id) {
