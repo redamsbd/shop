@@ -42,7 +42,33 @@ function toggleMobileSidebar() {
 // ULTRA-PREMIUM AUTHENTICATION & EMAIL OTP RECOVERY ENGINE
 // =================================================================
 
-// 1. PERSISTENT AUTHENTICATION CHECKER
+// 1. HELPER: CLOSE MODAL ENGINE
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        modal.classList.add('hidden');
+    }
+}
+
+// 2. HELPER: PASSWORD SHOW / HIDE EYE ICON TOGGLE
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input && icon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
+// 3. PERSISTENT AUTHENTICATION CHECKER
 function checkAdminSession() {
     const session = localStorage.getItem('redams_admin_session');
     const loginModal = document.getElementById('login-modal');
@@ -58,7 +84,7 @@ function checkAdminSession() {
     }
 }
 
-// 2. SECURE ADMIN LOGIN (WITH FIRESTORE & LOCALSTORAGE DOUBLE-SYNC)
+// 4. SECURE ADMIN LOGIN (WITH FIRESTORE & LOCALSTORAGE DOUBLE-SYNC)
 async function adminLogin(e) {
     if (e) e.preventDefault();
     
@@ -68,21 +94,28 @@ async function adminLogin(e) {
     const defaultUser = 'redamsbd';
     let validPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    // Firestore theke updated password sync check
-    try {
-        const docSnap = await db.collection("admin_settings").doc("credentials").get();
-        if (docSnap.exists && docSnap.data().adminPass) {
-            validPass = docSnap.data().adminPass;
-            localStorage.setItem('redams_admin_pass', validPass); // Cache updated pass
+    // Firestore theke updated password sync check (safely handling db variable)
+    if (typeof db !== 'undefined' && db) {
+        try {
+            const docSnap = await db.collection("admin_settings").doc("credentials").get();
+            if (docSnap.exists && docSnap.data().adminPass) {
+                validPass = docSnap.data().adminPass;
+                localStorage.setItem('redams_admin_pass', validPass);
+            }
+        } catch (err) {
+            console.warn("Firestore auth fetch warning, falling back to local pass:", err);
         }
-    } catch (err) {
-        console.warn("Firestore auth fetch warning, falling back to local pass:", err);
     }
 
     const storedUser = localStorage.getItem('redams_admin_user') || defaultUser;
 
     if (u === storedUser && (p === validPass || p === 'redamsbd16')) {
         localStorage.setItem('redams_admin_session', 'active');
+        
+        if (document.getElementById('remember-me')?.checked) {
+            localStorage.setItem('redams_remember_me', 'true');
+        }
+
         checkAdminSession();
         
         Swal.fire({ 
@@ -102,7 +135,7 @@ async function adminLogin(e) {
     }
 }
 
-// 3. ADMIN LOGOUT
+// 5. ADMIN LOGOUT
 function adminLogout() {
     Swal.fire({
         title: 'Logout Admin?',
@@ -120,17 +153,19 @@ function adminLogout() {
     });
 }
 
-// 4. CHANGE PASSWORD SYSTEM (INSIDE DASHBOARD)
+// 6. CHANGE PASSWORD SYSTEM (INSIDE DASHBOARD)
 function openChangePasswordModal() {
     if(document.getElementById('old-pass')) document.getElementById('old-pass').value = '';
     if(document.getElementById('new-pass')) document.getElementById('new-pass').value = '';
     if(document.getElementById('confirm-pass')) document.getElementById('confirm-pass').value = '';
     
     const modal = document.getElementById('change-password-modal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    }
 }
 
-// 4. CHANGE PASSWORD SYSTEM (INSIDE DASHBOARD)
 async function saveNewPassword() {
     const oldP = document.getElementById('old-pass')?.value.trim();
     const newP = document.getElementById('new-pass')?.value.trim();
@@ -150,36 +185,38 @@ async function saveNewPassword() {
         return;
     }
 
-    // LocalStorage & Firebase Firestore Double Sync
     localStorage.setItem('redams_admin_pass', newP);
     
-    try {
-        await db.collection("admin_settings").doc("credentials").set({
-            adminPass: newP,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-    } catch(err) {
-        console.warn("Firestore sync warning:", err);
+    if (typeof db !== 'undefined' && db) {
+        try {
+            await db.collection("admin_settings").doc("credentials").set({
+                adminPass: newP,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } catch(err) {
+            console.warn("Firestore sync warning:", err);
+        }
     }
 
     Swal.fire({ icon: 'success', title: 'Success!', text: 'Password updated successfully.' });
-    if (typeof closeModal === 'function') closeModal('change-password-modal');
+    closeModal('change-password-modal');
 }
 
-
 // =================================================================
-// 5. EMAIL OTP FORGOT PASSWORD RECOVERY ENGINE
+// 7. EMAIL OTP FORGOT PASSWORD RECOVERY ENGINE
 // =================================================================
 
-// OPEN FORGOT PASSWORD MODAL
 function openForgotPasswordModal() {
-    document.getElementById('forgot-step-1').classList.remove('hidden');
-    document.getElementById('forgot-step-2').classList.add('hidden');
-    document.getElementById('recovery-email').value = '';
-    document.getElementById('forgot-password-modal').classList.add('active');
+    const modal = document.getElementById('forgot-password-modal');
+    if (modal) {
+        document.getElementById('forgot-step-1')?.classList.remove('hidden');
+        document.getElementById('forgot-step-2')?.classList.add('hidden');
+        if (document.getElementById('recovery-email')) document.getElementById('recovery-email').value = '';
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    }
 }
 
-// SEND OTP VIA FIRESTORE & EMAIL JS / WEBHOOK
 async function sendPasswordResetOTP() {
     const emailInput = document.getElementById('recovery-email')?.value.trim();
     const btn = document.getElementById('send-otp-btn');
@@ -193,19 +230,16 @@ async function sendPasswordResetOTP() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating OTP...`;
 
     try {
-        // Generate Secure 6-Digit Random OTP Code
         const generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Save OTP to Firestore with 10 Minutes Expiry
-        await db.collection("admin_recovery").doc("otp_verify").set({
-            email: emailInput,
-            otp: generatedOTP,
-            createdAt: Date.now(),
-            expiresAt: Date.now() + (10 * 60 * 1000) // 10 Mins Expiry
-        });
-
-        // Email dispatch trigger (Or standard alert for recovery)
-        console.log("RECOVERY OTP GENERATED:", generatedOTP);
+        if (typeof db !== 'undefined' && db) {
+            await db.collection("admin_recovery").doc("otp_verify").set({
+                email: emailInput,
+                otp: generatedOTP,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + (10 * 60 * 1000)
+            });
+        }
 
         Swal.fire({
             icon: 'success',
@@ -220,9 +254,8 @@ async function sendPasswordResetOTP() {
             confirmButtonColor: '#9333ea'
         });
 
-        // Transition to Step 2
-        document.getElementById('forgot-step-1').classList.add('hidden');
-        document.getElementById('forgot-step-2').classList.remove('hidden');
+        document.getElementById('forgot-step-1')?.classList.add('hidden');
+        document.getElementById('forgot-step-2')?.classList.remove('hidden');
 
     } catch (err) {
         console.error("OTP Error:", err);
@@ -233,7 +266,6 @@ async function sendPasswordResetOTP() {
     }
 }
 
-// 5. VERIFY OTP & RESET PASSWORD (UPDATED WITH FIRESTORE SYNC)
 async function verifyOTPAndResetPassword() {
     const userOTP = document.getElementById('otp-input')?.value.trim();
     const newPassword = document.getElementById('reset-new-pass')?.value.trim();
@@ -252,34 +284,32 @@ async function verifyOTPAndResetPassword() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verifying...`;
 
     try {
-        const docSnap = await db.collection("admin_recovery").doc("otp_verify").get();
+        if (typeof db !== 'undefined' && db) {
+            const docSnap = await db.collection("admin_recovery").doc("otp_verify").get();
 
-        if (!docSnap.exists) {
-            throw new Error("No active OTP request found. Please request again.");
+            if (!docSnap.exists) {
+                throw new Error("No active OTP request found. Please request again.");
+            }
+
+            const data = docSnap.data();
+
+            if (Date.now() > data.expiresAt) {
+                throw new Error("OTP has expired. Please request a new code.");
+            }
+
+            if (data.otp !== userOTP) {
+                throw new Error("Incorrect 6-digit OTP code. Please check again.");
+            }
+
+            await db.collection("admin_settings").doc("credentials").set({
+                adminPass: newPassword,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            await db.collection("admin_recovery").doc("otp_verify").delete();
         }
 
-        const data = docSnap.data();
-
-        // Check if OTP Expired
-        if (Date.now() > data.expiresAt) {
-            throw new Error("OTP has expired. Please request a new code.");
-        }
-
-        // Match OTP
-        if (data.otp !== userOTP) {
-            throw new Error("Incorrect 6-digit OTP code. Please check again.");
-        }
-
-        // Successfully Verified -> Update Admin Password in LocalStorage & Firestore
         localStorage.setItem('redams_admin_pass', newPassword);
-
-        await db.collection("admin_settings").doc("credentials").set({
-            adminPass: newPassword,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        // Delete used OTP
-        await db.collection("admin_recovery").doc("otp_verify").delete();
 
         Swal.fire({
             icon: 'success',
@@ -288,7 +318,7 @@ async function verifyOTPAndResetPassword() {
             confirmButtonColor: '#16a34a'
         });
 
-        if (typeof closeModal === 'function') closeModal('forgot-password-modal');
+        closeModal('forgot-password-modal');
 
     } catch (err) {
         Swal.fire({ icon: 'error', title: 'Verification Failed', text: err.message });
@@ -297,6 +327,7 @@ async function verifyOTPAndResetPassword() {
         btn.innerHTML = `<i class="fa-solid fa-key"></i> Verify & Update Password`;
     }
 }
+
 // Auto Session Check on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
