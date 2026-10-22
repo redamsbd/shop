@@ -30,24 +30,102 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 
-<!-- LOGIN GATEWAY -->
-<div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100]">
-    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-gray-100">
+<!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
+<div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
+    <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
+        
+        <!-- Top Gradient Accent Bar -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-purple-600 to-black"></div>
+
+        <!-- Brand Header -->
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
-            <p class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-widest">Executive Master Portal V3.0</p>
+            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 inline-block mb-2">SECURE HUB ENGINE</span>
+            <h1 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
+            <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Executive Master Portal V3.0</p>
         </div>
-        <div class="space-y-4">
+
+        <!-- Form Wrapper with Onsubmit Event -->
+        <form onsubmit="adminLogin(event)" class="space-y-4">
+            <!-- Username Input -->
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Username</label>
-                <input type="text" id="login-username" placeholder="Enter Username" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
+                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Username / Access ID</label>
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="login-username" required placeholder="Enter Username" class="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                </div>
+            </div>
+
+            <!-- Password Input with Eye Icon Toggle -->
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Master Password</label>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                    <button type="button" onclick="togglePasswordVisibility('login-password', 'pass-eye-icon')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-xs">
+                        <i class="fa-solid fa-eye" id="pass-eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember & Forgot Password Bar -->
+            <div class="flex items-center justify-between text-xs pt-1">
+                <label class="flex items-center gap-1.5 text-gray-500 font-bold cursor-pointer select-none">
+                    <input type="checkbox" id="remember-me" class="rounded text-red-600 focus:ring-0 w-3.5 h-3.5">
+                    <span class="text-[11px]">Remember me</span>
+                </label>
+                <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-red-600 font-black hover:underline transition">
+                    Forgot Password?
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-red-600 hover:bg-black text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 transition duration-300 active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- FORGOT PASSWORD & EMAIL OTP RECOVERY MODAL -->
+<div id="forgot-password-modal" class="modal-overlay">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl border border-gray-100">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+            <div>
+                <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">RECOVERY ENGINE</span>
+                <h2 class="text-xl font-black text-gray-900 mt-1">Reset Master Password</h2>
+            </div>
+            <button onclick="closeModal('forgot-password-modal')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- STEP 1: Enter Admin Email -->
+        <div id="forgot-step-1" class="space-y-4">
+            <p class="text-xs text-gray-500 font-semibold">Enter your registered admin email address to receive a 6-digit recovery OTP code.</p>
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Admin Email Address</label>
+                <input type="email" id="recovery-email" placeholder="admin@redamsbd.me" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600">
+            </div>
+            <button onclick="sendPasswordResetOTP()" id="send-otp-btn" class="w-full bg-red-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Send OTP Code
+            </button>
+        </div>
+
+        <!-- STEP 2: Enter 6-Digit OTP & New Password -->
+        <div id="forgot-step-2" class="space-y-4 hidden">
+            <p class="text-xs text-green-600 font-semibold bg-green-50 p-2.5 rounded-xl border border-green-100">
+                <i class="fa-solid fa-circle-check"></i> OTP generated! Enter the 6-digit verification code below.
+            </p>
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">6-Digit Verification OTP</label>
+                <input type="text" id="otp-input" maxlength="6" placeholder="123456" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-center font-mono font-black text-lg text-purple-700 tracking-widest outline-none focus:border-purple-600">
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Password</label>
-                <input type="password" id="login-password" placeholder="••••••••" class="w-full p-3 border border-gray-300 rounded-xl focus:border-red-600 outline-none font-semibold text-sm">
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Set New Password</label>
+                <input type="password" id="reset-new-pass" placeholder="At least 6 characters" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600">
             </div>
-            <button onclick="adminLogin()" class="w-full bg-red-600 text-white py-3.5 rounded-xl font-black hover:bg-red-700 shadow-lg shadow-red-600/30 transition active:scale-95">
-                LOGIN TO DASHBOARD ↘
+            <button onclick="verifyOTPAndResetPassword()" id="verify-otp-btn" class="w-full bg-purple-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-key"></i> Verify & Update Password
             </button>
         </div>
     </div>
