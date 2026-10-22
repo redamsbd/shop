@@ -10,9 +10,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Chart.js & SweetAlert2 -->
+    <!-- Chart.js, SweetAlert2 & EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <!-- Firebase SDKs (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -22,7 +23,7 @@
         body { font-family: 'Inter', sans-serif; }
         .sidebar-active { background-color: #dc2626 !important; color: #ffffff !important; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 60; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 110; }
         .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
@@ -79,7 +80,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full bg-red-600 hover:bg-black text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 transition duration-300 active:scale-95 flex items-center justify-center gap-2">
+            <button type="submit" id="login-btn" class="w-full bg-red-600 hover:bg-black text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 transition duration-300 active:scale-95 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
             </button>
         </form>
@@ -87,7 +88,7 @@
 </div>
 
 <!-- FORGOT PASSWORD & EMAIL OTP RECOVERY MODAL -->
-<div id="forgot-password-modal" class="modal-overlay hidden">
+<div id="forgot-password-modal" class="modal-overlay z-[120]">
     <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl border border-gray-100">
         <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
             <div>
@@ -130,6 +131,7 @@
         </div>
     </div>
 </div>
+
    <!-- MAIN DASHBOARD CONTAINER -->
 <div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
     
