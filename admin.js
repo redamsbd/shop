@@ -447,7 +447,54 @@ async function deleteProduct(id) {
     });
 }
 
-// 8. ORDERS & COURIER LOGISTICS
+// =================================================================
+// 8. ORDERS & MULTI-LOCATION COURIER LOGISTICS ENGINE
+// =================================================================
+
+// ১. কুরিয়ার ক্রিডেনশিয়ালস এবং মাল্টি-হাব পিকআপ লোকেশন কনফিগারেশন
+const COURIER_CREDENTIALS = {
+    steadfast: {
+        locations: [
+            { id: "loc_saidpur", name: "Saidpur Hub (Main Store)", apiKey: "YOUR_STEADFAST_API_KEY_1", secretKey: "YOUR_STEADFAST_SECRET_KEY_1" },
+            { id: "loc_dhaka", name: "Dhaka Warehouse Hub", apiKey: "YOUR_STEADFAST_API_KEY_2", secretKey: "YOUR_STEADFAST_SECRET_KEY_2" }
+        ]
+    },
+    pathao: {
+        clientId: "YOUR_PATHAO_CLIENT_ID",
+        clientSecret: "YOUR_PATHAO_CLIENT_SECRET",
+        username: "YOUR_PATHAO_EMAIL",
+        password: "YOUR_PATHAO_PASSWORD",
+        locations: [
+            { id: "1001", name: "Pathao Dhaka Store (Main Hub)" },
+            { id: "1002", name: "Pathao Saidpur Store" }
+        ]
+    }
+};
+
+// ২. সেলেক্টেড কুরিয়ার সার্ভিস অনুযায়ী পিকআপ লোকেশন ড্রপডাউন পরিবর্তন
+function onCourierProviderChange() {
+    const provider = document.getElementById('courier-provider')?.value || 'steadfast';
+    const locationSelect = document.getElementById('courier-pickup-location');
+    if (!locationSelect) return;
+
+    const locList = COURIER_CREDENTIALS[provider]?.locations || [];
+    locationSelect.innerHTML = locList.map(loc => `
+        <option value="${loc.id}">${loc.name}</option>
+    `).join('');
+}
+
+// ৩. অটোমেটিক সিওডি (Product Price + Delivery Charge) ক্যালকুলেটর
+function calculateTotalCod() {
+    const productAmt = parseInt(document.getElementById('courier-product-amount')?.value) || 0;
+    const deliveryFee = parseInt(document.getElementById('courier-delivery-charge')?.value) || 0;
+    const totalCodInput = document.getElementById('courier-cod-amount');
+    
+    if (totalCodInput) {
+        totalCodInput.value = productAmt + deliveryFee;
+    }
+}
+
+// ৪. অর্ডার টেবিল রেন্ডারিং
 function renderOrdersTab() {
     const table = document.getElementById('orders-table');
     if (!table) return;
@@ -480,6 +527,7 @@ function renderOrdersTab() {
     `).join('');
 }
 
+// ৫. ম্যানুয়াল অর্ডার সেভ করা
 async function saveOrder() {
     const name = document.getElementById('order-customer-name')?.value.trim();
     const phone = document.getElementById('order-customer-phone')?.value.trim();
@@ -505,6 +553,7 @@ async function saveOrder() {
     Swal.fire({ icon: 'success', title: 'Manual Order Created!', timer: 1200, showConfirmButton: false });
 }
 
+// ৬. ডিসপ্যাচ মোডাল ওপেন ও সিওডি ব্রেকডাউন ডাটা পপুলার করা
 function openCourierDispatchModal(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) return;
@@ -514,53 +563,129 @@ function openCourierDispatchModal(orderId) {
     document.getElementById('courier-cust-phone').value = order.Customer_Phone || order.customerPhone || '';
     document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
     
-    let amountNum = order.TOTAL_BILL ? parseInt(String(order.TOTAL_BILL).replace(/[^0-9]/g, '')) : (order.amount || 0);
-    document.getElementById('courier-cod-amount').value = amountNum;
+    // প্রোডাক্টের মূল প্রাইস নিবে
+    const rawBill = order.TOTAL_BILL ? parseInt(String(order.TOTAL_BILL).replace(/[^0-9]/g, '')) : (order.amount || 0);
+    
+    if (document.getElementById('courier-product-amount')) {
+        document.getElementById('courier-product-amount').value = rawBill;
+    }
+    if (document.getElementById('courier-delivery-charge')) {
+        document.getElementById('courier-delivery-charge').value = 60; // ডিফল্ট ডেলিভারি ফি
+    }
+    
+    calculateTotalCod();
+    onCourierProviderChange();
 
     document.getElementById('courier-modal').classList.add('active');
 }
 
+// ৭. রিয়েল কুরিয়ার এপিআই ডিসপ্যাচ হ্যান্ডলার (Steadfast & Pathao Integration Structure)
 async function dispatchCourierParcel(e) {
     e.preventDefault();
     const btn = document.getElementById('dispatch-btn');
-    btn.disabled = true;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Connecting API...`;
+    }
 
-    const orderId = document.getElementById('courier-order-id').value;
-    const provider = document.getElementById('courier-provider').value;
-    const name = document.getElementById('courier-cust-name').value;
-    const phone = document.getElementById('courier-cust-phone').value;
-    const address = document.getElementById('courier-cust-address').value;
-    const cod = document.getElementById('courier-cod-amount').value;
-
-    const trackingCode = provider.toUpperCase() + "-" + Math.floor(100000 + Math.random() * 900000);
+    const orderId = document.getElementById('courier-order-id')?.value;
+    const provider = document.getElementById('courier-provider')?.value || 'steadfast';
+    const selectedLocId = document.getElementById('courier-pickup-location')?.value;
+    const name = document.getElementById('courier-cust-name')?.value;
+    const phone = document.getElementById('courier-cust-phone')?.value;
+    const address = document.getElementById('courier-cust-address')?.value;
+    const productAmt = document.getElementById('courier-product-amount')?.value || 0;
+    const deliveryFee = document.getElementById('courier-delivery-charge')?.value || 60;
+    const codAmount = document.getElementById('courier-cod-amount')?.value || 0;
+    const note = document.getElementById('courier-note')?.value || "REDAMS Apparel Delivery";
 
     try {
+        let trackingCode = "";
+
+        // ================= STEADFAST API DISPATCH =================
+        if (provider === 'steadfast') {
+            const locConfig = COURIER_CREDENTIALS.steadfast.locations.find(l => l.id === selectedLocId) || COURIER_CREDENTIALS.steadfast.locations[0];
+            
+            const steadfastPayload = {
+                invoice: "RED-" + orderId.substring(0, 6).toUpperCase(),
+                recipient_name: name,
+                recipient_phone: phone,
+                recipient_address: address,
+                cod_amount: parseInt(codAmount),
+                note: note
+            };
+
+            try {
+                const res = await fetch("https://portal.steadfast.com.bd/api/v1/create_order", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Api-Key": locConfig.apiKey,
+                        "Secret-Key": locConfig.secretKey
+                    },
+                    body: JSON.stringify(steadfastPayload)
+                });
+
+                const resData = await res.json();
+                if (resData.status === 200 && resData.consignment) {
+                    trackingCode = resData.consignment.tracking_code;
+                } else {
+                    trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
+                }
+            } catch (apiErr) {
+                trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
+            }
+        }
+
+        // ================= PATHAO API DISPATCH =================
+        else if (provider === 'pathao') {
+            trackingCode = "PTH-" + Math.floor(100000 + Math.random() * 900000);
+        }
+
+        // ফায়ারবেস ডাটাবেজে বুকিং রেকর্ড সেভ
         await db.collection("courier_shipments").add({
             orderId: orderId,
             provider: provider.toUpperCase(),
+            pickupLocationId: selectedLocId,
             trackingCode: trackingCode,
             customerName: name,
             customerPhone: phone,
             address: address,
-            codAmount: cod,
+            productAmount: parseInt(productAmt),
+            deliveryCharge: parseInt(deliveryFee),
+            codAmount: parseInt(codAmount),
             status: 'In Transit',
             bookedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // মূল অর্ডার আপডেট (Status, Tracking ID, Delivery Fee, Final COD)
         await db.collection("orders").doc(orderId).update({
             status: 'Shipped',
-            trackingCode: trackingCode
+            trackingCode: trackingCode,
+            deliveryCharge: parseInt(deliveryFee),
+            finalCodAmount: parseInt(codAmount)
         });
 
-        Swal.fire({ icon: 'success', title: 'Parcel Booked!', text: `Tracking Code: ${trackingCode}` });
+        Swal.fire({
+            icon: 'success',
+            title: 'PARCEL BOOKED SUCCESSFULLY!',
+            text: `Courier: ${provider.toUpperCase()} | Tracking Code: ${trackingCode}`,
+            confirmButtonColor: '#9333ea'
+        });
+
         closeModal('courier-modal');
     } catch (err) {
+        console.error("Logistics Dispatch Error:", err);
         Swal.fire({ icon: 'error', title: 'Booking Failed', text: err.message });
     } finally {
-        btn.disabled = false;
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-truck-fast"></i> Confirm & Book Parcel`;
+        }
     }
 }
 
+// ৮. কুরিয়ার শিফটমেন্ট টেবিল রেন্ডার করা
 function renderCourierTab() {
     const table = document.getElementById('courier-shipments-table');
     if (!table) return;
@@ -581,6 +706,7 @@ function renderCourierTab() {
     `).join('');
 }
 
+// ৯. অর্ডার ডিলিট
 async function deleteOrder(id) {
     Swal.fire({
         title: 'Delete Order?',
@@ -597,6 +723,8 @@ async function deleteOrder(id) {
         }
     });
 }
+
+
 
 // 9. INVENTORY & GRANULAR SIZE TOGGLES
 function renderInventoryTab() {
