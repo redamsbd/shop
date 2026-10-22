@@ -281,31 +281,80 @@
     </div>
 </div>
 
-
-        <!-- COURIER & LOGISTICS -->
-        <div id="courier-content" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
-                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated dispatch via Steadfast & Pathao Courier APIs</p>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[650px]">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking Code</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Courier Provider</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD Amount</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Live Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-                </table>
-            </div>
+<!-- ULTRA-PREMIUM LOGISTICS ENGINE -->
+<div id="courier-content" class="tab-content hidden space-y-6">
+    
+    <!-- Top Header Bar -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+        <div>
+            <span class="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full">AUTOMATED DISPATCH ENGINE</span>
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 mt-1">Courier Logistics Engine</h1>
+            <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated parcel dispatch, multi-hub routing & live parcel tracking via Steadfast & Pathao APIs</p>
         </div>
+    </div>
+
+    <!-- Logistics KPI Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow">
+            <p class="text-gray-400 text-[10px] font-black uppercase">Total Parcels</p>
+            <p class="text-xl md:text-2xl font-black text-purple-600 mt-1" id="stat-courier-total">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow">
+            <p class="text-gray-400 text-[10px] font-black uppercase">In Transit</p>
+            <p class="text-xl md:text-2xl font-black text-blue-600 mt-1" id="stat-courier-transit">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow">
+            <p class="text-gray-400 text-[10px] font-black uppercase">Total Pending COD</p>
+            <p class="text-xl md:text-2xl font-black text-emerald-600 mt-1" id="stat-courier-cod">৳0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 card-shadow">
+            <p class="text-gray-400 text-[10px] font-black uppercase">Delivered</p>
+            <p class="text-xl md:text-2xl font-black text-gray-900 mt-1" id="stat-courier-delivered">0</p>
+        </div>
+    </div>
+
+    <!-- Live Search & Courier Filters -->
+    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full md:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" id="courier-search-input" oninput="filterCourierShipments()" placeholder="Search Tracking ID, Customer or Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-purple-600 transition">
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto custom-scrollbar">
+            <select id="courier-provider-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600">
+                <option value="all">All Couriers</option>
+                <option value="STEADFAST">Steadfast Only</option>
+                <option value="PATHAO">Pathao Only</option>
+            </select>
+
+            <select id="courier-status-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600">
+                <option value="all">All Statuses</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Shipments Table -->
+    <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
+        <table class="w-full text-left min-w-[850px]">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Tracking Code</th>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Customer Details</th>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Provider & Hub</th>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">COD Breakdown</th>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Live Status</th>
+                    <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Quick Actions</th>
+                </tr>
+            </thead>
+            <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+        </table>
+    </div>
+</div>
+
+   
 
         <!-- REVIEWS CONTROL PANEL -->
         <div id="reviews-content" class="tab-content hidden">
