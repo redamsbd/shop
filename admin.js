@@ -317,41 +317,100 @@ async function saveProduct(e) {
     }
 }
 
-// Render Products in Admin Catalog Grid
-function renderProductsTab() {
+// =================================================================
+// PREMIUM PRODUCTS CATALOG RENDER & LIVE FILTER ENGINE
+// =================================================================
+
+// লাইভ সার্চ এবং ক্যাটাগরি ফিল্টার ফাংশন
+function filterProductsCatalog() {
+    const query = document.getElementById('product-search-input')?.value.toLowerCase().trim() || '';
+    const selectedCategory = document.getElementById('product-category-filter')?.value || 'all';
+    const selectedStock = document.getElementById('product-stock-filter')?.value || 'all';
+
+    const filtered = allProducts.filter(p => {
+        const matchesQuery = (p.name || '').toLowerCase().includes(query) || (p.category || '').toLowerCase().includes(query);
+        const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+        const matchesStock = selectedStock === 'all' || 
+                             (selectedStock === 'in-stock' && !p.isOutOfStock) || 
+                             (selectedStock === 'out-of-stock' && p.isOutOfStock);
+
+        return matchesQuery && matchesCategory && matchesStock;
+    });
+
+    renderProductsTab(filtered);
+}
+
+// প্রোডাক্ট গ্রিড রেন্ডারার (প্রিমিয়াম কার্ড ডিজাইন)
+function renderProductsTab(productsToRender = allProducts) {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
 
-    if (allProducts.length === 0) {
-        grid.innerHTML = '<p class="text-sm text-gray-500 col-span-3">No products found in database.</p>';
+    if (!productsToRender || productsToRender.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-gray-100 card-shadow">
+                <i class="fa-solid fa-box-open text-4xl text-gray-300 mb-2"></i>
+                <p class="text-xs font-black text-gray-500 uppercase tracking-wider">No matching products found</p>
+            </div>
+        `;
         return;
     }
 
-    grid.innerHTML = allProducts.map(p => {
-        const img = (p.images && p.images[0]) ? p.images[0] : 'images/placeholder.jpg';
+    grid.innerHTML = productsToRender.map(p => {
+        const imagesList = Array.isArray(p.images) ? p.images : [];
+        const mainImg = imagesList[0] || 'images/placeholder.jpg';
+        const imageCount = imagesList.length;
+
         return `
-            <div class="bg-white rounded-2xl p-3 md:p-4 card-shadow border border-gray-100 flex gap-3 items-center">
-                <img src="${img}" class="w-16 h-20 object-cover rounded-xl border border-gray-100 shrink-0">
-                <div class="flex-1 min-w-0">
-                    <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category}</span>
-                    <h3 class="font-black text-gray-900 text-xs md:text-sm mt-1 truncate">${p.name}</h3>
-                    <p class="text-xs font-bold text-gray-800 mt-0.5">৳${p.price} ${p.originalPrice ? `<span class="line-through text-gray-400 font-normal">৳${p.originalPrice}</span>` : ''}</p>
-                    <span class="inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}">
-                        ${p.isOutOfStock ? 'Stock Out' : 'In Stock'}
-                    </span>
+            <div class="bg-white rounded-2xl border border-gray-100 card-shadow overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                
+                <!-- Product Image Container -->
+                <div class="relative aspect-[3/4] bg-gray-50 overflow-hidden">
+                    <img src="${mainImg}" alt="${p.altText || p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    
+                    <!-- Top Category & Image Count Badges -->
+                    <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
+                        <span class="text-[9px] font-black uppercase text-white bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">${p.category}</span>
+                        ${imageCount > 1 ? `<span class="text-[9px] font-bold text-gray-900 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-md shadow-sm"><i class="fa-regular fa-images"></i> ${imageCount}</span>` : ''}
+                    </div>
+
+                    <!-- Stock Status Badge -->
+                    <div class="absolute top-2.5 right-2.5">
+                        <span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-sm ${p.isOutOfStock ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}">
+                            ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
+                        </span>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-1">
-                    <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 p-1.5" title="Edit Product">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button onclick="deleteProduct('${p.id}')" class="text-red-500 hover:text-red-700 p-1.5" title="Delete Product">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+
+                <!-- Product Info & Pricing -->
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-black text-gray-900 text-sm truncate" title="${p.name}">${p.name}</h3>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-sm font-black text-red-600">৳${p.price}</span>
+                            ${p.originalPrice ? `<span class="text-xs font-bold text-gray-400 line-through">৳${p.originalPrice}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div class="flex items-center gap-2 pt-3 border-t border-gray-100 mt-3">
+                        <button onclick="editProduct('${p.id}')" class="flex-1 bg-gray-900 hover:bg-black text-white text-[11px] font-black uppercase py-2 rounded-xl transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                        <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="p-2 rounded-xl border text-xs font-bold transition ${p.isOutOfStock ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}" title="Quick Stock Toggle">
+                            <i class="fa-solid ${p.isOutOfStock ? 'fa-check' : 'fa-ban'}"></i>
+                        </button>
+                        <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition text-xs" title="Delete Product">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
+
             </div>
         `;
     }).join('');
 }
+
+
 
 // Edit Product Handler
 function editProduct(id) {
@@ -493,39 +552,83 @@ function calculateTotalCod() {
         totalCodInput.value = productAmt + deliveryFee;
     }
 }
-
-// ৪. অর্ডার টেবিল রেন্ডারিং
+// 1. ORDERS TAB RENDER ENGINE
 function renderOrdersTab() {
     const table = document.getElementById('orders-table');
     if (!table) return;
 
     if (allOrders.length === 0) {
-        table.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No orders found in database.</td></tr>';
+        table.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400 font-bold">No orders found in database.</td></tr>';
         return;
     }
 
-    table.innerHTML = allOrders.map(o => `
-        <tr class="hover:bg-gray-50 transition">
-            <td class="px-4 py-3 font-bold text-gray-900">#${o.id.substring(0, 6)}</td>
-            <td class="px-4 py-3">
-                <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
-                <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || ''}</p>
-            </td>
-            <td class="px-4 py-3 font-black text-red-600">${o.TOTAL_BILL || o.amount || '৳0'}</td>
-            <td class="px-4 py-3">
-                <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                    ${o.status || 'Pending'}
-                </span>
-            </td>
-            <td class="px-4 py-3 flex items-center gap-2">
-                <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1 shadow-sm hover:bg-purple-700 transition">
-                    <i class="fa-solid fa-truck-fast"></i> Courier
-                </button>
-                <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    table.innerHTML = allOrders.map(o => {
+        const source = o.orderSource || 'Website';
+        const method = o.Payment_Method || 'COD';
+        
+        return `
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3 font-black text-gray-900">#${o.id.substring(0, 6)}</td>
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
+                    <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || ''}</p>
+                    <span class="inline-block text-[9px] font-black uppercase text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full mt-0.5">${source}</span>
+                </td>
+                <td class="px-4 py-3 font-black text-red-600">${o.TOTAL_BILL || ('৳' + (o.amount || 0))}</td>
+                <td class="px-4 py-3 text-xs font-bold text-gray-700">
+                    ${method}
+                    ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 rounded">Trx: ${o.Transaction_ID}</span>` : ''}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : (o.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700')}">
+                        ${o.status || 'Pending'}
+                    </span>
+                </td>
+                <td class="px-4 py-3 flex items-center gap-1.5">
+                    <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1 bg-gray-900 text-white font-bold text-xs rounded-lg flex items-center gap-1 hover:bg-black transition" title="View Full Details">
+                        <i class="fa-solid fa-eye"></i> Details
+                    </button>
+                    <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1 hover:bg-purple-700 transition" title="Dispatch Courier">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </button>
+                    <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
+
+// 2. VIEW FULL ORDER DETAILS MODAL FUNCTION
+function viewOrderDetails(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+
+    document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8)}`;
+    document.getElementById('detail-source-badge').innerText = order.orderSource || 'Website Order';
+    document.getElementById('detail-cust-name').innerText = order.Customer_Name || 'N/A';
+    document.getElementById('detail-cust-phone').innerText = order.Customer_Phone || 'N/A';
+    document.getElementById('detail-cust-address').innerText = order.Delivery_Address || 'N/A';
+    document.getElementById('detail-items').innerText = order.Ordered_Items || order.Product_Details || 'No item specifications recorded.';
+    
+    document.getElementById('detail-subtotal').innerText = order.Subtotal || '৳0';
+    document.getElementById('detail-delivery').innerText = order.Delivery_Charge || '৳60';
+    document.getElementById('detail-discount').innerText = order.Discount ? `-৳${order.Discount}` : '৳0';
+    document.getElementById('detail-total').innerText = order.TOTAL_BILL || ('৳' + (order.amount || 0));
+    
+    document.getElementById('detail-pay-method').innerText = order.Payment_Method || 'Cash On Delivery';
+    document.getElementById('detail-trxid').innerText = order.Transaction_ID || 'N/A';
+
+    const dispatchBtn = document.getElementById('dispatch-from-detail-btn');
+    if (dispatchBtn) {
+        dispatchBtn.onclick = function() {
+            closeModal('order-details-modal');
+            openCourierDispatchModal(order.id);
+        };
+    }
+
+    document.getElementById('order-details-modal').classList.add('active');
+}
+
 
 // ৫. ম্যানুয়াল অর্ডার সেভ করা
 async function saveOrder() {
