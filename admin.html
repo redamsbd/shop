@@ -30,7 +30,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 
-<!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
+ <!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
 <div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
     <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
         
@@ -87,14 +87,14 @@
 </div>
 
 <!-- FORGOT PASSWORD & EMAIL OTP RECOVERY MODAL -->
-<div id="forgot-password-modal" class="modal-overlay">
+<div id="forgot-password-modal" class="modal-overlay hidden">
     <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl border border-gray-100">
         <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
             <div>
                 <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">RECOVERY ENGINE</span>
                 <h2 class="text-xl font-black text-gray-900 mt-1">Reset Master Password</h2>
             </div>
-            <button onclick="closeModal('forgot-password-modal')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition">
+            <button type="button" onclick="closeModal('forgot-password-modal')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold flex items-center justify-center transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -106,7 +106,7 @@
                 <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Admin Email Address</label>
                 <input type="email" id="recovery-email" placeholder="admin@redamsbd.me" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600">
             </div>
-            <button onclick="sendPasswordResetOTP()" id="send-otp-btn" class="w-full bg-red-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+            <button type="button" onclick="sendPasswordResetOTP()" id="send-otp-btn" class="w-full bg-red-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-paper-plane"></i> Send OTP Code
             </button>
         </div>
@@ -124,12 +124,13 @@
                 <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Set New Password</label>
                 <input type="password" id="reset-new-pass" placeholder="At least 6 characters" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600">
             </div>
-            <button onclick="verifyOTPAndResetPassword()" id="verify-otp-btn" class="w-full bg-purple-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+            <button type="button" onclick="verifyOTPAndResetPassword()" id="verify-otp-btn" class="w-full bg-purple-600 hover:bg-black text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-key"></i> Verify & Update Password
             </button>
         </div>
     </div>
 </div>
+   
 
 <!-- MAIN DASHBOARD CONTAINER -->
 <div id="dashboard" class="hidden flex flex-col md:flex-row min-h-screen bg-gray-100">
