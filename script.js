@@ -662,7 +662,7 @@ function clearCheckoutInputs() {
 }
 
 // ===== Email Order Confirmation =====
-function confirmOrder() {
+async function confirmOrder() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
     const address = document.getElementById('final-address')?.value.trim();
@@ -714,7 +714,8 @@ function confirmOrder() {
     }
 
     const totalBill = subtotal + baseCharge - discount;
-    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : `ONLINE PAID (${selectedSubMethod})`;
+    const subMethodStr = typeof selectedSubMethod !== 'undefined' ? selectedSubMethod : '';
+    let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : `ONLINE PAID (${subMethodStr})`;
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
 
     Swal.fire({
@@ -724,6 +725,32 @@ function confirmOrder() {
         didOpen: () => { Swal.showLoading(); }
     });
 
+    // 1. AUTO CREATE ORDER IN FIREBASE FOR ADMIN PANEL
+    try {
+        await db.collection("orders").add({
+            Customer_Name: name,
+            Customer_Phone: phone,
+            Delivery_Address: address,
+            Ordered_Items: itemsText,
+            Subtotal: `৳${subtotal}`,
+            Promo_Used: promoInfo,
+            Discount: `৳${discount.toFixed(0)}`,
+            Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
+            TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
+            amount: Math.round(totalBill),
+            Payment_Method: `${paymentMethod} (${subMethodStr})`,
+            Payment_Status: paymentStatus,
+            Transaction_ID: trnxId,
+            Due_Amount: `৳${finalPayable.toFixed(0)}`,
+            status: 'Pending', // Admin Panel-e 'Pending' dekhabe
+            orderSource: 'Website Checkout',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (fbErr) {
+        console.error("Firebase Sync Warning:", fbErr);
+    }
+
+    // 2. EMAIL SUBMISSION VIA WEB3FORMS
     const formData = {
         access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
         subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
@@ -740,7 +767,7 @@ function confirmOrder() {
         Discount: `৳${discount.toFixed(0)}`,
         Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
         TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
-        Payment_Method: `${paymentMethod} (${selectedSubMethod})`,
+        Payment_Method: `${paymentMethod} (${subMethodStr})`,
         Payment_Status: paymentStatus,
         Transaction_ID: trnxId,
         Due_Amount: `৳${finalPayable.toFixed(0)}`
@@ -778,7 +805,7 @@ function confirmOrder() {
 }
 
 // ===== WhatsApp Order =====
-function orderByWhatsApp() {
+async function orderByWhatsApp() {
     const name = document.getElementById('final-name')?.value.trim();
     const phone = document.getElementById('final-phone')?.value.trim();
     const address = document.getElementById('final-address')?.value.trim();
@@ -798,6 +825,13 @@ function orderByWhatsApp() {
         return;
     }
 
+    Swal.fire({
+        title: 'Processing Order...',
+        text: 'Please wait while we log your order.',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
     let itemsText = "";
     let subtotal = 0;
     cart.forEach((item, index) => {
@@ -807,22 +841,50 @@ function orderByWhatsApp() {
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
+    const totalBill = subtotal + baseCharge;
+    const subMethodStr = typeof selectedSubMethod !== 'undefined' ? selectedSubMethod : '';
 
+    // 1. AUTO CREATE ORDER IN FIREBASE FOR ADMIN PANEL
+    try {
+        await db.collection("orders").add({
+            Customer_Name: name,
+            Customer_Phone: phone,
+            Delivery_Address: address,
+            Ordered_Items: itemsText,
+            Subtotal: `৳${subtotal}`,
+            Delivery_Charge: `৳${baseCharge}`,
+            TOTAL_BILL: `৳${totalBill}`,
+            amount: Math.round(totalBill),
+            Payment_Method: `${paymentMethod} (${subMethodStr})`,
+            Transaction_ID: trnxId,
+            status: 'Pending', // Admin Panel-e 'Pending' dekhabe
+            orderSource: 'WhatsApp Order',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (fbErr) {
+        console.error("Firebase Sync Warning:", fbErr);
+    }
+
+    // 2. REDIRECT TO WHATSAPP
     let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
     message += `👤 *Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Address: ${address}\n\n`;
     message += `🛒 *Ordered Items:*\n${itemsText}\n`;
-    message += `💰 *Total Bill:* ৳${subtotal + baseCharge}\n`;
-    message += `💳 *Payment Method:* ${paymentMethod} (${selectedSubMethod})\n`;
+    message += `💰 *Total Bill:* ৳${totalBill}\n`;
+    message += `💳 *Payment Method:* ${paymentMethod} (${subMethodStr})\n`;
     message += `• TrxID: ${trnxId}\n\nPlease confirm my order!`;
 
     cart = [];
     localStorage.removeItem('redams_cart');
     clearCheckoutInputs();
-    updateCartUI();
-    toggleCart(false);
+    if (typeof updateCartUI === "function") updateCartUI();
+    if (typeof toggleCart === "function") toggleCart(false);
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+    Swal.close();
+
+    const waNum = typeof WHATSAPP_NUMBER !== 'undefined' ? WHATSAPP_NUMBER : '8801700000000';
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(message)}`, '_blank');
 }
+    
 
 // ===== Cart UI Update =====
 function updateCartUI(isPaidOverride = null) {
