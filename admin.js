@@ -994,30 +994,61 @@ const COURIER_CREDENTIALS = {
     }
 };
 
-// ROBUST MULTI-PROXY API DISPATCHER (Prevents legacy proxy blocks)
+// HIGH-RELIABILITY CORS PROXY ENGINE FOR POST REQUESTS & CUSTOM HEADERS
 async function callApiWithCorsProxy(targetUrl, fetchOptions) {
-    const proxyGenerators = [
-        url => `https://corsproxy.org/?${encodeURIComponent(url)}`,
-        url => `https://thingproxy.freeboard.io/fetch/${url}`
+    const rawBody = fetchOptions.body || null;
+    const rawHeaders = fetchOptions.headers || {};
+    const method = fetchOptions.method || 'POST';
+
+    // List of active, high-compatibility CORS proxy endpoints
+    const proxyEndpoints = [
+        // Endpoint 1: CodeTabs Reliable CORS Proxy
+        async () => {
+            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
+            const res = await fetch(proxyUrl, {
+                method: method,
+                headers: rawHeaders,
+                body: rawBody
+            });
+            if (!res.ok) throw new Error(`CodeTabs Proxy Status: ${res.status}`);
+            return await res.json();
+        },
+        // Endpoint 2: CorsProxy.io Open API Protocol
+        async () => {
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+            const res = await fetch(proxyUrl, {
+                method: method,
+                headers: rawHeaders,
+                body: rawBody
+            });
+            if (!res.ok) throw new Error(`CorsProxy Status: ${res.status}`);
+            return await res.json();
+        },
+        // Endpoint 3: AllOrigins Raw Fetcher
+        async () => {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+            const res = await fetch(proxyUrl, {
+                method: method,
+                headers: rawHeaders,
+                body: rawBody
+            });
+            if (!res.ok) throw new Error(`AllOrigins Proxy Status: ${res.status}`);
+            return await res.json();
+        }
     ];
 
     let lastError = null;
-    for (const getProxyUrl of proxyGenerators) {
+    for (const executeProxyCall of proxyEndpoints) {
         try {
-            const proxyUrl = getProxyUrl(targetUrl);
-            const res = await fetch(proxyUrl, fetchOptions);
-            const resData = await res.json();
-
-            if (resData && resData.message && typeof resData.message === 'string' && resData.message.includes("Anonymous legacy proxy")) {
-                continue;
-            }
-
-            return resData;
+            const resultData = await executeProxyCall();
+            if (resultData) return resultData;
         } catch (err) {
+            console.warn("Proxy Attempt Failed, trying fallback...", err);
             lastError = err;
         }
     }
-    throw lastError || new Error("CORS Proxy connectivity failed. Please try again.");
+
+    throw new Error(lastError ? lastError.message : "CORS Network Proxy Connection Failed. Please check network connection.");
 }
 
 function onCourierProviderChange() {
@@ -1085,10 +1116,10 @@ async function getPathaoAccessToken() {
         })
     });
 
-    if (data.access_token) {
+    if (data && data.access_token) {
         return data.access_token;
     }
-    throw new Error(data.message || "Pathao Auth Token Generation Failed");
+    throw new Error(data?.message || "Pathao Auth Token Generation Failed");
 }
 
 // REAL COURIER DISPATCH ENGINE (STEADFAST & PATHAO)
@@ -1142,12 +1173,12 @@ async function dispatchCourierParcel(e) {
                 body: JSON.stringify(steadfastPayload)
             });
 
-            if (resData.status === 200 && resData.consignment) {
+            if (resData && (resData.status === 200 || resData.status === "200") && resData.consignment) {
                 consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
                 trackingCode = String(resData.consignment.tracking_code || consignmentId);
                 trackingUrl = `https://steadfast.com.bd/t/${trackingCode}`;
             } else {
-                throw new Error(resData.message || (resData.errors ? JSON.stringify(resData.errors) : "Steadfast Portal Rejected Order"));
+                throw new Error(resData?.message || (resData?.errors ? JSON.stringify(resData.errors) : "Steadfast Portal Rejected Order"));
             }
         } 
         
@@ -1182,12 +1213,12 @@ async function dispatchCourierParcel(e) {
                 body: JSON.stringify(pathaoPayload)
             });
 
-            if (resData.type === 'success' && resData.data) {
+            if (resData && resData.type === 'success' && resData.data) {
                 consignmentId = String(resData.data.consignment_id || '');
                 trackingCode = consignmentId;
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
             } else {
-                throw new Error(resData.message || "Pathao Portal Rejected Order");
+                throw new Error(resData?.message || "Pathao Portal Rejected Order");
             }
         }
 
@@ -1684,4 +1715,3 @@ function deleteReview(id) {
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
 });
-
