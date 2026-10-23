@@ -409,7 +409,6 @@ function initDashboard() {
 }
 
 function updateStats() {
-    // Only Completed or Delivered orders contribute to Total Revenue
     const totalRev = allOrders.reduce((sum, o) => {
         const orderStatus = o.status || 'Pending';
         if (orderStatus === 'Completed' || orderStatus === 'Delivered') {
@@ -883,7 +882,6 @@ function viewOrderDetails(orderId) {
     }
 }
 
-// UPDATED: Save Manual Order with full form sync & status engine
 async function saveOrder(e) {
     if (e) e.preventDefault();
     const submitBtn = document.getElementById('save-order-btn');
@@ -971,7 +969,7 @@ async function deleteOrder(id) {
 }
 
 // =================================================================
-// ULTRA-PREMIUM AUTONOMOUS LOGISTICS ENGINE
+// ULTRA-PREMIUM AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO)
 // =================================================================
 
 const COURIER_CREDENTIALS = {
@@ -1041,31 +1039,61 @@ function openCourierDispatchModal(orderId) {
     }
 }
 
-// UPDATED: Robust Steadfast CORS Proxy & Live Dispatch
+// PATHAO API OAUTH 2.0 TOKEN GENERATOR
+async function getPathaoAccessToken() {
+    const creds = COURIER_CREDENTIALS.pathao;
+    const proxyUrl = "https://corsproxy.io/?";
+    const targetUrl = "https://api-hermes.pathao.com/aladdin/api/v1/issue-token";
+
+    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            client_id: creds.clientId,
+            client_secret: creds.clientSecret,
+            username: creds.username,
+            password: creds.password,
+            grant_type: "password"
+        })
+    });
+
+    const data = await response.json();
+    if (data.access_token) {
+        return data.access_token;
+    }
+    throw new Error(data.message || "Pathao Auth Token Generation Failed");
+}
+
+// REAL COURIER DISPATCH ENGINE (STEADFAST & PATHAO)
 async function dispatchCourierParcel(e) {
     if (e) e.preventDefault();
     const btn = document.getElementById('dispatch-btn');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Booking on Real Courier Portal...`;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Dispatching to Courier Portal...`;
     }
 
     const orderId = document.getElementById('courier-order-id')?.value;
     const provider = document.getElementById('courier-provider')?.value || 'steadfast';
     const selectedLocId = document.getElementById('courier-pickup-location')?.value;
-    const name = document.getElementById('courier-cust-name')?.value;
-    const phone = document.getElementById('courier-cust-phone')?.value;
-    const address = document.getElementById('courier-cust-address')?.value;
+    const name = document.getElementById('courier-cust-name')?.value.trim();
+    const phone = document.getElementById('courier-cust-phone')?.value.trim();
+    const address = document.getElementById('courier-cust-address')?.value.trim();
     const productAmt = parseInt(document.getElementById('courier-product-amount')?.value) || 0;
     const deliveryFee = parseInt(document.getElementById('courier-delivery-charge')?.value) || 60;
     const codAmount = parseInt(document.getElementById('courier-cod-amount')?.value) || (productAmt + deliveryFee);
-    const note = document.getElementById('courier-note')?.value || "REDAMS Apparel Delivery - Handle with Care";
+    const note = document.getElementById('courier-note')?.value.trim() || "REDAMS Apparel Delivery - Handle with Care";
 
     try {
         let consignmentId = "";
         let trackingCode = "";
+        let trackingUrl = "";
         let invoiceNo = "RED-" + (orderId ? orderId.substring(0, 6).toUpperCase() : Math.floor(100000 + Math.random() * 900000));
 
+        // 1. STEADFAST COURIER REAL DISPATCH
         if (provider === 'steadfast') {
             const locConfig = COURIER_CREDENTIALS.steadfast.locations.find(l => l.id === selectedLocId) || COURIER_CREDENTIALS.steadfast.locations[0];
             
@@ -1081,42 +1109,78 @@ async function dispatchCourierParcel(e) {
             const proxyUrl = "https://corsproxy.io/?";
             const targetUrl = "https://portal.steadfast.com.bd/api/v1/create_order";
 
-            try {
-                const res = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Api-Key": locConfig.apiKey,
-                        "Secret-Key": locConfig.secretKey
-                    },
-                    body: JSON.stringify(steadfastPayload)
-                });
+            const res = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Api-Key": locConfig.apiKey,
+                    "Secret-Key": locConfig.secretKey
+                },
+                body: JSON.stringify(steadfastPayload)
+            });
 
-                const resData = await res.json();
-                if (resData.status === 200 && resData.consignment) {
-                    consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
-                    trackingCode = resData.consignment.tracking_code;
-                } else {
-                    console.warn("Steadfast API warning:", resData);
-                    trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
-                    consignmentId = trackingCode;
-                }
-            } catch (apiErr) {
-                console.warn("Steadfast API fetch failed, fallback:", apiErr);
-                trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
-                consignmentId = trackingCode;
+            const resData = await res.json();
+
+            if (resData.status === 200 && resData.consignment) {
+                consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
+                trackingCode = String(resData.consignment.tracking_code || consignmentId);
+                trackingUrl = `https://steadfast.com.bd/t/${trackingCode}`;
+            } else {
+                throw new Error(resData.message || (resData.errors ? JSON.stringify(resData.errors) : "Steadfast Portal Rejected Order"));
             }
-        } else if (provider === 'pathao') {
-            consignmentId = "PTH-CID-" + Math.floor(100000 + Math.random() * 900000);
-            trackingCode = "PTH-" + Math.floor(100000 + Math.random() * 900000);
+        } 
+        
+        // 2. PATHAO COURIER REAL DISPATCH
+        else if (provider === 'pathao') {
+            const token = await getPathaoAccessToken();
+            const proxyUrl = "https://corsproxy.io/?";
+            const targetUrl = "https://api-hermes.pathao.com/aladdin/api/v1/orders";
+
+            const pathaoPayload = {
+                store_id: parseInt(selectedLocId) || 1001,
+                merchant_order_id: invoiceNo,
+                recipient_name: name,
+                recipient_phone: phone,
+                recipient_address: address,
+                recipient_city: 1, // Default Dhaka
+                recipient_zone: 1,
+                delivery_type: 48,
+                item_type: 2, // Standard Parcel
+                special_instruction: note,
+                item_quantity: 1,
+                item_weight: 0.5,
+                amount_to_collect: codAmount
+            };
+
+            const res = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(pathaoPayload)
+            });
+
+            const resData = await res.json();
+
+            if (resData.type === 'success' && resData.data) {
+                consignmentId = String(resData.data.consignment_id || '');
+                trackingCode = consignmentId;
+                trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
+            } else {
+                throw new Error(resData.message || "Pathao Portal Rejected Order");
+            }
         }
 
+        // SAVE SHIPMENT RECORD IN FIRESTORE
         await db.collection("courier_shipments").add({
             orderId: orderId || '',
             provider: provider.toUpperCase(),
             pickupLocationId: selectedLocId,
-            consignmentId: consignmentId || trackingCode,
+            consignmentId: consignmentId,
             trackingCode: trackingCode,
+            trackingUrl: trackingUrl,
             invoiceNo: invoiceNo,
             customerName: name,
             customerPhone: phone,
@@ -1125,15 +1189,16 @@ async function dispatchCourierParcel(e) {
             deliveryCharge: deliveryFee,
             codAmount: codAmount,
             status: 'In Transit',
-            trackingUrl: provider === 'steadfast' || provider === 'STEADFAST' ? `https://steadfast.com.bd/t/${trackingCode}` : 'https://pathao.com/tracking/',
             bookedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // UPDATE MAIN ORDER RECORD IN FIRESTORE
         if (orderId) {
             await db.collection("orders").doc(orderId).update({
                 status: 'Shipped',
-                consignmentId: consignmentId || trackingCode,
+                consignmentId: consignmentId,
                 trackingCode: trackingCode,
+                trackingUrl: trackingUrl,
                 deliveryCharge: deliveryFee,
                 finalCodAmount: codAmount
             });
@@ -1143,10 +1208,14 @@ async function dispatchCourierParcel(e) {
             icon: 'success',
             title: 'PARCEL BOOKED SUCCESSFULLY!',
             html: `
-                <div class="text-left text-xs space-y-1.5 p-3 bg-gray-50 rounded-xl border border-gray-200 mt-2">
-                    <p><b>Consignment ID:</b> <span class="font-mono text-purple-700 font-bold">${consignmentId || trackingCode}</span></p>
-                    <p><b>Tracking Code:</b> <span class="font-mono font-bold">${trackingCode}</span></p>
-                    <p><b>Total COD Amount:</b> ৳${codAmount}</p>
+                <div class="text-left text-xs space-y-2 p-3 bg-gray-50 rounded-xl border border-gray-200 mt-2">
+                    <p><b>Courier Provider:</b> <span class="uppercase font-bold text-purple-700">${provider}</span></p>
+                    <p><b>Consignment ID:</b> <span class="font-mono text-purple-900 font-bold">${consignmentId}</span></p>
+                    <p><b>Tracking Code:</b> <span class="font-mono font-bold text-black">${trackingCode}</span></p>
+                    <p><b>Total COD:</b> ৳${codAmount}</p>
+                    <div class="pt-1">
+                        <a href="${trackingUrl}" target="_blank" class="inline-block bg-purple-600 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] uppercase">Open Tracking Link ↗</a>
+                    </div>
                 </div>
             `,
             confirmButtonColor: '#9333ea'
@@ -1155,7 +1224,11 @@ async function dispatchCourierParcel(e) {
         closeModal('courier-modal');
     } catch (err) {
         console.error("Logistics Dispatch Error:", err);
-        Swal.fire({ icon: 'error', title: 'Booking Failed', text: err.message });
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Booking Failed!', 
+            text: err.message || "Could not connect to courier API. Please check your credentials or network."
+        });
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -1185,7 +1258,8 @@ async function cancelCourierShipment(shipmentDocId, orderId, trackingCode) {
                     await db.collection("orders").doc(orderId).update({
                         status: 'Pending',
                         trackingCode: firebase.firestore.FieldValue.delete(),
-                        consignmentId: firebase.firestore.FieldValue.delete()
+                        consignmentId: firebase.firestore.FieldValue.delete(),
+                        trackingUrl: firebase.firestore.FieldValue.delete()
                     });
                 }
 
@@ -1239,6 +1313,7 @@ PHONE NUMBER   : ${s.customerPhone}
 ADDRESS        : ${s.address}
 
 TOTAL COD TO COLLECT : ৳${s.codAmount}
+TRACKING LINK  : ${s.trackingUrl || 'N/A'}
 ----------------------------------------`;
 
     navigator.clipboard.writeText(labelText);
@@ -1320,6 +1395,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
 
         const hubName = s.pickupLocationId ? (s.pickupLocationId.includes('saidpur') ? 'Saidpur Hub' : 'Kohinoor Hub') : 'Main Hub';
         const displayCid = s.consignmentId || s.trackingCode;
+        const liveTrackingUrl = s.trackingUrl || (s.provider === 'STEADFAST' ? `https://steadfast.com.bd/t/${s.trackingCode}` : `https://merchant.pathao.com/tracking?consignment_id=${s.consignmentId}`);
 
         return `
             <tr class="hover:bg-gray-50 transition border-b border-gray-100">
@@ -1357,7 +1433,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                         <button onclick="copyParcelPrintLabel('${s.id}')" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-bold" title="Copy Print Label">
                             <i class="fa-regular fa-copy"></i>
                         </button>
-                        <a href="${s.trackingUrl || (s.provider === 'STEADFAST' ? 'https://steadfast.com.bd/t/' + s.trackingCode : 'https://pathao.com/tracking/')}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1">
+                        <a href="${liveTrackingUrl}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1">
                             <i class="fa-solid fa-arrow-up-right-from-square"></i> Track
                         </a>
                         <button onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg text-xs font-bold transition" title="Cancel Booking">
