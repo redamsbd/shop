@@ -31,7 +31,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 
- <!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
+<!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
 <div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
     <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
         
@@ -133,11 +133,11 @@
 </div>
 
 <!-- MAIN DASHBOARD CONTAINER -->
-<div id="dashboard" class="hidden min-h-screen bg-gray-100 flex flex-col md:flex-row w-full overflow-x-hidden">
+<div id="dashboard" class="hidden min-h-screen bg-gray-100 flex flex-col md:flex-row w-full relative">
     
     <!-- Mobile Top Navigation Bar -->
-    <div class="md:hidden bg-gray-950/95 backdrop-blur-md text-white p-4 flex justify-between items-center border-b border-gray-800/80 sticky top-0 z-30 shadow-lg w-full shrink-0">
-        <button type="button" onclick="toggleMobileSidebar()" class="text-white bg-gray-800/80 hover:bg-red-600 p-2.5 rounded-2xl transition focus:outline-none active:scale-90">
+    <div class="md:hidden bg-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800 sticky top-0 z-30 w-full shrink-0">
+        <button type="button" onclick="toggleMobileSidebar()" class="text-white bg-gray-800 hover:bg-red-600 p-2.5 rounded-2xl transition focus:outline-none active:scale-90">
             <i class="fa-solid fa-bars-staggered text-lg"></i>
         </button>
         <div class="text-right">
@@ -149,11 +149,11 @@
     <!-- Mobile Drawer Overlay -->
     <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
-    <!-- Sidebar Drawer (Mobile Overlay Drawer / PC Static Flex Item) -->
-    <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 border-r border-gray-800/80 h-screen md:h-auto shrink-0">
+    <!-- Sidebar Drawer (Mobile Overlay Slide-out / PC Static Side Panel) -->
+    <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 border-r border-gray-800 h-full shrink-0">
         
         <!-- Sidebar Header -->
-        <div class="p-6 border-b border-gray-800/80 flex justify-between items-center bg-gray-950">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-950">
             <div>
                 <h2 class="text-2xl font-black tracking-tighter leading-none">REDAMS<br><span class="text-red-600">HUB ENGINE</span></h2>
                 <span class="inline-flex items-center gap-1.5 mt-2.5 text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
@@ -198,7 +198,7 @@
         </nav>
         
         <!-- Sidebar Bottom Settings / Logout -->
-        <div class="p-4 border-t border-gray-800/80 space-y-2 bg-gray-950 mt-auto">
+        <div class="p-4 border-t border-gray-800 space-y-2 bg-gray-950 mt-auto">
             <button type="button" onclick="openChangePasswordModal()" class="w-full bg-gray-900 hover:bg-gray-800 text-gray-300 py-3 rounded-2xl font-black transition text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-gray-800">
                 <i class="fa-solid fa-key text-yellow-500"></i> Change Password
             </button>
@@ -208,8 +208,8 @@
         </div>
     </aside>
 
-    <!-- Main Content Panel Wrapper (Automatic Flex Fill) -->
-    <main class="flex-1 min-w-0 w-full overflow-y-auto p-4 md:p-8 space-y-6">
+    <!-- Main Content Panel Wrapper -->
+    <main class="flex-1 w-full min-w-0 overflow-y-auto p-4 md:p-8 space-y-6 bg-gray-100 min-h-screen">
         
         <!-- 1. DASHBOARD OVERVIEW TAB -->
         <div id="dashboard-content" class="tab-content space-y-6">
@@ -294,130 +294,323 @@
 
         </div> <!-- /#dashboard-content -->
 
+        <!-- 2. PRODUCTS CATALOG TAB -->
+        <div id="products-content" class="tab-content hidden space-y-6">
+            
+            <!-- Top Header & Add Button Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">CATALOG CONTROL ENGINE</span>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 mt-1">Products Catalog</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage apparel items, Cloudinary multi-image galleries, pricing & stock status</p>
+                </div>
+                <button onclick="openAddProductModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-plus text-sm"></i> Add New Product
+                </button>
+            </div>
+
+            <!-- Live Search & Category Filter Toolbar -->
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+                <!-- Live Search Input -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="product-search-input" oninput="filterProductsCatalog()" placeholder="Search product name or title..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 transition">
+                </div>
+
+                <!-- Filter Dropdowns -->
+                <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                    <select id="product-category-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
+                        <option value="all">All Categories</option>
+                        <option value="drop-shoulder">Drop Shoulder</option>
+                        <option value="acid-wash">Acid Wash</option>
+                        <option value="regular-tshirt">Regular T-Shirt</option>
+                        <option value="hoodie">Hoodie</option>
+                        <option value="couple-tshirt">Couple T-Shirt</option>
+                        <option value="polo-tshirt">Polo T-Shirt</option>
+                        <option value="henley">Henley T-Shirt</option>
+                        <option value="combo">Combo Offer</option>
+                    </select>
+
+                    <select id="product-stock-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
+                        <option value="all">All Stock Status</option>
+                        <option value="in-stock">In Stock Only</option>
+                        <option value="out-of-stock">Out of Stock Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dynamic Premium Products Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="products-grid">
+                <p class="text-xs font-bold text-gray-400 col-span-full py-12 text-center uppercase tracking-wider">Loading products catalog from Firebase...</p>
+            </div>
+        </div> <!-- /#products-content -->
+
+        <!-- 3. ORDERS MANAGEMENT TAB -->
+        <div id="orders-content" class="tab-content hidden space-y-6">
+            
+            <!-- Top Header & Action Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">LIVE SYNC HUB</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-bolt"></i> Realtime Sync</span>
+                    </div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Orders Management</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Website, Custom Form & WhatsApp customer orders control engine</p>
+                </div>
+                
+                <button onclick="openAddOrderModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-plus text-sm"></i> Add Manual Order
+                </button>
+            </div>
+
+            <!-- Smart Search & Quick Filter Toolbar -->
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+                <!-- Live Search Field -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="order-search-input" oninput="if(typeof filterOrdersTable === 'function') filterOrdersTable()" placeholder="Search Order ID, Name, Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                </div>
+
+                <!-- Filter Dropdowns -->
+                <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                    <select id="order-source-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
+                        <option value="all">All Sources</option>
+                        <option value="Website">Website Order</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Manual">Manual Entry</option>
+                    </select>
+
+                    <select id="order-status-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Shipped">Shipped / Courier</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Responsive High-Density Table Wrapper -->
+            <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left min-w-[750px] border-collapse">
+                        <thead class="bg-gray-50/80 border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Order ID</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Customer & Channel</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Total Bill</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Payment</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Status</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm">
+                            <!-- Dynamic Rows Injected by admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- /#orders-content -->
+
+        <!-- 4. COURIER LOGISTICS TAB -->
+        <div id="courier-content" class="tab-content hidden space-y-6">
+            
+            <!-- Top Header Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">AUTONOMOUS LOGISTICS HUB</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-100"><i class="fa-solid fa-plug"></i> Real API Live</span>
+                    </div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated dispatch, Consignment IDs, live tracking & financial breakdown for Steadfast & Pathao</p>
+                </div>
+                
+                <!-- Live Sync Button -->
+                <button onclick="syncLiveCourierStatuses()" class="bg-purple-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-purple-600/20 text-xs flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
+                    <i class="fa-solid fa-arrows-rotate text-sm"></i> Sync Live Statuses
+                </button>
+            </div>
+
+            <!-- Analytics KPI Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Booked</p>
+                    <p class="text-xl md:text-2xl font-black text-purple-600 mt-1" id="stat-courier-total">0</p>
+                </div>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">In Transit</p>
+                    <p class="text-xl md:text-2xl font-black text-blue-600 mt-1" id="stat-courier-transit">0</p>
+                </div>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Net COD Collectable</p>
+                    <p class="text-xl md:text-2xl font-black text-emerald-600 mt-1" id="stat-courier-cod">৳0</p>
+                </div>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Delivered</p>
+                    <p class="text-xl md:text-2xl font-black text-green-700 mt-1" id="stat-courier-delivered">0</p>
+                </div>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow col-span-2 md:col-span-1">
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Cancelled / Hold</p>
+                    <p class="text-xl md:text-2xl font-black text-red-500 mt-1" id="stat-courier-cancelled">0</p>
+                </div>
+            </div>
+
+            <!-- Search Toolbar & Multi-Filters -->
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+                <!-- Live Search -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="courier-search-input" oninput="filterCourierShipments()" placeholder="Search Consignment ID, Tracking, Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-purple-600 transition">
+                </div>
+
+                <!-- Filter Dropdowns -->
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <select id="courier-provider-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600 w-1/2 md:w-auto">
+                        <option value="all">All Couriers</option>
+                        <option value="STEADFAST">Steadfast Courier</option>
+                        <option value="PATHAO">Pathao Courier</option>
+                    </select>
+
+                    <select id="courier-status-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600 w-1/2 md:w-auto">
+                        <option value="all">All Statuses</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Hold">Hold / Return</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Responsive High-Density Shipments Table -->
+            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100 custom-scrollbar">
+                <table class="w-full text-left min-w-[950px] border-collapse">
+                    <thead class="bg-gray-50/80 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Consignment & Tracking</th>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Recipient & Address</th>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Provider & Hub</th>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Financial Breakdown</th>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Live Status</th>
+                            <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap text-right">Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                </table>
+            </div>
+        </div> <!-- /#courier-content -->
+
+        <!-- 5. REVIEWS CONTROL PANEL -->
+        <div id="reviews-content" class="tab-content hidden space-y-6">
+            
+            <!-- Top Header & Live Analytics Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">MODERATION ENGINE</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100"><i class="fa-solid fa-star"></i> Live Ratings Sync</span>
+                    </div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Customer Reviews Control</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Moderate customer feedback, approve ratings, and manage website display</p>
+                </div>
+
+                <!-- Dynamic Pending Badge -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <span id="pending-count-badge" class="bg-black text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-lg shadow-black/10 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-amber-400"></i> 0 Pending
+                    </span>
+                </div>
+            </div>
+
+            <!-- Search & Filter Toolbar -->
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+                <!-- Search Field -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="review-search-input" oninput="if(typeof filterReviewsList === 'function') filterReviewsList()" placeholder="Search customer name or text..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                </div>
+
+                <!-- Filter Quick Tabs -->
+                <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                    <select id="review-status-filter" onchange="if(typeof filterReviewsList === 'function') filterReviewsList()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-full md:w-auto">
+                        <option value="all">All Reviews</option>
+                        <option value="pending">Pending Only</option>
+                        <option value="approved">Approved Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dynamic Reviews Grid Container -->
+            <div id="admin-reviews-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+                <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-gray-100 card-shadow">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl text-red-600 mb-2"></i>
+                    <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Loading customer reviews from database...</p>
+                </div>
+            </div>
+        </div> <!-- /#reviews-content -->
+
+        <!-- 6. SIZE & INVENTORY CONTROL -->
+        <div id="inventory-content" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">INVENTORY CONTROL</span>
+                <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight mt-1">Size Availability & Inventory</h1>
+                <p class="text-xs text-gray-500 font-semibold mt-0.5">Toggle overall stock & individual garment sizes (S, M, L, XL, XXL) in real time</p>
+            </div>
+
+            <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left min-w-[700px]">
+                        <thead class="bg-gray-50/80 border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Product Title</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Category</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Overall Stock</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Size Toggles (S / M / L / XL / XXL)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- /#inventory-content -->
+
+        <!-- 7. PROMO CODES TAB -->
+        <div id="promo-content" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">DISCOUNT ENGINE</span>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight mt-1">Promo Code Management</h1>
+                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Create flat discount or percentage promo vouchers for customer checkout</p>
+                </div>
+                <button type="button" onclick="openAddPromoModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition shrink-0">
+                    <i class="fa-solid fa-plus"></i> Create Promo Code
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left min-w-[650px]">
+                        <thead class="bg-gray-50/80 border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Promo Code</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Discount Type</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Value Amount</th>
+                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- /#promo-content -->
+
     </main> <!-- /Main Content Panel Wrapper -->
 
 </div> <!-- /#dashboard -->
- 
 
-        <!-- ULTRA-PREMIUM PRODUCTS CATALOG MANAGEMENT -->
-<div id="products-content" class="tab-content hidden space-y-6">
-    
-    <!-- Top Header & Add Button Bar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-        <div>
-            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">CATALOG CONTROL ENGINE</span>
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 mt-1">Products Catalog</h1>
-            <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage apparel items, Cloudinary multi-image galleries, pricing & stock status</p>
-        </div>
-        <button onclick="openAddProductModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
-            <i class="fa-solid fa-plus text-sm"></i> Add New Product
-        </button>
-    </div>
 
-    <!-- Live Search & Category Filter Toolbar -->
-    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-        <!-- Live Search Input -->
-        <div class="relative w-full md:w-80">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="product-search-input" oninput="filterProductsCatalog()" placeholder="Search product name or title..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 transition">
-        </div>
-
-        <!-- Filter Dropdowns -->
-        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-            <select id="product-category-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
-                <option value="all">All Categories</option>
-                <option value="drop-shoulder">Drop Shoulder</option>
-                <option value="acid-wash">Acid Wash</option>
-                <option value="regular-tshirt">Regular T-Shirt</option>
-                <option value="hoodie">Hoodie</option>
-                <option value="couple-tshirt">Couple T-Shirt</option>
-                <option value="polo-tshirt">Polo T-Shirt</option>
-                <option value="henley">Henley T-Shirt</option>
-                <option value="combo">Combo Offer</option>
-            </select>
-
-            <select id="product-stock-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
-                <option value="all">All Stock Status</option>
-                <option value="in-stock">In Stock Only</option>
-                <option value="out-of-stock">Out of Stock Only</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Dynamic Premium Products Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="products-grid">
-        <p class="text-xs font-bold text-gray-400 col-span-full py-12 text-center uppercase tracking-wider">Loading products catalog from Firebase...</p>
-    </div>
-</div>
-
-<!-- ULTRA-PREMIUM ORDERS MANAGEMENT TAB -->
-<div id="orders-content" class="tab-content hidden space-y-6">
-    
-    <!-- Top Header & Action Bar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">LIVE SYNC HUB</span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-bolt"></i> Realtime Sync</span>
-            </div>
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Orders Management</h1>
-            <p class="text-xs text-gray-500 font-semibold mt-0.5">Website, Custom Form & WhatsApp customer orders control engine</p>
-        </div>
-        
-        <button onclick="openAddOrderModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
-            <i class="fa-solid fa-plus text-sm"></i> Add Manual Order
-        </button>
-    </div>
-
-    <!-- Smart Search & Quick Filter Toolbar -->
-    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-        <!-- Live Search Field -->
-        <div class="relative w-full md:w-80">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="order-search-input" oninput="if(typeof filterOrdersTable === 'function') filterOrdersTable()" placeholder="Search Order ID, Name, Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
-        </div>
-
-        <!-- Filter Dropdowns -->
-        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-            <select id="order-source-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
-                <option value="all">All Sources</option>
-                <option value="Website">Website Order</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Manual">Manual Entry</option>
-            </select>
-
-            <select id="order-status-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
-                <option value="all">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="Shipped">Shipped / Courier</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-            </select>
-        </div>
-    </div>
-    
-    <!-- Responsive High-Density Table Wrapper -->
-    <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
-        <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left min-w-[750px] border-collapse">
-                <thead class="bg-gray-50/80 border-b border-gray-200">
-                    <tr>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Order ID</th>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Customer & Channel</th>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Total Bill</th>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Payment</th>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Status</th>
-                        <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm">
-                    <!-- Dynamic Rows Injected by admin.js -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
+<!-- ================= MODALS SECTION ================= -->
 
 <!-- ULTRA-PREMIUM FULL ORDER DETAILS MODAL -->
 <div id="order-details-modal" class="modal-overlay z-[110]">
@@ -546,193 +739,6 @@
 
     </div>
 </div>
-
-        
-<!-- ULTRA-PREMIUM AUTONOMOUS LOGISTICS ENGINE -->
-<div id="courier-content" class="tab-content hidden space-y-6">
-    
-    <!-- Top Header Bar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">AUTONOMOUS LOGISTICS HUB</span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-100"><i class="fa-solid fa-plug"></i> Real API Live</span>
-            </div>
-            <h1 class="text-xl md:text-3xl font-black text-gray-900">Courier Logistics Engine</h1>
-            <p class="text-xs text-gray-500 font-semibold mt-0.5">Automated dispatch, Consignment IDs, live tracking & financial breakdown for Steadfast & Pathao</p>
-        </div>
-        
-        <!-- Live Sync Button -->
-        <button onclick="syncLiveCourierStatuses()" class="bg-purple-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-purple-600/20 text-xs flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
-            <i class="fa-solid fa-arrows-rotate text-sm"></i> Sync Live Statuses
-        </button>
-    </div>
-
-    <!-- Analytics KPI Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Booked</p>
-            <p class="text-xl md:text-2xl font-black text-purple-600 mt-1" id="stat-courier-total">0</p>
-        </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">In Transit</p>
-            <p class="text-xl md:text-2xl font-black text-blue-600 mt-1" id="stat-courier-transit">0</p>
-        </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Net COD Collectable</p>
-            <p class="text-xl md:text-2xl font-black text-emerald-600 mt-1" id="stat-courier-cod">৳0</p>
-        </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow">
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Delivered</p>
-            <p class="text-xl md:text-2xl font-black text-green-700 mt-1" id="stat-courier-delivered">0</p>
-        </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow col-span-2 md:col-span-1">
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Cancelled / Hold</p>
-            <p class="text-xl md:text-2xl font-black text-red-500 mt-1" id="stat-courier-cancelled">0</p>
-        </div>
-    </div>
-
-    <!-- Search Toolbar & Multi-Filters -->
-    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-        <!-- Live Search -->
-        <div class="relative w-full md:w-80">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="courier-search-input" oninput="filterCourierShipments()" placeholder="Search Consignment ID, Tracking, Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-purple-600 transition">
-        </div>
-
-        <!-- Filter Dropdowns -->
-        <div class="flex items-center gap-2 w-full md:w-auto">
-            <select id="courier-provider-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600 w-1/2 md:w-auto">
-                <option value="all">All Couriers</option>
-                <option value="STEADFAST">Steadfast Courier</option>
-                <option value="PATHAO">Pathao Courier</option>
-            </select>
-
-            <select id="courier-status-filter" onchange="filterCourierShipments()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-purple-600 w-1/2 md:w-auto">
-                <option value="all">All Statuses</option>
-                <option value="In Transit">In Transit</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-                <option value="Hold">Hold / Return</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Responsive High-Density Shipments Table -->
-    <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100 custom-scrollbar">
-        <table class="w-full text-left min-w-[950px] border-collapse">
-            <thead class="bg-gray-50/80 border-b border-gray-200">
-                <tr>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Consignment & Tracking</th>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Recipient & Address</th>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Provider & Hub</th>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Financial Breakdown</th>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap">Live Status</th>
-                    <th class="px-4 py-3.5 font-black text-xs uppercase text-gray-500 whitespace-nowrap text-right">Quick Actions</th>
-                </tr>
-            </thead>
-            <tbody id="courier-shipments-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-        </table>
-    </div>
-</div>
-
-        <!-- ULTRA-PREMIUM REVIEWS CONTROL PANEL -->
-<div id="reviews-content" class="tab-content hidden space-y-6">
-    
-    <!-- Top Header & Live Analytics Bar -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">MODERATION ENGINE</span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100"><i class="fa-solid fa-star"></i> Live Ratings Sync</span>
-            </div>
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Customer Reviews Control</h1>
-            <p class="text-xs text-gray-500 font-semibold mt-0.5">Moderate customer feedback, approve ratings, and manage website display</p>
-        </div>
-
-        <!-- Dynamic Pending Badge -->
-        <div class="flex items-center gap-3 shrink-0">
-            <span id="pending-count-badge" class="bg-black text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-lg shadow-black/10 flex items-center gap-2">
-                <i class="fa-solid fa-clock text-amber-400"></i> 0 Pending
-            </span>
-        </div>
-    </div>
-
-    <!-- Search & Filter Toolbar -->
-    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-        <!-- Search Field -->
-        <div class="relative w-full md:w-80">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" id="review-search-input" oninput="if(typeof filterReviewsList === 'function') filterReviewsList()" placeholder="Search customer name or text..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
-        </div>
-
-        <!-- Filter Quick Tabs -->
-        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-            <select id="review-status-filter" onchange="if(typeof filterReviewsList === 'function') filterReviewsList()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-full md:w-auto">
-                <option value="all">All Reviews</option>
-                <option value="pending">Pending Only</option>
-                <option value="approved">Approved Only</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Dynamic Reviews Grid Container -->
-    <div id="admin-reviews-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-        <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-gray-100 card-shadow">
-            <i class="fa-solid fa-spinner fa-spin text-2xl text-red-600 mb-2"></i>
-            <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Loading customer reviews from database...</p>
-        </div>
-    </div>
-
-</div>
-
-    
-
-        <!-- SIZE & INVENTORY CONTROL -->
-        <div id="inventory-content" class="tab-content hidden">
-            <h1 class="text-xl md:text-3xl font-black text-gray-900 mb-6">Size Availability & Inventory</h1>
-            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[600px]">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Product Title</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Category</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Overall Stock</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Size Toggles (S / M / L / XL / XXL)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- PROMO CODES -->
-        <div id="promo-content" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-xl md:text-3xl font-black text-gray-900">Promo Code Management</h1>
-                <button onclick="openAddPromoModal()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-red-700 text-xs md:text-sm">
-                    <i class="fa-solid fa-plus"></i> Create Promo Code
-                </button>
-            </div>
-            <div class="bg-white rounded-2xl card-shadow overflow-x-auto border border-gray-100">
-                <table class="w-full text-left min-w-[500px]">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Code</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Type</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Value</th>
-                            <th class="px-4 py-3 font-black text-xs uppercase text-gray-500">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- ================= MODALS SECTION ================= -->
 
 <!-- ADVANCED PRODUCT MODAL -->
 <div id="product-modal" class="modal-overlay">
