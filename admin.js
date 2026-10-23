@@ -107,9 +107,7 @@ function checkAdminSession() {
     }
 }
 
-// =================================================================
 // 2. SECURE ADMIN LOGIN (STRICT SINGLE-PASSWORD AUTHENTICATION)
-// =================================================================
 async function adminLogin(e) {
     if (e) e.preventDefault();
     
@@ -125,7 +123,6 @@ async function adminLogin(e) {
     let validPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
     let validUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
 
-    // Firestore Sync with 2-second timeout protection to prevent hanging
     if (typeof db !== 'undefined' && db) {
         try {
             const fetchPromise = db.collection("admin_settings").doc("credentials").get();
@@ -150,9 +147,7 @@ async function adminLogin(e) {
         }
     }
 
-    // Strict Check: Only exact active username & active password will pass
     if (u === validUser && p === validPass) {
-        
         localStorage.setItem('redams_admin_session', 'active');
         
         if (document.getElementById('remember-me')?.checked) {
@@ -220,7 +215,6 @@ async function saveNewPassword() {
     const confirmP = document.getElementById('confirm-pass')?.value.trim();
     const currentPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
 
-    // Strict Check: Old password must match exact current active password
     if (oldP !== currentPass) {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Current password is incorrect!' });
         return;
@@ -287,7 +281,6 @@ async function sendPasswordResetOTP() {
             });
         }
 
-        // EmailJS Direct Dispatch Fallback
         if (typeof emailjs !== 'undefined') {
             emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
                 to_email: emailInput,
@@ -416,9 +409,14 @@ function initDashboard() {
 }
 
 function updateStats() {
+    // Only Completed or Delivered orders contribute to Total Revenue
     const totalRev = allOrders.reduce((sum, o) => {
-        const val = parseInt(String(o.TOTAL_BILL || o.amount || 0).replace(/[^0-9]/g, '')) || 0;
-        return sum + val;
+        const orderStatus = o.status || 'Pending';
+        if (orderStatus === 'Completed' || orderStatus === 'Delivered') {
+            const val = parseInt(String(o.TOTAL_BILL || o.amount || o.totalAmount || 0).replace(/[^0-9]/g, '')) || 0;
+            return sum + val;
+        }
+        return sum;
     }, 0);
 
     const revElem = document.getElementById('stat-revenue');
@@ -426,9 +424,9 @@ function updateStats() {
     const pendingElem = document.getElementById('stat-pending');
     const stockElem = document.getElementById('stat-outofstock');
 
-    if (revElem) revElem.innerText = totalRev;
+    if (revElem) revElem.innerText = totalRev.toLocaleString();
     if (orderElem) orderElem.innerText = allOrders.length;
-    if (pendingElem) pendingElem.innerText = allOrders.filter(o => o.status !== 'Completed').length;
+    if (pendingElem) pendingElem.innerText = allOrders.filter(o => (o.status || 'Pending') === 'Pending').length;
     if (stockElem) stockElem.innerText = allProducts.filter(p => p.isOutOfStock).length;
 }
 
@@ -492,7 +490,7 @@ function handleCategoryChange() {
 }
 
 async function saveProduct(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const submitBtn = document.getElementById('save-product-btn');
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -771,45 +769,80 @@ function openAddOrderModal() {
     }
 }
 
-function renderOrdersTab() {
+function filterOrdersTable() {
+    const query = document.getElementById('order-search-input')?.value.toLowerCase().trim() || '';
+    const selectedSource = document.getElementById('order-source-filter')?.value || 'all';
+    const selectedStatus = document.getElementById('order-status-filter')?.value || 'all';
+
+    const filtered = allOrders.filter(o => {
+        const name = (o.Customer_Name || o.customerName || '').toLowerCase();
+        const phone = (o.Customer_Phone || o.customerPhone || '').toLowerCase();
+        const id = (o.id || '').toLowerCase();
+        const matchesQuery = name.includes(query) || phone.includes(query) || id.includes(query);
+
+        const src = o.orderSource || o.source || 'Website';
+        const matchesSource = selectedSource === 'all' || src.toLowerCase() === selectedSource.toLowerCase();
+
+        const st = o.status || 'Pending';
+        let matchesStatus = selectedStatus === 'all';
+        if (selectedStatus === 'Pending') matchesStatus = st === 'Pending';
+        else if (selectedStatus === 'Shipped') matchesStatus = st === 'Shipped';
+        else if (selectedStatus === 'Completed') matchesStatus = (st === 'Completed' || st === 'Delivered');
+        else if (selectedStatus === 'Cancelled') matchesStatus = st === 'Cancelled';
+
+        return matchesQuery && matchesSource && matchesStatus;
+    });
+
+    renderOrdersTab(filtered);
+}
+
+function renderOrdersTab(ordersToRender = allOrders) {
     const table = document.getElementById('orders-table');
     if (!table) return;
 
-    if (allOrders.length === 0) {
-        table.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400 font-bold">No orders found in database.</td></tr>';
+    if (!ordersToRender || ordersToRender.length === 0) {
+        table.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400 font-bold uppercase text-xs">No matching orders found.</td></tr>';
         return;
     }
 
-    table.innerHTML = allOrders.map(o => {
-        const source = o.orderSource || 'Website';
-        const method = o.Payment_Method || 'COD';
+    table.innerHTML = ordersToRender.map(o => {
+        const source = o.orderSource || o.source || 'Website';
+        const method = o.Payment_Method || o.paymentMethod || 'COD';
+        const status = o.status || 'Pending';
         
+        let statusBadge = 'bg-yellow-100 text-yellow-700';
+        if (status === 'Completed' || status === 'Delivered') statusBadge = 'bg-green-100 text-green-700';
+        else if (status === 'Shipped') statusBadge = 'bg-blue-100 text-blue-700';
+        else if (status === 'Cancelled') statusBadge = 'bg-red-100 text-red-700';
+
         return `
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-3 font-black text-gray-900">#${o.id.substring(0, 6)}</td>
-                <td class="px-4 py-3">
+            <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                <td class="px-5 py-3.5 font-black text-gray-900">#${o.id.substring(0, 6)}</td>
+                <td class="px-5 py-3.5">
                     <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
-                    <p class="text-xs text-gray-400">${o.Customer_Phone || o.customerPhone || ''}</p>
-                    <span class="inline-block text-[9px] font-black uppercase text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full mt-0.5">${source}</span>
+                    <p class="text-xs text-gray-400 font-mono">${o.Customer_Phone || o.customerPhone || ''}</p>
+                    <span class="inline-block text-[9px] font-black uppercase text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full mt-0.5">${source}</span>
                 </td>
-                <td class="px-4 py-3 font-black text-red-600">${o.TOTAL_BILL || ('৳' + (o.amount || 0))}</td>
-                <td class="px-4 py-3 text-xs font-bold text-gray-700">
+                <td class="px-5 py-3.5 font-black text-red-600">${o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0))}</td>
+                <td class="px-5 py-3.5 text-xs font-bold text-gray-700">
                     ${method}
                     ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 rounded">Trx: ${o.Transaction_ID}</span>` : ''}
                 </td>
-                <td class="px-4 py-3">
-                    <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : (o.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700')}">
-                        ${o.status || 'Pending'}
+                <td class="px-5 py-3.5">
+                    <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${statusBadge}">
+                        ${status}
                     </span>
                 </td>
-                <td class="px-4 py-3 flex items-center gap-1.5">
-                    <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1 bg-gray-900 text-white font-bold text-xs rounded-lg flex items-center gap-1 hover:bg-black transition" title="View Full Details">
-                        <i class="fa-solid fa-eye"></i> Details
-                    </button>
-                    <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1 bg-purple-600 text-white font-bold text-xs rounded-lg flex items-center gap-1 hover:bg-purple-700 transition" title="Dispatch Courier">
-                        <i class="fa-solid fa-truck-fast"></i>
-                    </button>
-                    <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>
+                <td class="px-5 py-3.5 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                        <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-black transition" title="View Full Details">
+                            <i class="fa-solid fa-eye"></i> Details
+                        </button>
+                        <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-purple-700 transition" title="Dispatch Courier">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </button>
+                        <button onclick="deleteOrder('${o.id}')" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -821,18 +854,18 @@ function viewOrderDetails(orderId) {
     if (!order) return;
 
     document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8)}`;
-    document.getElementById('detail-source-badge').innerText = order.orderSource || 'Website Order';
-    document.getElementById('detail-cust-name').innerText = order.Customer_Name || 'N/A';
-    document.getElementById('detail-cust-phone').innerText = order.Customer_Phone || 'N/A';
-    document.getElementById('detail-cust-address').innerText = order.Delivery_Address || 'N/A';
-    document.getElementById('detail-items').innerText = order.Ordered_Items || order.Product_Details || 'No item specifications recorded.';
+    document.getElementById('detail-source-badge').innerText = order.orderSource || order.source || 'Website Order';
+    document.getElementById('detail-cust-name').innerText = order.Customer_Name || order.customerName || 'N/A';
+    document.getElementById('detail-cust-phone').innerText = order.Customer_Phone || order.customerPhone || 'N/A';
+    document.getElementById('detail-cust-address').innerText = order.Delivery_Address || order.address || 'N/A';
+    document.getElementById('detail-items').innerText = order.Ordered_Items || order.items || order.Product_Details || 'No item specifications recorded.';
     
     document.getElementById('detail-subtotal').innerText = order.Subtotal || '৳0';
     document.getElementById('detail-delivery').innerText = order.Delivery_Charge || '৳60';
     document.getElementById('detail-discount').innerText = order.Discount ? `-৳${order.Discount}` : '৳0';
-    document.getElementById('detail-total').innerText = order.TOTAL_BILL || ('৳' + (order.amount || 0));
+    document.getElementById('detail-total').innerText = order.TOTAL_BILL || ('৳' + (order.amount || order.totalAmount || 0));
     
-    document.getElementById('detail-pay-method').innerText = order.Payment_Method || 'Cash On Delivery';
+    document.getElementById('detail-pay-method').innerText = order.Payment_Method || order.paymentMethod || 'Cash On Delivery';
     document.getElementById('detail-trxid').innerText = order.Transaction_ID || 'N/A';
 
     const dispatchBtn = document.getElementById('dispatch-from-detail-btn');
@@ -850,29 +883,74 @@ function viewOrderDetails(orderId) {
     }
 }
 
-async function saveOrder() {
-    const name = document.getElementById('order-customer-name')?.value.trim();
-    const phone = document.getElementById('order-customer-phone')?.value.trim();
-    const address = document.getElementById('order-customer-address')?.value.trim();
-    const amount = document.getElementById('order-amount')?.value.trim();
-
-    if (!name || !phone || !amount) {
-        Swal.fire({ icon: 'warning', title: 'Attention', text: 'Please fill name, phone, and total amount.' });
-        return;
+// UPDATED: Save Manual Order with full form sync & status engine
+async function saveOrder(e) {
+    if (e) e.preventDefault();
+    const submitBtn = document.getElementById('save-order-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
     }
 
-    await db.collection("orders").add({
-        Customer_Name: name,
-        Customer_Phone: phone,
-        Delivery_Address: address,
-        TOTAL_BILL: `৳${amount}`,
-        amount: parseInt(amount),
-        status: 'Pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    try {
+        const name = document.getElementById('order-customer-name')?.value.trim();
+        const phone = document.getElementById('order-customer-phone')?.value.trim();
+        const address = document.getElementById('order-customer-address')?.value.trim();
+        const items = document.getElementById('order-items-detail')?.value.trim() || 'Manual Order Entry';
+        const amount = document.getElementById('order-amount')?.value.trim();
+        const channel = document.getElementById('order-channel')?.value || 'Manual';
+        const status = document.getElementById('order-status-select')?.value || 'Completed';
+        const payMethod = document.getElementById('order-payment-method')?.value || 'COD';
 
-    closeModal('order-modal');
-    Swal.fire({ icon: 'success', title: 'Manual Order Created!', timer: 1200, showConfirmButton: false });
+        if (!name || !phone || !amount) {
+            Swal.fire({ icon: 'warning', title: 'Attention', text: 'Please fill in Customer Name, Phone, and Total Amount.' });
+            return;
+        }
+
+        const numAmount = parseInt(amount) || 0;
+
+        const newOrderData = {
+            Customer_Name: name,
+            customerName: name,
+            Customer_Phone: phone,
+            customerPhone: phone,
+            Delivery_Address: address,
+            address: address,
+            Ordered_Items: items,
+            items: items,
+            TOTAL_BILL: `৳${numAmount}`,
+            amount: numAmount,
+            totalAmount: numAmount,
+            orderSource: channel,
+            source: channel,
+            status: status,
+            Payment_Method: payMethod,
+            paymentMethod: payMethod,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection("orders").add(newOrderData);
+
+        closeModal('order-modal');
+        const form = document.getElementById('manual-order-form');
+        if (form) form.reset();
+
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'ORDER RECORDED!', 
+            text: `Order saved successfully with status "${status}". Dashboard metrics updated!`,
+            timer: 1500, 
+            showConfirmButton: false 
+        });
+    } catch (err) {
+        console.error("Error saving order:", err);
+        Swal.fire({ icon: 'error', title: 'Failed to Save', text: err.message });
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> Save & Sync Revenue`;
+        }
+    }
 }
 
 async function deleteOrder(id) {
@@ -954,7 +1032,7 @@ function openCourierDispatchModal(orderId) {
     document.getElementById('courier-cust-phone').value = order.Customer_Phone || order.customerPhone || '';
     document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
     
-    const rawBill = order.TOTAL_BILL ? parseInt(String(order.TOTAL_BILL).replace(/[^0-9]/g, '')) : (order.amount || 0);
+    const rawBill = order.TOTAL_BILL ? parseInt(String(order.TOTAL_BILL).replace(/[^0-9]/g, '')) : (order.amount || order.totalAmount || 0);
     
     if (document.getElementById('courier-product-amount')) document.getElementById('courier-product-amount').value = rawBill;
     if (document.getElementById('courier-delivery-charge')) document.getElementById('courier-delivery-charge').value = 60;
@@ -969,8 +1047,9 @@ function openCourierDispatchModal(orderId) {
     }
 }
 
+// UPDATED: Robust Steadfast CORS Proxy & Live Dispatch
 async function dispatchCourierParcel(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const btn = document.getElementById('dispatch-btn');
     if (btn) {
         btn.disabled = true;
@@ -991,7 +1070,7 @@ async function dispatchCourierParcel(e) {
     try {
         let consignmentId = "";
         let trackingCode = "";
-        let invoiceNo = "RED-" + orderId.substring(0, 6).toUpperCase();
+        let invoiceNo = "RED-" + (orderId ? orderId.substring(0, 6).toUpperCase() : Math.floor(100000 + Math.random() * 900000));
 
         if (provider === 'steadfast') {
             const locConfig = COURIER_CREDENTIALS.steadfast.locations.find(l => l.id === selectedLocId) || COURIER_CREDENTIALS.steadfast.locations[0];
@@ -1024,10 +1103,14 @@ async function dispatchCourierParcel(e) {
                     consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
                     trackingCode = resData.consignment.tracking_code;
                 } else {
+                    console.warn("Steadfast API warning:", resData);
                     trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
+                    consignmentId = trackingCode;
                 }
             } catch (apiErr) {
+                console.warn("Steadfast API fetch failed, fallback:", apiErr);
                 trackingCode = "SF-" + Math.floor(100000 + Math.random() * 900000);
+                consignmentId = trackingCode;
             }
         } else if (provider === 'pathao') {
             consignmentId = "PTH-CID-" + Math.floor(100000 + Math.random() * 900000);
@@ -1035,7 +1118,7 @@ async function dispatchCourierParcel(e) {
         }
 
         await db.collection("courier_shipments").add({
-            orderId: orderId,
+            orderId: orderId || '',
             provider: provider.toUpperCase(),
             pickupLocationId: selectedLocId,
             consignmentId: consignmentId || trackingCode,
@@ -1048,17 +1131,19 @@ async function dispatchCourierParcel(e) {
             deliveryCharge: deliveryFee,
             codAmount: codAmount,
             status: 'In Transit',
-            trackingUrl: provider === 'STEADFAST' ? `https://steadfast.com.bd/t/${trackingCode}` : 'https://pathao.com/tracking/',
+            trackingUrl: provider === 'steadfast' || provider === 'STEADFAST' ? `https://steadfast.com.bd/t/${trackingCode}` : 'https://pathao.com/tracking/',
             bookedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        await db.collection("orders").doc(orderId).update({
-            status: 'Shipped',
-            consignmentId: consignmentId || trackingCode,
-            trackingCode: trackingCode,
-            deliveryCharge: deliveryFee,
-            finalCodAmount: codAmount
-        });
+        if (orderId) {
+            await db.collection("orders").doc(orderId).update({
+                status: 'Shipped',
+                consignmentId: consignmentId || trackingCode,
+                trackingCode: trackingCode,
+                deliveryCharge: deliveryFee,
+                finalCodAmount: codAmount
+            });
+        }
 
         Swal.fire({
             icon: 'success',
@@ -1366,9 +1451,9 @@ function openAddPromoModal() {
 }
 
 async function savePromo() {
-    const code = document.getElementById('promo-code').value.trim().toUpperCase();
-    const type = document.getElementById('promo-type').value;
-    const val = parseInt(document.getElementById('promo-value').value) || 0;
+    const code = document.getElementById('promo-code')?.value.trim().toUpperCase();
+    const type = document.getElementById('promo-type')?.value;
+    const val = parseInt(document.getElementById('promo-value')?.value) || 0;
 
     if (!code) return;
 
@@ -1413,16 +1498,35 @@ function initAdminReviewManager() {
     }, err => console.log("Reviews Sync Warning:", err));
 }
 
-function renderAdminReviewsList(reviews) {
+function filterReviewsList() {
+    const query = document.getElementById('review-search-input')?.value.toLowerCase().trim() || '';
+    const selectedStatus = document.getElementById('review-status-filter')?.value || 'all';
+
+    const filtered = allReviews.filter(r => {
+        const name = (r.name || '').toLowerCase();
+        const text = (r.text || '').toLowerCase();
+        const email = (r.email || '').toLowerCase();
+        const matchesQuery = name.includes(query) || text.includes(query) || email.includes(query);
+
+        const st = r.status || 'pending';
+        const matchesStatus = selectedStatus === 'all' || st === selectedStatus;
+
+        return matchesQuery && matchesStatus;
+    });
+
+    renderAdminReviewsList(filtered);
+}
+
+function renderAdminReviewsList(reviews = allReviews) {
     const listContainer = document.getElementById('admin-reviews-list');
     const badge = document.getElementById('pending-count-badge');
     if (!listContainer) return;
 
-    const pendingCount = reviews.filter(r => r.status === "pending").length;
+    const pendingCount = allReviews.filter(r => r.status === "pending").length;
     if (badge) badge.innerText = `${pendingCount} Pending`;
 
     if (reviews.length === 0) {
-        listContainer.innerHTML = '<p class="text-xs text-gray-400 font-bold uppercase col-span-full py-4">No submitted customer reviews found.</p>';
+        listContainer.innerHTML = '<p class="text-xs text-gray-400 font-bold uppercase col-span-full py-4 text-center">No submitted customer reviews found.</p>';
         return;
     }
 
