@@ -994,6 +994,32 @@ const COURIER_CREDENTIALS = {
     }
 };
 
+// ROBUST MULTI-PROXY API DISPATCHER (Prevents legacy proxy blocks)
+async function callApiWithCorsProxy(targetUrl, fetchOptions) {
+    const proxyGenerators = [
+        url => `https://corsproxy.org/?${encodeURIComponent(url)}`,
+        url => `https://thingproxy.freeboard.io/fetch/${url}`
+    ];
+
+    let lastError = null;
+    for (const getProxyUrl of proxyGenerators) {
+        try {
+            const proxyUrl = getProxyUrl(targetUrl);
+            const res = await fetch(proxyUrl, fetchOptions);
+            const resData = await res.json();
+
+            if (resData && resData.message && typeof resData.message === 'string' && resData.message.includes("Anonymous legacy proxy")) {
+                continue;
+            }
+
+            return resData;
+        } catch (err) {
+            lastError = err;
+        }
+    }
+    throw lastError || new Error("CORS Proxy connectivity failed. Please try again.");
+}
+
 function onCourierProviderChange() {
     const provider = document.getElementById('courier-provider')?.value || 'steadfast';
     const locationSelect = document.getElementById('courier-pickup-location');
@@ -1042,10 +1068,9 @@ function openCourierDispatchModal(orderId) {
 // PATHAO API OAUTH 2.0 TOKEN GENERATOR
 async function getPathaoAccessToken() {
     const creds = COURIER_CREDENTIALS.pathao;
-    const proxyUrl = "https://corsproxy.io/?";
     const targetUrl = "https://api-hermes.pathao.com/aladdin/api/v1/issue-token";
 
-    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+    const data = await callApiWithCorsProxy(targetUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -1060,7 +1085,6 @@ async function getPathaoAccessToken() {
         })
     });
 
-    const data = await response.json();
     if (data.access_token) {
         return data.access_token;
     }
@@ -1106,10 +1130,9 @@ async function dispatchCourierParcel(e) {
                 note: note
             };
 
-            const proxyUrl = "https://corsproxy.io/?";
             const targetUrl = "https://portal.steadfast.com.bd/api/v1/create_order";
 
-            const res = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+            const resData = await callApiWithCorsProxy(targetUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1118,8 +1141,6 @@ async function dispatchCourierParcel(e) {
                 },
                 body: JSON.stringify(steadfastPayload)
             });
-
-            const resData = await res.json();
 
             if (resData.status === 200 && resData.consignment) {
                 consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
@@ -1133,7 +1154,6 @@ async function dispatchCourierParcel(e) {
         // 2. PATHAO COURIER REAL DISPATCH
         else if (provider === 'pathao') {
             const token = await getPathaoAccessToken();
-            const proxyUrl = "https://corsproxy.io/?";
             const targetUrl = "https://api-hermes.pathao.com/aladdin/api/v1/orders";
 
             const pathaoPayload = {
@@ -1152,7 +1172,7 @@ async function dispatchCourierParcel(e) {
                 amount_to_collect: codAmount
             };
 
-            const res = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+            const resData = await callApiWithCorsProxy(targetUrl, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -1161,8 +1181,6 @@ async function dispatchCourierParcel(e) {
                 },
                 body: JSON.stringify(pathaoPayload)
             });
-
-            const resData = await res.json();
 
             if (resData.type === 'success' && resData.data) {
                 consignmentId = String(resData.data.consignment_id || '');
@@ -1666,3 +1684,4 @@ function deleteReview(id) {
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
 });
+
