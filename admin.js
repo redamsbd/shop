@@ -980,22 +980,16 @@ const COURIER_CREDENTIALS = {
             { 
                 id: "loc_dhaka", 
                 name: "Kohinoor Gate Hub (Main)", 
-                apiKey: "wjz7ebca4cr7a94cxw3gl3zsybm62k28", 
-                secretKey: "8wbgputmjphrvu5thznqs3t8" 
-            },
-            { 
-                id: "loc_saidpur", 
-                name: "Saidpur Hub Store", 
-                apiKey: "wjz7ebca4cr7a94cxw3gl3zsybm62k28", 
-                secretKey: "8wbgputmjphrvu5thznqs3t8" 
+                apiKey: "lxvwxbuudnywwjfdye9hldpkditxz2fr", 
+                secretKey: "fain4ueocrmazwfw1iszsixi" 
             }
         ]
     },
     pathao: {
-        clientId: "7N1aMJQbWm",
-        clientSecret: "wRcaibZkUdSNz2EI9ZyuXLlNrnAv0TdPUPXMnD39",
-        username: "test@pathao.com",
-        password: "lovePathao",
+        clientId: "GRb4qN7dBL",
+        clientSecret: "yByfviXZLyQ3uU5MQCADtjvA6zYpG5krZQpyYMqg",
+        username: "redamsbd16@gmail.com",
+        password: "1636500930",
         locations: [
             { id: "1001", name: "Pathao Dhaka Store (Basabo)" }
         ]
