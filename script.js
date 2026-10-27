@@ -1,5 +1,5 @@
 // =================================================================
-// REDAMS Master Script Engine (script.js) - Full Checkout & Payment Fix
+// REDAMS Master Script Engine (script.js) - Full Dynamic Logic & New Features
 // =================================================================
 
 // ===== Global Variables =====
@@ -20,6 +20,51 @@ let activePromo = null;
 let selectedSubMethod = "bKash"; // Default Online Method
 
 const WHATSAPP_NUMBER = "8801894357549";
+
+// ===== Default Measurement Size Charts =====
+const defaultSizeCharts = {
+    'drop-shoulder': [
+        { size: 'M', chest: '40', length: '28', sleeve: '8.5' },
+        { size: 'L', chest: '42', length: '29', sleeve: '9' },
+        { size: 'XL', chest: '44', length: '30', sleeve: '9.5' },
+        { size: 'XXL', chest: '46', length: '31', sleeve: '10' }
+    ],
+    'polo-tshirt': [
+        { size: 'M', chest: '38', length: '27', sleeve: '8' },
+        { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '42', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+    ],
+    'hoodie': [
+        { size: 'M', chest: '40', length: '27', sleeve: '24' },
+        { size: 'L', chest: '42', length: '28', sleeve: '25' },
+        { size: 'XL', chest: '44', length: '29', sleeve: '26' },
+        { size: 'XXL', chest: '46', length: '30', sleeve: '27' }
+    ],
+    'regular-tshirt': [
+        { size: 'M', chest: '38', length: '27', sleeve: '8' },
+        { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '42', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+    ],
+    'acid-wash': [
+        { size: 'M', chest: '40', length: '28', sleeve: '8.5' },
+        { size: 'L', chest: '42', length: '29', sleeve: '9' },
+        { size: 'XL', chest: '44', length: '30', sleeve: '9.5' },
+        { size: 'XXL', chest: '46', length: '31', sleeve: '10' }
+    ],
+    'henley': [
+        { size: 'M', chest: '38', length: '27', sleeve: '8' },
+        { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '42', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+    ],
+    'couple-tshirt': [
+        { size: 'M', chest: '38/40', length: '27/28', sleeve: '8/8.5' },
+        { size: 'L', chest: '40/42', length: '28/29', sleeve: '8.5/9' },
+        { size: 'XL', chest: '42/44', length: '29/30', sleeve: '9/9.5' }
+    ]
+};
 
 // ===== Promo Code List =====
 const promoList = {
@@ -63,6 +108,7 @@ window.syncAndRenderAllProducts = function() {
     });
 
     window.allProducts = Array.from(combinedMap.values());
+    window.products = window.allProducts;
 
     const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
     const selectedCat = getCategoryFromURL();
@@ -250,7 +296,7 @@ function renderNewArrivals(products) {
 }
 
 // =================================================================
-// MAIN PRODUCT GRID DISPLAY (Index-e 8-ti & Shop-e Shob Product)
+// 3. MAIN PRODUCT GRID DISPLAY
 // =================================================================
 function displayProducts(products, showAll = false) {
     const grid = document.getElementById('product-grid');
@@ -261,10 +307,7 @@ function displayProducts(products, showAll = false) {
         return;
     }
 
-    // Current page shop.html kina check
     const isShopPage = window.location.pathname.toLowerCase().includes('shop.html');
-
-    // index.html-e shobshomoy prothom 8-ti product dekhabe, shop.html-e shob dekhabe
     const productsToShow = isShopPage ? products : products.slice(0, 8);
 
     grid.innerHTML = productsToShow.map(p => {
@@ -304,17 +347,141 @@ function displayProducts(products, showAll = false) {
             </div>`;
     }).join('');
 
-    // VIEW ALL ITEMS Button Display Control
     const viewAllBtn = document.getElementById('view-all-container');
     if (viewAllBtn) {
-        // index.html-e button dekhabe, shop.html-e hide thakbe
         viewAllBtn.style.display = isShopPage ? 'none' : 'block';
     }
 }
 
+// =================================================================
+// 4. SIZE GUIDE MODAL & INLINE SIZE CHART GENERATOR
+// =================================================================
+async function openSizeGuideModal(category) {
+    const modal = document.getElementById('size-guide-modal');
+    const titleEl = document.getElementById('size-guide-modal-title');
+    const tbody = document.getElementById('size-guide-modal-tbody');
+    if (!modal || !tbody) return;
+
+    const catKey = (category || 'regular-tshirt').toLowerCase();
+    const formattedCat = catKey.replace(/-/g, ' ').toUpperCase();
+    if (titleEl) titleEl.innerText = `${formattedCat} SIZE CHART (INCHES)`;
+
+    let chartRows = defaultSizeCharts[catKey] || defaultSizeCharts['regular-tshirt'];
+
+    try {
+        if (window.firebase && firebase.firestore) {
+            const doc = await firebase.firestore().collection('size_charts').doc(catKey).get();
+            if (doc.exists && doc.data().rows && doc.data().rows.length > 0) {
+                chartRows = doc.data().rows;
+            }
+        }
+    } catch (err) {
+        console.log("Firestore Size Chart Fetch Notice:", err);
+    }
+
+    tbody.innerHTML = chartRows.map(r => `
+        <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
+            <td class="p-3.5 font-black text-black">${r.size}</td>
+            <td class="p-3.5">${r.chest}"</td>
+            <td class="p-3.5">${r.length}"</td>
+            <td class="p-3.5">${r.sleeve}"</td>
+        </tr>
+    `).join('');
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeSizeGuideModal() {
+    const modal = document.getElementById('size-guide-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function generateInlineSizeChartHTML(category) {
+    const catKey = (category || 'regular-tshirt').toLowerCase();
+    const chartRows = defaultSizeCharts[catKey] || defaultSizeCharts['regular-tshirt'];
+
+    return `
+        <div class="mt-6 pt-6 border-t border-gray-100 text-left">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-black uppercase tracking-widest text-black flex items-center gap-1.5">
+                    <i class="fa-solid fa-ruler-combined text-red-600"></i> Size Measurements (Inches)
+                </h4>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${catKey.replace(/-/g, ' ')}</span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-gray-100 shadow-sm bg-gray-50/50">
+                <table class="w-full text-left text-[11px]">
+                    <thead>
+                        <tr class="bg-zinc-900 text-white text-[9px] uppercase font-black tracking-wider">
+                            <th class="p-2.5">Size</th>
+                            <th class="p-2.5">Chest</th>
+                            <th class="p-2.5">Length</th>
+                            <th class="p-2.5">Sleeve</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 font-bold text-gray-700">
+                        ${chartRows.map(r => `
+                            <tr class="hover:bg-white transition">
+                                <td class="p-2.5 font-black text-black">${r.size}</td>
+                                <td class="p-2.5">${r.chest}"</td>
+                                <td class="p-2.5">${r.length}"</td>
+                                <td class="p-2.5">${r.sleeve}"</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function generateRelatedProductsHTML(currentId, category) {
+    if (!window.allProducts || window.allProducts.length === 0) return '';
+    
+    let related = window.allProducts.filter(p => String(p.id) !== String(currentId) && !p.isOutOfStock && p.category === category);
+    if (related.length < 4) {
+        const others = window.allProducts.filter(p => String(p.id) !== String(currentId) && !p.isOutOfStock && p.category !== category);
+        related = [...related, ...others];
+    }
+    related = related.slice(0, 4);
+
+    if (related.length === 0) return '';
+
+    return `
+        <div class="col-span-1 md:col-span-2 mt-10 pt-8 border-t border-gray-100 text-left">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-red-600">Explore More</span>
+                    <h3 class="text-xl font-black uppercase tracking-tight text-gray-900">YOU MAY ALSO LIKE</h3>
+                </div>
+                <a href="shop.html?cat=${category || ''}" class="text-[10px] font-black uppercase text-gray-500 hover:text-black tracking-widest flex items-center gap-1">
+                    View Category <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                </a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                ${related.map(rel => {
+                    const relImg = (rel.images && rel.images[0]) ? rel.images[0] : (rel.image || 'images/placeholder.jpg');
+                    return `
+                        <div onclick="openModal('${rel.id}')" class="group cursor-pointer bg-gray-50 p-2.5 rounded-2xl border border-gray-100 hover:shadow-lg hover:bg-white transition duration-300">
+                            <div class="aspect-[3/4] overflow-hidden rounded-xl mb-2 bg-white">
+                                <img src="${relImg}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${rel.name}">
+                            </div>
+                            <span class="text-[8px] font-black uppercase text-red-600 bg-red-50 px-1.5 py-0.5 rounded">${rel.category || 'Apparel'}</span>
+                            <h4 class="font-bold text-[10px] text-gray-800 uppercase tracking-tight line-clamp-1 mt-1">${rel.name}</h4>
+                            <p class="font-black text-xs text-black mt-0.5">৳ ${rel.price}</p>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
 
 // =================================================================
-// 4. QUICK VIEW MODAL
+// 5. QUICK VIEW PRODUCT MODAL ENGINE (WITH ALL UPDATES)
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -414,6 +581,9 @@ function openModal(id) {
         `).join('');
     }
 
+    const inlineChartHTML = generateInlineSizeChartHTML(p.category);
+    const relatedProductsHTML = generateRelatedProductsHTML(p.id, p.category);
+
     content.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
             <div class="space-y-4">
@@ -422,10 +592,12 @@ function openModal(id) {
                 </div>
                 <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">${imagesHTML}</div>
                 <div class="mt-8 border-t pt-6 space-y-4">
-                    <h3 class="text-xs font-black uppercase tracking-widest">Description</h3>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-black">Product Details & Fabric</h3>
                     <p class="text-[11px] text-gray-500 leading-relaxed">${p.description || "Premium quality streetwear designed for style and comfort."}</p>
+                    ${inlineChartHTML}
                 </div>
             </div>
+            
             <div class="flex flex-col">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-3 pr-8 md:pr-0">
                     <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-black">${p.name}</h2>
@@ -439,8 +611,20 @@ function openModal(id) {
                     <p class="text-2xl font-black text-red-600">৳ ${p.price}</p>
                     ${hasDiscount ? `<p class="text-sm font-bold text-gray-400 line-through">৳ ${p.originalPrice}</p>` : ''}
                 </div>
+                
                 ${colorsHTML ? `<div class="mb-4"><p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Color</p><div>${colorsHTML}</div></div>` : ''}
-                ${sizesHTML ? `<div class="mb-6"><p class="text-[10px] font-black uppercase mb-3 text-gray-400 tracking-widest">Size</p><div>${sizesHTML}</div></div>` : ''}
+                
+                ${sizesHTML ? `
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Select Size</p>
+                            <button onclick="openSizeGuideModal('${p.category}')" class="text-[10px] font-black uppercase text-red-600 hover:text-black transition flex items-center gap-1.5 bg-red-50 hover:bg-gray-100 px-3 py-1 rounded-full border border-red-100 shadow-sm">
+                                <i class="fa-solid fa-ruler-horizontal"></i> 📏 Size Guide
+                            </button>
+                        </div>
+                        <div>${sizesHTML}</div>
+                    </div>
+                ` : ''}
                 
                 <div class="mb-8 flex items-center gap-5">
                     <div class="flex items-center border-2 border-gray-100 rounded-2xl bg-gray-50">
@@ -449,10 +633,13 @@ function openModal(id) {
                         <button onclick="updateQty(1)" class="px-5 py-3 font-bold">+</button>
                     </div>
                 </div>
+                
                 <button onclick="addToCart('${p.id}')" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">
                     Add To Cart ↘
                 </button>
             </div>
+
+            ${relatedProductsHTML}
         </div>`;
 
     const modal = document.getElementById('product-modal');
@@ -505,7 +692,7 @@ function addToCart(id) {
 window.addToCartFromModal = addToCart;
 
 // =================================================================
-// 5. PAYMENT & CHECKOUT UI CONTROLLER
+// 6. PAYMENT & CHECKOUT UI CONTROLLER
 // =================================================================
 function updatePaymentUI(method) {
     const onlineSubOptions = document.getElementById('online-sub-options');
@@ -520,7 +707,6 @@ function updatePaymentUI(method) {
         if (trnxInput) trnxInput.value = '';
         selectedSubMethod = "";
     } else {
-        // ONLINE PAYMENT Selected
         if (onlineSubOptions) onlineSubOptions.classList.remove('hidden');
         if (instructionBox) instructionBox.classList.remove('hidden');
         if (trnxInputWrapper) trnxInputWrapper.classList.remove('hidden');
@@ -612,13 +798,11 @@ function validateOrder() {
     if (paymentMethod === 'COD') {
         isPaymentValid = true;
     } else {
-        // Online Payment requires TrxID length >= 8
         isPaymentValid = trnxId.length >= 8;
     }
 
     const isValid = isInfoValid && isPaymentValid;
 
-    // 1. Confirm Order Button State
     if (confirmBtn) {
         if (isValid) {
             confirmBtn.disabled = false;
@@ -635,7 +819,6 @@ function validateOrder() {
         }
     }
 
-    // 2. WhatsApp Button State
     if (whatsappBtn) {
         if (isValid) {
             whatsappBtn.disabled = false;
@@ -725,7 +908,6 @@ async function confirmOrder() {
         didOpen: () => { Swal.showLoading(); }
     });
 
-    // 1. AUTO CREATE ORDER IN FIREBASE FOR ADMIN PANEL
     try {
         await db.collection("orders").add({
             Customer_Name: name,
@@ -742,7 +924,7 @@ async function confirmOrder() {
             Payment_Status: paymentStatus,
             Transaction_ID: trnxId,
             Due_Amount: `৳${finalPayable.toFixed(0)}`,
-            status: 'Pending', // Admin Panel-e 'Pending' dekhabe
+            status: 'Pending',
             orderSource: 'Website Checkout',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -750,7 +932,6 @@ async function confirmOrder() {
         console.error("Firebase Sync Warning:", fbErr);
     }
 
-    // 2. EMAIL SUBMISSION VIA WEB3FORMS
     const formData = {
         access_key: "3322838f-d959-4aab-a68b-baf4d18b5dcb",
         subject: `🚨 NEW ORDER - ${name} (৳${totalBill.toFixed(0)})`,
@@ -844,7 +1025,6 @@ async function orderByWhatsApp() {
     const totalBill = subtotal + baseCharge;
     const subMethodStr = typeof selectedSubMethod !== 'undefined' ? selectedSubMethod : '';
 
-    // 1. AUTO CREATE ORDER IN FIREBASE FOR ADMIN PANEL
     try {
         await db.collection("orders").add({
             Customer_Name: name,
@@ -857,7 +1037,7 @@ async function orderByWhatsApp() {
             amount: Math.round(totalBill),
             Payment_Method: `${paymentMethod} (${subMethodStr})`,
             Transaction_ID: trnxId,
-            status: 'Pending', // Admin Panel-e 'Pending' dekhabe
+            status: 'Pending',
             orderSource: 'WhatsApp Order',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -865,7 +1045,6 @@ async function orderByWhatsApp() {
         console.error("Firebase Sync Warning:", fbErr);
     }
 
-    // 2. REDIRECT TO WHATSAPP
     let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
     message += `👤 *Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Address: ${address}\n\n`;
     message += `🛒 *Ordered Items:*\n${itemsText}\n`;
@@ -881,16 +1060,14 @@ async function orderByWhatsApp() {
 
     Swal.close();
 
-    const waNum = typeof WHATSAPP_NUMBER !== 'undefined' ? WHATSAPP_NUMBER : '8801700000000';
+    const waNum = typeof WHATSAPP_NUMBER !== 'undefined' ? WHATSAPP_NUMBER : '8801894357549';
     window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(message)}`, '_blank');
 }
-    
 
 // ===== Cart UI Update =====
 function updateCartUI(isPaidOverride = null) {
     const cartContainer = document.getElementById('cart-items');
     const totalElement = document.getElementById('cart-total');
-    const freeDeliveryMsg = document.getElementById('free-delivery-msg');
 
     if (!cartContainer) return;
 
@@ -1001,9 +1178,8 @@ window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
 // =================================================================
-// REDAMS ULTRA-PREMIUM CUSTOMER REVIEW ENGINE (script.js)
+// 7. CUSTOMER REVIEW ENGINE
 // =================================================================
-
 let currentSelectedRating = 5;
 
 const RATING_LABELS = {
@@ -1014,13 +1190,12 @@ const RATING_LABELS = {
     5: "5.0 - Outstanding"
 };
 
-// ===== 1. Modal Control & Rating System =====
 function openReviewModal() {
     const modal = document.getElementById('review-modal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        setReviewRating(5); // Default to 5 stars
+        setReviewRating(5);
     }
 }
 
@@ -1055,7 +1230,6 @@ function setReviewRating(stars) {
     });
 }
 
-// ===== 2. Firebase Customer Review Submission =====
 function submitCustomerReview(e) {
     e.preventDefault();
 
@@ -1086,7 +1260,7 @@ function submitCustomerReview(e) {
         email: email,
         rating: currentSelectedRating,
         text: text,
-        status: "pending", // Requires admin approval
+        status: "pending",
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
@@ -1098,7 +1272,6 @@ function submitCustomerReview(e) {
             confirmButtonColor: '#000'
         });
 
-        // Reset input fields
         const nameInput = document.getElementById('review-user-name');
         const emailInput = document.getElementById('review-user-email');
         const textInput = document.getElementById('review-user-text');
@@ -1123,14 +1296,12 @@ function submitCustomerReview(e) {
     });
 }
 
-// ===== 3. Realtime Loader for Approved Reviews =====
 function loadReviews() {
     const wrapper = document.getElementById('reviews-wrapper');
     if (!wrapper) return;
 
     const db = firebase.firestore();
 
-    // Realtime query for reviews with status "approved"
     db.collection("reviews")
       .where("status", "==", "approved")
       .onSnapshot(async (snapshot) => {
@@ -1186,18 +1357,15 @@ function loadReviews() {
       });
 }
 
-
 // =================================================================
-// 6. EVENT BINDINGS ON LOAD
+// 8. EVENT BINDINGS ON LOAD
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inputs Live Listener for Order Validation
     ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', validateOrder);
     });
 
-    // 2. Payment Method Radio Change Listener
     const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
     paymentRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -1205,8 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. Delivery Area Change Listener (Real-time Delivery Fee Calculation)
-    const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
+    const deliveryRadios = document.querySelector All('input[name="delivery"]');
     deliveryRadios.forEach(radio => {
         radio.addEventListener('change', () => {
             if (typeof updateCartUI === 'function') updateCartUI();
@@ -1214,16 +1381,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Initial Payment UI Check
     const selectedRadio = document.querySelector('input[name="payment-method"]:checked');
     if (selectedRadio) {
         updatePaymentUI(selectedRadio.value);
     }
 
-    // 5. Data & UI Engine Initialization
     if (typeof loadProducts === 'function') loadProducts();
-    if (typeof loadReviews === 'function') loadReviews(); // Dynamic Review System
+    if (typeof loadReviews === 'function') loadReviews();
     if (typeof updateCartUI === 'function') updateCartUI();
     if (typeof checkUrlAndOpenModal === 'function') checkUrlAndOpenModal();
 });
-
