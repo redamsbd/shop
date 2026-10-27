@@ -45,7 +45,7 @@ const defaultSizeCharts = {
         { size: 'M', chest: '38', length: '27', sleeve: '8' },
         { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
         { size: 'XL', chest: '42', length: '29', sleeve: '9' },
-        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
     ],
     'acid-wash': [
         { size: 'M', chest: '40', length: '28', sleeve: '8.5' },
@@ -96,17 +96,15 @@ function getCategoryFromURL() {
 }
 
 // =================================================================
-// 1. MASTER HYBRID DATA SYNC ENGINE (Firebase Admin Priority)
+// 1. MASTER HYBRID DATA SYNC ENGINE (Firebase Priority)
 // =================================================================
 window.syncAndRenderAllProducts = function() {
     const combinedMap = new Map();
 
-    // Priority 1: Firebase Firestore Admin data (overrides static JSON for instant admin sync)
     (window.firebaseProducts || []).forEach(item => {
         if (item && item.id) combinedMap.set(String(item.id), item);
     });
 
-    // Priority 2: Local JSON fallback
     (window.localJsonProducts || []).forEach(item => {
         if (item && item.id && !combinedMap.has(String(item.id))) {
             combinedMap.set(String(item.id), item);
@@ -358,7 +356,7 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. CUSTOM VECTOR SIZE CHART MODAL ENGINE (Exact Image Layout)
+// 4. VECTOR SIZE CHART ENGINE
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
@@ -452,13 +450,15 @@ async function openSizeGuideModal(category) {
         </div>
     `;
 
-    modal.className = "fixed inset-0 z-[10000] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto";
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeSizeGuideModal() {
     const modal = document.getElementById('size-guide-modal');
     if (modal) {
-        modal.className = "hidden";
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 
@@ -475,27 +475,23 @@ function generateRelatedProductsHTML(currentId, category) {
     if (related.length === 0) return '';
 
     return `
-        <div class="col-span-1 lg:col-span-2 mt-16 pt-12 border-t border-zinc-200 text-left">
-            <div class="flex items-center justify-between mb-8">
+        <div class="col-span-1 md:col-span-2 mt-8 pt-6 border-t border-zinc-200 text-left">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-red-600">Explore More</span>
-                    <h3 class="text-2xl font-black uppercase tracking-tight text-zinc-900">YOU MAY ALSO LIKE</h3>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-red-600">Explore More</span>
+                    <h3 class="text-base font-black uppercase tracking-tight text-zinc-900">YOU MAY ALSO LIKE</h3>
                 </div>
-                <a href="shop.html?cat=${category || ''}" class="text-xs font-black uppercase text-zinc-500 hover:text-black tracking-widest flex items-center gap-1">
-                    View Category <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                </a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 ${related.map(rel => {
                     const relImg = (rel.images && rel.images[0]) ? rel.images[0] : (rel.image || 'images/placeholder.jpg');
                     return `
-                        <div onclick="openModal('${rel.id}')" class="group cursor-pointer bg-zinc-50 p-3 rounded-2xl border border-zinc-200/60 hover:shadow-xl hover:bg-white transition duration-300">
-                            <div class="aspect-[3/4] overflow-hidden rounded-xl mb-3 bg-white">
-                                <img src="${relImg}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${rel.name}">
+                        <div onclick="openModal('${rel.id}')" class="group cursor-pointer bg-zinc-50 p-2 rounded-xl border border-zinc-200/60 hover:shadow-md hover:bg-white transition">
+                            <div class="aspect-[3/4] overflow-hidden rounded-lg mb-2 bg-white">
+                                <img src="${relImg}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="${rel.name}">
                             </div>
-                            <span class="text-[8px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${rel.category || 'Apparel'}</span>
-                            <h4 class="font-bold text-xs text-zinc-800 uppercase tracking-tight line-clamp-1 mt-1">${rel.name}</h4>
-                            <p class="font-black text-sm text-black mt-1">৳ ${rel.price}</p>
+                            <h4 class="font-bold text-[10px] text-zinc-800 uppercase tracking-tight line-clamp-1">${rel.name}</h4>
+                            <p class="font-black text-xs text-black mt-0.5">৳ ${rel.price}</p>
                         </div>
                     `;
                 }).join('')}
@@ -505,7 +501,7 @@ function generateRelatedProductsHTML(currentId, category) {
 }
 
 // =================================================================
-// 5. FULL SCREEN PRODUCT DETAIL VIEW (Dedicated Page Feeling)
+// 5. STABLE CLEAN PRODUCT DETAIL MODAL
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -524,7 +520,7 @@ function openModal(id) {
     window.location.hash = `product-${id}`;
     const modal = document.getElementById('product-modal');
     const content = document.getElementById('modal-content');
-    if (!modal || !content) return;
+    if (!content) return;
 
     selectedSize = '';
     selectedColor = '';
@@ -539,114 +535,114 @@ function openModal(id) {
 
     if (p.category === 'couple-tshirt') {
         sizesHTML += `
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-black text-zinc-400 mb-2 uppercase tracking-wider">Partner 1 Size</label>
+                    <label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 1 Size</label>
                     <div class="flex flex-wrap gap-2">
         `;
         if (p.sizes && p.sizes.partner1) {
             p.sizes.partner1.forEach(size => {
                 sizesHTML += size.available 
-                    ? `<button onclick="selectFeature('size-p1','${size.name}',this)" class="w-12 h-12 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
-                    : `<button disabled class="w-12 h-12 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-400 cursor-not-allowed line-through">${size.name}</button>`;
+                    ? `<button onclick="selectFeature('size-p1','${size.name}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
             });
         }
-        sizesHTML += `</div></div><div><label class="block text-xs font-black text-zinc-400 mb-2 uppercase tracking-wider">Partner 2 Size</label><div class="flex flex-wrap gap-2">`;
+        sizesHTML += `</div></div><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 2 Size</label><div class="flex flex-wrap gap-2">`;
         if (p.sizes && p.sizes.partner2) {
             p.sizes.partner2.forEach(size => {
                 sizesHTML += size.available 
-                    ? `<button onclick="selectFeature('size-p2','${size.name}',this)" class="w-12 h-12 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
-                    : `<button disabled class="w-12 h-12 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-400 cursor-not-allowed line-through">${size.name}</button>`;
+                    ? `<button onclick="selectFeature('size-p2','${size.name}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
             });
         }
         sizesHTML += `</div></div></div>`;
 
-        colorsHTML += `<div class="space-y-4"><div><label class="block text-xs font-black text-zinc-400 mb-2 uppercase tracking-wider">Partner 1 Color</label><div class="flex flex-wrap gap-2">`;
+        colorsHTML += `<div class="space-y-3"><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 1 Color</label><div class="flex flex-wrap gap-2">`;
         if (p.colors && p.colors.partner1) {
             p.colors.partner1.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color-p1','${color}',this)" class="px-5 py-2.5 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color-p1','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
             });
         }
-        colorsHTML += `</div></div><div><label class="block text-xs font-black text-zinc-400 mb-2 uppercase tracking-wider">Partner 2 Color</label><div class="flex flex-wrap gap-2">`;
+        colorsHTML += `</div></div><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 2 Color</label><div class="flex flex-wrap gap-2">`;
         if (p.colors && p.colors.partner2) {
             p.colors.partner2.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color-p2','${color}',this)" class="px-5 py-2.5 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color-p2','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
             });
         }
         colorsHTML += `</div></div></div>`;
 
     } else {
         if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
-            sizesHTML += `<div class="flex flex-wrap gap-2.5">`;
+            sizesHTML += `<div class="flex flex-wrap gap-2">`;
             p.sizes.forEach(size => {
                 const sizeStr = typeof size === 'string' ? size : (size.name || '');
                 const isAvailable = typeof size === 'string' ? true : (size.available !== false);
                 
                 sizesHTML += isAvailable
-                    ? `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-12 h-12 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition shadow-sm">${sizeStr}</button>`
-                    : `<button disabled class="w-12 h-12 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-400 cursor-not-allowed line-through">${sizeStr}</button>`;
+                    ? `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition shadow-sm">${sizeStr}</button>`
+                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${sizeStr}</button>`;
             });
             sizesHTML += `</div>`;
         }
 
         if (p.colors && Array.isArray(p.colors) && p.colors.length > 0) {
-            colorsHTML += `<div class="flex flex-wrap gap-2.5">`;
+            colorsHTML += `<div class="flex flex-wrap gap-2">`;
             p.colors.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-5 py-2.5 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition shadow-sm">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition shadow-sm">${color}</button>`;
             });
             colorsHTML += `</div>`;
         }
     }
 
     let imagesHTML = '';
-    if (p.images && Array.isArray(p.images)) {
-        imagesHTML = p.images.map((img) => `
-            <img src="${img}" onclick="document.getElementById('main-view').src='${img}'" 
-                 class="w-20 h-24 object-cover rounded-2xl cursor-pointer border-2 border-transparent hover:border-black transition shrink-0">
-        `).join('');
+    if (p.images && Array.isArray(p.images) && p.images.length > 1) {
+        imagesHTML = `
+            <div class="flex gap-2 overflow-x-auto py-1 custom-scrollbar">
+                ${p.images.map((img) => `
+                    <img src="${img}" onclick="document.getElementById('main-view').src='${img}'" 
+                         class="w-14 h-16 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition shrink-0">
+                `).join('')}
+            </div>
+        `;
     }
 
     const relatedProductsHTML = generateRelatedProductsHTML(p.id, p.category);
 
     content.innerHTML = `
-        <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-zinc-200 px-4 md:px-12 py-4 flex items-center justify-between mb-8">
-            <button onclick="closeModal()" class="flex items-center gap-2 text-xs font-black uppercase text-zinc-900 hover:text-red-600 transition bg-zinc-100 hover:bg-zinc-200 px-4 py-2 rounded-full">
-                <i class="fa-solid fa-arrow-left"></i> Back to Store
-            </button>
-            <span class="font-black text-lg tracking-widest uppercase text-black">RED<span class="text-red-600">AMS</span> STORE</span>
-            <button onclick="shareProductLink('${p.id}')" class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900 hover:bg-black hover:text-white transition">
-                <i class="fa-solid fa-share-nodes text-xs"></i>
-            </button>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 md:px-12 pb-20">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 text-left items-start">
-                
-                <div class="space-y-4 sticky top-24">
-                    <div class="relative overflow-hidden rounded-3xl bg-zinc-100 aspect-[3/4] border border-zinc-200 shadow-sm">
-                        <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-full h-full object-cover transition duration-500">
-                    </div>
-                    <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">${imagesHTML}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left p-2 md:p-4">
+            
+            <div class="space-y-3">
+                <div class="relative overflow-hidden rounded-2xl bg-zinc-100 aspect-[3/4] border border-zinc-200">
+                    <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-full h-full object-cover transition duration-300">
                 </div>
-                
-                <div class="flex flex-col">
-                    <span class="text-xs font-black uppercase text-red-600 bg-red-50 px-3 py-1 rounded-full w-fit mb-3">${p.category || 'Apparel'}</span>
-                    <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-zinc-900 mb-4">${p.name}</h1>
-                    
-                    <div class="flex items-center gap-4 mb-8">
-                        <p class="text-3xl font-black text-black">৳ ${p.price}</p>
-                        ${hasDiscount ? `<p class="text-lg font-bold text-zinc-400 line-through">৳ ${p.originalPrice}</p>` : ''}
+                ${imagesHTML}
+            </div>
+
+            <div class="flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-1 rounded-full">${p.category || 'Apparel'}</span>
+                        <button onclick="shareProductLink('${p.id}')" class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 hover:bg-black hover:text-white transition">
+                            <i class="fa-solid fa-share-nodes text-xs"></i>
+                        </button>
                     </div>
 
-                    <div class="border-t border-b border-zinc-100 py-6 my-2 space-y-6">
-                        ${colorsHTML ? `<div><p class="text-xs font-black uppercase mb-3 text-zinc-400 tracking-wider">Select Color</p>${colorsHTML}</div>` : ''}
+                    <h2 class="text-xl md:text-2xl font-black uppercase text-zinc-900 tracking-tight mb-2">${p.name}</h2>
+                    
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl font-black text-black">৳ ${p.price}</span>
+                        ${hasDiscount ? `<span class="text-sm font-bold text-zinc-400 line-through">৳ ${p.originalPrice}</span>` : ''}
+                    </div>
+
+                    <div class="space-y-4 border-t border-b border-zinc-100 py-4 my-2">
+                        ${colorsHTML ? `<div><p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Color</p>${colorsHTML}</div>` : ''}
                         
                         ${sizesHTML ? `
                             <div>
-                                <div class="flex items-center justify-between mb-3">
-                                    <p class="text-xs font-black uppercase text-zinc-400 tracking-wider">Select Size</p>
-                                    <button onclick="openSizeGuideModal('${p.category}')" class="text-xs font-black uppercase text-red-600 hover:text-black transition flex items-center gap-1.5 bg-red-50 hover:bg-zinc-100 px-3 py-1.5 rounded-full border border-red-100 shadow-sm">
-                                        <i class="fa-solid fa-ruler-horizontal"></i> 📏 Size Guide
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-[10px] font-black uppercase text-zinc-400">Select Size</p>
+                                    <button onclick="openSizeGuideModal('${p.category}')" class="text-[10px] font-black uppercase text-red-600 hover:underline flex items-center gap-1">
+                                        📏 Size Guide
                                     </button>
                                 </div>
                                 ${sizesHTML}
@@ -654,24 +650,24 @@ function openModal(id) {
                         ` : ''}
 
                         <div>
-                            <p class="text-xs font-black uppercase text-zinc-400 tracking-wider mb-3">Quantity</p>
-                            <div class="flex items-center border-2 border-zinc-200 rounded-2xl bg-zinc-50 w-fit">
-                                <button onclick="updateQty(-1)" class="px-5 py-3 font-bold text-lg hover:bg-zinc-200 transition rounded-l-2xl">-</button>
-                                <span id="modal-qty" class="px-6 font-black text-xl">1</span>
-                                <button onclick="updateQty(1)" class="px-5 py-3 font-bold text-lg hover:bg-zinc-200 transition rounded-r-2xl">+</button>
+                            <p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Quantity</p>
+                            <div class="flex items-center border border-zinc-200 rounded-xl bg-zinc-50 w-fit">
+                                <button onclick="updateQty(-1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-l-xl">-</button>
+                                <span id="modal-qty" class="px-4 font-black text-base">1</span>
+                                <button onclick="updateQty(1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-r-xl">+</button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="mt-8 space-y-4">
-                        <button onclick="addToCart('${p.id}')" class="w-full bg-black hover:bg-red-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-2xl transition duration-300 text-sm">
-                            Add To Cart &rarr;
-                        </button>
-                    </div>
-
-                    <div class="mt-10 border-t border-zinc-100 pt-6 space-y-3">
-                        <h4 class="text-xs font-black uppercase tracking-widest text-black">Product Details & Fabric</h4>
-                        <p class="text-xs text-zinc-600 leading-relaxed">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
+                <div class="mt-4 space-y-3">
+                    <button onclick="addToCart('${p.id}')" class="w-full bg-black hover:bg-red-600 text-white py-4 rounded-xl font-black uppercase tracking-wider transition duration-300 text-xs shadow-lg">
+                        Add To Cart ↘
+                    </button>
+                    
+                    <div class="pt-2 text-left">
+                        <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-1">Description</h4>
+                        <p class="text-xs text-zinc-500 leading-relaxed">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
                     </div>
                 </div>
             </div>
@@ -680,16 +676,18 @@ function openModal(id) {
         </div>
     `;
 
-    modal.className = "fixed inset-0 z-[9999] bg-white overflow-y-auto block w-full h-full min-h-screen";
-    document.body.style.overflow = "hidden";
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 }
 
 function closeModal() {
     const modal = document.getElementById('product-modal');
     if (modal) {
-        modal.className = "hidden";
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
-    document.body.style.overflow = "auto";
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
