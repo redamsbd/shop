@@ -30,6 +30,66 @@ let allCourierShipments = [];
 let allReviews = [];
 let currentEditImages = [];
 
+// Default Fallback Size Measurements (In Inches)
+const DEFAULT_SIZE_CHARTS = {
+    'drop-shoulder': {
+        'S': { chest: '40', length: '27', sleeve: '8.5' },
+        'M': { chest: '42', length: '28', sleeve: '9' },
+        'L': { chest: '44', length: '29', sleeve: '9.5' },
+        'XL': { chest: '46', length: '30', sleeve: '10' },
+        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
+    },
+    'polo-tshirt': {
+        'S': { chest: '38', length: '26', sleeve: '7.5' },
+        'M': { chest: '40', length: '27', sleeve: '8' },
+        'L': { chest: '42', length: '28', sleeve: '8.5' },
+        'XL': { chest: '44', length: '29', sleeve: '9' },
+        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
+    },
+    'hoodie': {
+        'S': { chest: '42', length: '27', sleeve: '24' },
+        'M': { chest: '44', length: '28', sleeve: '25' },
+        'L': { chest: '46', length: '29', sleeve: '26' },
+        'XL': { chest: '48', length: '30', sleeve: '27' },
+        'XXL': { chest: '50', length: '31', sleeve: '28' }
+    },
+    'regular-tshirt': {
+        'S': { chest: '38', length: '26', sleeve: '7.5' },
+        'M': { chest: '40', length: '27', sleeve: '8' },
+        'L': { chest: '42', length: '28', sleeve: '8.5' },
+        'XL': { chest: '44', length: '29', sleeve: '9' },
+        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
+    },
+    'acid-wash': {
+        'S': { chest: '40', length: '27', sleeve: '8.5' },
+        'M': { chest: '42', length: '28', sleeve: '9' },
+        'L': { chest: '44', length: '29', sleeve: '9.5' },
+        'XL': { chest: '46', length: '30', sleeve: '10' },
+        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
+    },
+    'couple-tshirt': {
+        'S': { chest: '38', length: '26', sleeve: '7.5' },
+        'M': { chest: '40', length: '27', sleeve: '8' },
+        'L': { chest: '42', length: '28', sleeve: '8.5' },
+        'XL': { chest: '44', length: '29', sleeve: '9' },
+        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
+    },
+    'henley': {
+        'S': { chest: '38', length: '26', sleeve: '8' },
+        'M': { chest: '40', length: '27', sleeve: '8.5' },
+        'L': { chest: '42', length: '28', sleeve: '9' },
+        'XL': { chest: '44', length: '29', sleeve: '9.5' },
+        'XXL': { chest: '46', length: '30', sleeve: '10' }
+    },
+    'combo': {
+        'S': { chest: '40', length: '27', sleeve: '8.5' },
+        'M': { chest: '42', length: '28', sleeve: '9' },
+        'L': { chest: '44', length: '29', sleeve: '9.5' },
+        'XL': { chest: '46', length: '30', sleeve: '10' },
+        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
+    }
+};
+
 // =================================================================
 // UI & NAVIGATION HELPERS
 // =================================================================
@@ -47,11 +107,12 @@ function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('sidebar-active'));
     
-    const targetContent = document.getElementById(`${tabId}-content`);
-    if (targetContent) targetContent.classList.remove('hidden');
-    
-    const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+    const targetContent = document.getElementById(`${tabId}-content`); if (targetContent) targetContent.classList.remove('hidden');  const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
     if (activeBtn) activeBtn.classList.add('sidebar-active');
+
+    if (tabId === 'sizechart-settings') {
+        loadCategorySizeChartToEditor();
+    }
 
     if (window.innerWidth < 768) {
         const drawer = document.getElementById('sidebar-drawer');
@@ -623,8 +684,7 @@ function renderProductsTab(productsToRender = allProducts) {
                 <div class="relative aspect-[3/4] bg-gray-50 overflow-hidden">
                     <img src="${mainImg}" alt="${p.altText || p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
-                        <span class="text-[9px] font-black uppercase text-white bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">${p.category}</span>
-                        ${imageCount > 1 ? `<span class="text-[9px] font-bold text-gray-900 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-md shadow-sm"><i class="fa-regular fa-images"></i> ${imageCount}</span>` : ''}
+                        <span class="text-[9px] font-black uppercase text-white bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">${p.category}</span>${imageCount > 1 ? `<span class="text-[9px] font-bold text-gray-900 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-md shadow-sm"><i class="fa-regular fa-images"></i> ${imageCount}</span>` : ''}
                     </div>
                     <div class="absolute top-2.5 right-2.5">
                         <span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-sm ${p.isOutOfStock ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}">
@@ -637,8 +697,7 @@ function renderProductsTab(productsToRender = allProducts) {
                     <div>
                         <h3 class="font-black text-gray-900 text-sm truncate" title="${p.name}">${p.name}</h3>
                         <div class="flex items-baseline gap-2 mt-1">
-                            <span class="text-sm font-black text-red-600">৳${p.price}</span>
-                            ${p.originalPrice ? `<span class="text-xs font-bold text-gray-400 line-through">৳${p.originalPrice}</span>` : ''}
+                            <span class="text-sm font-black text-red-600">৳${p.price}</span>${p.originalPrice ? `<span class="text-xs font-bold text-gray-400 line-through">৳${p.originalPrice}</span>` : ''}
                         </div>
                     </div>
 
@@ -646,7 +705,7 @@ function renderProductsTab(productsToRender = allProducts) {
                         <button onclick="editProduct('${p.id}')" class="flex-1 bg-gray-900 hover:bg-black text-white text-[11px] font-black uppercase py-2 rounded-xl transition flex items-center justify-center gap-1">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
-                        <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="p-2 rounded-xl border text-xs font-bold transition ${p.isOutOfStock ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}" title="Quick Stock Toggle">
+                        <button onclick="toggleOverallStock('${p.id}',${!p.isOutOfStock})" class="p-2 rounded-xl border text-xs font-bold transition ${p.isOutOfStock ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}" title="Quick Stock Toggle">
                             <i class="fa-solid ${p.isOutOfStock ? 'fa-check' : 'fa-ban'}"></i>
                         </button>
                         <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition text-xs" title="Delete Product">
@@ -701,18 +760,7 @@ function editProduct(id) {
                 const p1Size = Array.isArray(product.sizes.partner1) ? product.sizes.partner1.find(s => s.name === sz) : null;
                 const p2Size = Array.isArray(product.sizes.partner2) ? product.sizes.partner2.find(s => s.name === sz) : null;
                 const chkP1 = document.getElementById(`p1-size-${sz}`);
-                const chkP2 = document.getElementById(`p2-size-${sz}`);
-                if (chkP1) chkP1.checked = p1Size ? p1Size.available : false;
-                if (chkP2) chkP2.checked = p2Size ? p2Size.available : false;
-            });
-        }
-    } else {
-        document.getElementById('product-colors').value = Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors || '');
-
-        if (Array.isArray(product.sizes)) {
-            ['S', 'M', 'L', 'XL', 'XXL'].forEach(sz => {
-                const sizeObj = product.sizes.find(s => s.name === sz);
-                const chk = document.getElementById(`size-${sz}`);
+                const chkP2 = document.getElementById(`p2-size-${sz}`); if (chkP1) chkP1.checked = p1Size ? p1Size.available : false; if (chkP2) chkP2.checked = p2Size ? p2Size.available : false; }); } } else { document.getElementById('product-colors').value = Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors \vert{}\vert{} '');  if (Array.isArray(product.sizes)) { ['S', 'M', 'L', 'XL', 'XXL'].forEach(sz => { const sizeObj = product.sizes.find(s => s.name === sz); const chk = document.getElementById(`size-${sz}`);
                 if (chk) chk.checked = sizeObj ? sizeObj.available : false;
             });
         }
@@ -824,8 +872,7 @@ function renderOrdersTab(ordersToRender = allOrders) {
                 </td>
                 <td class="px-5 py-3.5 font-black text-red-600">${o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0))}</td>
                 <td class="px-5 py-3.5 text-xs font-bold text-gray-700">
-                    ${method}
-                    ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 rounded">Trx: ${o.Transaction_ID}</span>` : ''}
+                    ${method}${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 rounded">Trx: ${o.Transaction_ID}</span>` : ''}
                 </td>
                 <td class="px-5 py-3.5">
                     <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${statusBadge}">
@@ -852,16 +899,7 @@ function viewOrderDetails(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8)}`;
-    document.getElementById('detail-source-badge').innerText = order.orderSource || order.source || 'Website Order';
-    document.getElementById('detail-cust-name').innerText = order.Customer_Name || order.customerName || 'N/A';
-    document.getElementById('detail-cust-phone').innerText = order.Customer_Phone || order.customerPhone || 'N/A';
-    document.getElementById('detail-cust-address').innerText = order.Delivery_Address || order.address || 'N/A';
-    document.getElementById('detail-items').innerText = order.Ordered_Items || order.items || order.Product_Details || 'No item specifications recorded.';
-    
-    document.getElementById('detail-subtotal').innerText = order.Subtotal || '৳0';
-    document.getElementById('detail-delivery').innerText = order.Delivery_Charge || '৳60';
-    document.getElementById('detail-discount').innerText = order.Discount ? `-৳${order.Discount}` : '৳0';
+    document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8)}`; document.getElementById('detail-source-badge').innerText = order.orderSource \vert{}\vert{} order.source \vert{}\vert{} 'Website Order'; document.getElementById('detail-cust-name').innerText = order.Customer_Name \vert{}\vert{} order.customerName \vert{}\vert{} 'N/A'; document.getElementById('detail-cust-phone').innerText = order.Customer_Phone \vert{}\vert{} order.customerPhone \vert{}\vert{} 'N/A'; document.getElementById('detail-cust-address').innerText = order.Delivery_Address \vert{}\vert{} order.address \vert{}\vert{} 'N/A'; document.getElementById('detail-items').innerText = order.Ordered_Items \vert{}\vert{} order.items \vert{}\vert{} order.Product_Details \vert{}\vert{} 'No item specifications recorded.';  document.getElementById('detail-subtotal').innerText = order.Subtotal \vert{}\vert{} '৳0'; document.getElementById('detail-delivery').innerText = order.Delivery_Charge \vert{}\vert{} '৳60'; document.getElementById('detail-discount').innerText = order.Discount ? `-৳${order.Discount}` : '৳0';
     document.getElementById('detail-total').innerText = order.TOTAL_BILL || ('৳' + (order.amount || order.totalAmount || 0));
     
     document.getElementById('detail-pay-method').innerText = order.Payment_Method || order.paymentMethod || 'Cash On Delivery';
@@ -1010,23 +1048,13 @@ async function callApiWithCorsProxy(targetUrl, fetchOptions) {
                 headers: rawHeaders,
                 body: rawBody
             });
-            if (!res.ok) throw new Error(`CodeTabs Proxy Status: ${res.status}`);
-            return await res.json();
-        },
-        // Endpoint 2: CorsProxy.io Open API Protocol
-        async () => {
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+            if (!res.ok) throw new Error(`CodeTabs Proxy Status: ${res.status}`); return await res.json(); }, // Endpoint 2: CorsProxy.io Open API Protocol async () => { const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
             const res = await fetch(proxyUrl, {
                 method: method,
                 headers: rawHeaders,
                 body: rawBody
             });
-            if (!res.ok) throw new Error(`CorsProxy Status: ${res.status}`);
-            return await res.json();
-        },
-        // Endpoint 3: AllOrigins Raw Fetcher
-        async () => {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+            if (!res.ok) throw new Error(`CorsProxy Status: ${res.status}`); return await res.json(); }, // Endpoint 3: AllOrigins Raw Fetcher async () => { const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
             const res = await fetch(proxyUrl, {
                 method: method,
                 headers: rawHeaders,
@@ -1206,17 +1234,7 @@ async function dispatchCourierParcel(e) {
             const resData = await callApiWithCorsProxy(targetUrl, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(pathaoPayload)
-            });
-
-            if (resData && resData.type === 'success' && resData.data) {
-                consignmentId = String(resData.data.consignment_id || '');
-                trackingCode = consignmentId;
-                trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
+                    "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(pathaoPayload) });  if (resData && resData.type === 'success' && resData.data) { consignmentId = String(resData.data.consignment_id \vert{}\vert{} ''); trackingCode = consignmentId; trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
             } else {
                 throw new Error(resData?.message || "Pathao Portal Rejected Order");
             }
@@ -1460,7 +1478,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                 <td class="px-4 py-3.5">
                     <p class="font-bold text-gray-900 text-xs">${s.customerName || 'N/A'}</p>
                     <p class="text-[11px] text-purple-700 font-mono font-bold">${s.customerPhone || ''}</p>
-                    <p class="text-[10px] text-gray-500 truncate max-w-[170px]" title="${s.address || ''}">${s.address || ''}</p>
+                    <p class="text-[10px] text-gray-500 truncate max-w-[170px]" title="${s.address \vert{}\vert{} ''}">${s.address || ''}</p>
                 </td>
 
                 <td class="px-4 py-3.5 whitespace-nowrap">
@@ -1470,7 +1488,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
 
                 <td class="px-4 py-3.5 whitespace-nowrap">
                     <p class="font-black text-gray-900 text-xs">Total COD: <span class="text-purple-700">৳${s.codAmount}</span></p>
-                    <p class="text-[9px] text-gray-400">Prod: ৳${s.productAmount || (s.codAmount - 60)} + Del: ৳${s.deliveryCharge || 60}</p>
+                    <p class="text-[9px] text-gray-400">Prod: ৳${s.productAmount \vert{}\vert{} (s.codAmount - 60)} + Del: ৳${s.deliveryCharge || 60}</p>
                 </td>
 
                 <td class="px-4 py-3.5 whitespace-nowrap">
@@ -1485,7 +1503,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                         <a href="${liveTrackingUrl}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1">
                             <i class="fa-solid fa-arrow-up-right-from-square"></i> Track
                         </a>
-                        <button onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg text-xs font-bold transition" title="Cancel Booking">
+                        <button onclick="cancelCourierShipment('${s.id}', '${s.orderId \vert{}\vert{} ''}', '${s.trackingCode}')" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg text-xs font-bold transition" title="Cancel Booking">
                             <i class="fa-solid fa-ban"></i>
                         </button>
                         <button onclick="deleteCourierShipment('${s.id}')" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg text-xs font-bold transition" title="Delete Record">
@@ -1520,198 +1538,4 @@ function renderInventoryTab() {
         let sizesHtml = '';
         if (Array.isArray(p.sizes)) {
             sizesHtml = p.sizes.map(s => `
-                <button onclick="toggleSingleSize('${p.id}', '${s.name}', ${!s.available})" class="px-2 py-1 text-[10px] font-black rounded-md mr-1 mb-1 transition ${s.available ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200 line-through opacity-60'}">
-                    ${s.name}: ${s.available ? 'In' : 'Out'}
-                </button>
-            `).join('');
-        } else {
-            sizesHtml = '<span class="text-xs text-gray-400">Couple Special Sizes</span>';
-        }
-
-        return `
-            <tr>
-                <td class="px-4 py-3 font-bold text-gray-900">${p.name}</td>
-                <td class="px-4 py-3 text-xs font-bold uppercase text-gray-500">${p.category}</td>
-                <td class="px-4 py-3">
-                    <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="px-2.5 py-1 text-xs rounded-xl font-bold ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">
-                        ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
-                    </button>
-                </td>
-                <td class="px-4 py-3">${sizesHtml}</td>
-            </tr>
-        `;
-    }).join('');
-}
-
-async function toggleOverallStock(id, newStatus) {
-    await db.collection("products").doc(id).update({ isOutOfStock: newStatus });
-}
-
-async function toggleSingleSize(productId, sizeName, newAvailability) {
-    const product = allProducts.find(p => p.id === productId);
-    if (!product || !Array.isArray(product.sizes)) return;
-
-    const updatedSizes = product.sizes.map(s => {
-        if (s.name === sizeName) {
-            return { ...s, available: newAvailability };
-        }
-        return s;
-    });
-
-    await db.collection("products").doc(productId).update({ sizes: updatedSizes });
-}
-
-function openAddPromoModal() { 
-    const promoModal = document.getElementById('promo-modal');
-    if (promoModal) {
-        promoModal.classList.remove('hidden');
-        promoModal.classList.add('active'); 
-    }
-}
-
-async function savePromo() {
-    const code = document.getElementById('promo-code')?.value.trim().toUpperCase();
-    const type = document.getElementById('promo-type')?.value;
-    const val = parseInt(document.getElementById('promo-value')?.value) || 0;
-
-    if (!code) return;
-
-    await db.collection("promos").doc(code).set({
-        code: code,
-        type: type,
-        value: val,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    Swal.fire({ icon: 'success', title: 'Promo Created!' });
-    closeModal('promo-modal');
-}
-
-function renderPromoTab() {
-    const table = document.getElementById('promo-table');
-    if (!table) return;
-
-    if (allPromos.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No promo codes created yet.</td></tr>';
-        return;
-    }
-
-    table.innerHTML = allPromos.map(p => `
-        <tr>
-            <td class="px-4 py-3 font-black text-red-600">${p.code}</td>
-            <td class="px-4 py-3 font-bold text-xs uppercase">${p.type}</td>
-            <td class="px-4 py-3 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
-            <td class="px-4 py-3"><button onclick="deletePromo('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
-    `).join('');
-}
-
-async function deletePromo(id) {
-    await db.collection("promos").doc(id).delete();
-}
-
-function initAdminReviewManager() {
-    db.collection("reviews").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-        allReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderAdminReviewsList(allReviews);
-    }, err => console.log("Reviews Sync Warning:", err));
-}
-
-function filterReviewsList() {
-    const query = document.getElementById('review-search-input')?.value.toLowerCase().trim() || '';
-    const selectedStatus = document.getElementById('review-status-filter')?.value || 'all';
-
-    const filtered = allReviews.filter(r => {
-        const name = (r.name || '').toLowerCase();
-        const text = (r.text || '').toLowerCase();
-        const email = (r.email || '').toLowerCase();
-        const matchesQuery = name.includes(query) || text.includes(query) || email.includes(query);
-
-        const st = r.status || 'pending';
-        const matchesStatus = selectedStatus === 'all' || st === selectedStatus;
-
-        return matchesQuery && matchesStatus;
-    });
-
-    renderAdminReviewsList(filtered);
-}
-
-function renderAdminReviewsList(reviews = allReviews) {
-    const listContainer = document.getElementById('admin-reviews-list');
-    const badge = document.getElementById('pending-count-badge');
-    if (!listContainer) return;
-
-    const pendingCount = allReviews.filter(r => r.status === "pending").length;
-    if (badge) badge.innerText = `${pendingCount} Pending`;
-
-    if (reviews.length === 0) {
-        listContainer.innerHTML = '<p class="text-xs text-gray-400 font-bold uppercase col-span-full py-4 text-center">No submitted customer reviews found.</p>';
-        return;
-    }
-
-    listContainer.innerHTML = reviews.map(r => {
-        const isApproved = r.status === 'approved';
-        const stars = '★'.repeat(r.rating || 5);
-
-        return `
-            <div class="p-5 border rounded-2xl flex flex-col justify-between ${isApproved ? 'bg-green-50/40 border-green-200' : 'bg-gray-50 border-gray-200'}">
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-black uppercase text-black">${r.name} <span class="text-[10px] text-gray-400 font-normal">(${r.email || 'No Email'})</span></span>
-                        <span class="text-xs text-yellow-500 font-black">${stars}</span>
-                    </div>
-                    <p class="text-xs text-gray-700 italic mb-4">"${r.text}"</p>
-                </div>
-
-                <div class="flex items-center justify-between border-t border-gray-200/60 pt-3">
-                    <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                        ${r.status || 'pending'}
-                    </span>
-
-                    <div class="flex gap-2">
-                        ${!isApproved ? `
-                            <button onclick="approveReview('${r.id}')" class="bg-black hover:bg-green-600 text-white text-[10px] font-black uppercase px-4 py-2 rounded-xl transition">
-                                Approve ✓
-                            </button>
-                        ` : `
-                            <button onclick="unapproveReview('${r.id}')" class="bg-gray-200 hover:bg-gray-300 text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl transition">
-                                Unapprove
-                            </button>
-                        `}
-                        <button onclick="deleteReview('${r.id}')" class="bg-red-100 hover:bg-red-600 hover:text-white text-red-600 text-[10px] font-black uppercase px-3 py-2 rounded-xl transition">
-                            Delete 🗑
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function approveReview(id) {
-    db.collection("reviews").doc(id).update({ status: "approved" })
-      .then(() => Swal.fire({ icon: 'success', title: 'APPROVED!', timer: 1000, showConfirmButton: false }));
-}
-
-function unapproveReview(id) {
-    db.collection("reviews").doc(id).update({ status: "pending" });
-}
-
-function deleteReview(id) {
-    Swal.fire({
-        title: 'Delete Review?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#000',
-        confirmButtonText: 'Delete'
-    }).then((res) => {
-        if (res.isConfirmed) db.collection("reviews").doc(id).delete();
-    });
-}
-
-// Auto Session Check on DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-    checkAdminSession();
-});
+                <button onclick="toggleSingleSize('${p.id}', '${s.name}',${!s.available})" class="px-2 py-1 text-[10px] font-black rounded-md mr-1 mb-1 transition ${s.available ? 'bg-green-100 text-green-800 border border-green
