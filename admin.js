@@ -254,10 +254,11 @@ async function adminLogin(e) {
         Swal.fire({ 
             icon: 'error', 
             title: 'Login Failed', 
-            html: `Invalid Username or Password!<br><small class="text-gray-500">Default Credentials:<br>User: <b>redamsbd</b> | Pass: <b>redamsbd16</b></small>`,
+            text: 'Invalid Username or Password! Please check carefully.',
             confirmButtonColor: '#dc2626'
         });
     }
+    
 
     if (btn) {
         btn.disabled = false;
