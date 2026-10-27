@@ -1,5 +1,5 @@
 // =================================================================
-// REDAMS Master Script Engine (script.js) - Full Dynamic Logic & New Features
+// REDAMS Master Script Engine (script.js) - Full Dynamic Logic & Bugfix
 // =================================================================
 
 // ===== Global Variables =====
@@ -353,8 +353,11 @@ function displayProducts(products, showAll = false) {
     }
 }
 
+// Global Alias for HTML inline scripts
+window.renderProducts = displayProducts;
+
 // =================================================================
-// 4. SIZE GUIDE MODAL & INLINE SIZE CHART GENERATOR
+// 4. SIZE GUIDE MODAL & INLINE SIZE CHART ENGINE
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
@@ -481,7 +484,7 @@ function generateRelatedProductsHTML(currentId, category) {
 }
 
 // =================================================================
-// 5. QUICK VIEW PRODUCT MODAL ENGINE (WITH ALL UPDATES)
+// 5. QUICK VIEW PRODUCT MODAL ENGINE
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -1373,7 +1376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const deliveryRadios = document.querySelector All('input[name="delivery"]');
+    const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
     deliveryRadios.forEach(radio => {
         radio.addEventListener('change', () => {
             if (typeof updateCartUI === 'function') updateCartUI();
