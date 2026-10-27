@@ -1,5 +1,5 @@
 // =================================================================
-// REDAMS Master Script Engine (script.js) - Complete Engine
+// REDAMS Master Script Engine (script.js) - Goosebumps-Style Engine
 // =================================================================
 
 // ===== Global Variables =====
@@ -45,7 +45,7 @@ const defaultSizeCharts = {
         { size: 'M', chest: '38', length: '27', sleeve: '8' },
         { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
         { size: 'XL', chest: '42', length: '29', sleeve: '9' },
-        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
     ],
     'acid-wash': [
         { size: 'M', chest: '40', length: '28', sleeve: '8.5' },
@@ -57,7 +57,7 @@ const defaultSizeCharts = {
         { size: 'M', chest: '38', length: '27', sleeve: '8' },
         { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
         { size: 'XL', chest: '42', length: '29', sleeve: '9' },
-        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
+        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
     ],
     'couple-tshirt': [
         { size: 'M', chest: '38/40', length: '27/28', sleeve: '8/8.5' },
@@ -101,12 +101,10 @@ function getCategoryFromURL() {
 window.syncAndRenderAllProducts = function() {
     const combinedMap = new Map();
 
-    // Priority 1: Firebase Firestore Admin data (overrides static JSON)
     (window.firebaseProducts || []).forEach(item => {
         if (item && item.id) combinedMap.set(String(item.id), item);
     });
 
-    // Priority 2: Local JSON fallback
     (window.localJsonProducts || []).forEach(item => {
         if (item && item.id && !combinedMap.has(String(item.id))) {
             combinedMap.set(String(item.id), item);
@@ -160,23 +158,6 @@ function loadProducts() {
             console.error("Error loading local products:", err);
             window.syncAndRenderAllProducts();
         });
-}
-
-// ===== Mobile Menu Toggle =====
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    const overlay = document.getElementById('menu-overlay');
-    if (!menu || !overlay) return;
-
-    if (menu.classList.contains('-translate-x-full')) {
-        menu.classList.remove('-translate-x-full');
-        menu.classList.add('translate-x-0');
-        overlay.classList.add('active');
-    } else {
-        menu.classList.remove('translate-x-0');
-        menu.classList.add('-translate-x-full');
-        overlay.classList.remove('active');
-    }
 }
 
 // ===== Feature Selection Helper =====
@@ -358,7 +339,7 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. VECTOR SIZE CHART ENGINE (Admin Firestore Sync)
+// 4. VECTOR SIZE CHART ENGINE
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
@@ -394,7 +375,6 @@ async function openSizeGuideModal(category) {
                     <svg viewBox="0 0 200 220" class="w-full h-auto drop-shadow-sm">
                         <path d="M 60,30 L 80,10 L 120,10 L 140,30 L 190,65 L 165,100 L 145,85 L 145,195 L 55,195 L 55,85 L 35,100 L 10,65 Z" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
                         <path d="M 80,10 L 100,45 L 120,10" fill="none" stroke="#000" stroke-width="3"/>
-                        <path d="M 100,45 L 100,70" fill="none" stroke="#000" stroke-width="3"/>
                         <line x1="55" y1="75" x2="145" y2="75" stroke="#000" stroke-width="2" stroke-dasharray="3,3"/>
                         <line x1="100" y1="75" x2="100" y2="195" stroke="#000" stroke-width="2" stroke-dasharray="3,3"/>
                         <text x="105" y="88" font-size="9" font-weight="bold" fill="#333">Chest</text>
@@ -405,7 +385,7 @@ async function openSizeGuideModal(category) {
                 <div class="overflow-x-auto border border-black mb-4 rounded-xl">
                     <table class="w-full text-center text-xs font-bold border-collapse">
                         <thead>
-                            <tr class="bg-black text-white text-[10px] uppercase font-black tracking-wider">
+                            <tr class="bg-black text-white text-[10px] uppercase font-black">
                                 <th class="py-2.5 px-2 border-r border-zinc-700">SIZE</th>
                                 <th class="py-2.5 px-2 border-r border-zinc-700">CHEST (ROUND)</th>
                                 <th class="py-2.5 px-2 border-r border-zinc-700">LENGTH</th>
@@ -428,7 +408,6 @@ async function openSizeGuideModal(category) {
                 <div class="inline-block bg-red-50 text-red-600 border border-red-200 text-[10px] font-black uppercase px-4 py-1.5 rounded-full tracking-wider mb-2">
                     Size tolerance &plusmn; 0.39-0.79 INCH
                 </div>
-                <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">All measurements are expressed in inches.</p>
             </div>
         </div>
     `;
@@ -479,7 +458,7 @@ function generateRelatedProductsHTML(currentId, category) {
 }
 
 // =================================================================
-// 5. STABLE & CLEAN PRODUCT DETAIL MODAL (PC & Mobile Perfect)
+// 5. GOOSEBUMPS STYLE CLEAN PRODUCT DETAIL MODAL
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -511,7 +490,6 @@ function openModal(id) {
     let sizesHTML = '';
     let colorsHTML = '';
 
-    // Couple T-Shirt dual size selection support
     if (p.category === 'couple-tshirt') {
         sizesHTML += `
             <div class="space-y-3">
@@ -522,16 +500,16 @@ function openModal(id) {
         if (p.sizes && p.sizes.partner1) {
             p.sizes.partner1.forEach(size => {
                 sizesHTML += size.available 
-                    ? `<button onclick="selectFeature('size-p1','${size.name}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
-                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
+                    ? `<button onclick="selectFeature('size-p1','${size.name}',this)" class="w-10 h-10 border border-zinc-300 rounded-lg text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-10 h-10 border border-zinc-100 rounded-lg text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
             });
         }
         sizesHTML += `</div></div><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 2 Size</label><div class="flex flex-wrap gap-2">`;
         if (p.sizes && p.sizes.partner2) {
             p.sizes.partner2.forEach(size => {
                 sizesHTML += size.available 
-                    ? `<button onclick="selectFeature('size-p2','${size.name}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
-                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
+                    ? `<button onclick="selectFeature('size-p2','${size.name}',this)" class="w-10 h-10 border border-zinc-300 rounded-lg text-xs font-black flex items-center justify-center hover:border-black transition">${size.name}</button>`
+                    : `<button disabled class="w-10 h-10 border border-zinc-100 rounded-lg text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${size.name}</button>`;
             });
         }
         sizesHTML += `</div></div></div>`;
@@ -539,13 +517,13 @@ function openModal(id) {
         colorsHTML += `<div class="space-y-3"><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 1 Color</label><div class="flex flex-wrap gap-2">`;
         if (p.colors && p.colors.partner1) {
             p.colors.partner1.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color-p1','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color-p1','${color}',this)" class="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-black hover:border-black transition">${color}</button>`;
             });
         }
         colorsHTML += `</div></div><div><label class="block text-[10px] font-black text-zinc-400 mb-1.5 uppercase tracking-wider">Partner 2 Color</label><div class="flex flex-wrap gap-2">`;
         if (p.colors && p.colors.partner2) {
             p.colors.partner2.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color-p2','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color-p2','${color}',this)" class="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-black hover:border-black transition">${color}</button>`;
             });
         }
         colorsHTML += `</div></div></div>`;
@@ -558,8 +536,8 @@ function openModal(id) {
                 const isAvailable = typeof size === 'string' ? true : (size.available !== false);
                 
                 sizesHTML += isAvailable
-                    ? `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-10 h-10 border-2 border-zinc-200 rounded-xl text-xs font-black flex items-center justify-center hover:border-black transition shadow-sm">${sizeStr}</button>`
-                    : `<button disabled class="w-10 h-10 border-2 border-zinc-100 rounded-xl text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${sizeStr}</button>`;
+                    ? `<button onclick="selectFeature('size','${sizeStr}',this)" class="w-10 h-10 border border-zinc-300 rounded-lg text-xs font-black flex items-center justify-center hover:border-black transition shadow-sm">${sizeStr}</button>`
+                    : `<button disabled class="w-10 h-10 border border-zinc-100 rounded-lg text-xs font-black flex items-center justify-center bg-zinc-50 text-zinc-300 cursor-not-allowed line-through">${sizeStr}</button>`;
             });
             sizesHTML += `</div>`;
         }
@@ -567,13 +545,12 @@ function openModal(id) {
         if (p.colors && Array.isArray(p.colors) && p.colors.length > 0) {
             colorsHTML += `<div class="flex flex-wrap gap-2">`;
             p.colors.forEach(color => {
-                colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-4 py-2 border-2 border-zinc-200 rounded-xl text-xs font-black hover:border-black transition shadow-sm">${color}</button>`;
+                colorsHTML += `<button onclick="selectFeature('color','${color}',this)" class="px-4 py-2 border border-zinc-300 rounded-lg text-xs font-black hover:border-black transition shadow-sm">${color}</button>`;
             });
             colorsHTML += `</div>`;
         }
     }
 
-    // FIX 1: Only display thumbnails if current product has MULTIPLE images
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images) && p.images.length > 1) {
         imagesHTML = `
@@ -589,11 +566,11 @@ function openModal(id) {
     const relatedProductsHTML = generateRelatedProductsHTML(p.id, p.category);
 
     content.innerHTML = `
-        <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-4 md:p-8 relative shadow-2xl my-auto text-left border border-zinc-100">
+        <div class="bg-white w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl p-4 md:p-8 relative shadow-2xl my-auto text-left border border-zinc-100">
             
-            <!-- Modal Header with Fixed Close Button -->
+            <!-- Sticky Top Navigation Header -->
             <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md pb-3 pt-1 border-b border-zinc-100 flex items-center justify-between mb-4">
-                <span class="font-black text-sm tracking-widest text-black uppercase">RED<span class="text-red-600">AMS</span> PRODUCT DETAIL</span>
+                <span class="font-black text-sm tracking-widest text-black uppercase">RED<span class="text-red-600">AMS</span> STORE</span>
                 <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 flex items-center justify-center font-bold hover:bg-black hover:text-white transition cursor-pointer">
                     &times;
                 </button>
@@ -601,7 +578,7 @@ function openModal(id) {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 
-                <!-- Product Images -->
+                <!-- Main Image Section -->
                 <div class="space-y-3">
                     <div class="relative overflow-hidden rounded-2xl bg-zinc-50 aspect-[3/4] border border-zinc-200">
                         <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-full h-full object-cover transition duration-300">
@@ -609,7 +586,7 @@ function openModal(id) {
                     ${imagesHTML}
                 </div>
 
-                <!-- Product Details & Actions -->
+                <!-- Specs & Action Section -->
                 <div class="flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-2">
@@ -652,19 +629,30 @@ function openModal(id) {
                         </div>
                     </div>
 
-                    <div class="mt-4 space-y-3">
+                    <div class="mt-4 space-y-4">
+                        <!-- Single Clean Add To Cart Button -->
                         <button onclick="addToCart('${p.id}')" class="w-full bg-black hover:bg-red-600 text-white py-4 rounded-xl font-black uppercase tracking-wider transition duration-300 text-xs shadow-lg cursor-pointer">
                             Add To Cart ↘
                         </button>
                         
-                        <div class="pt-2 text-left">
+                        <!-- Page Links (Delivery & Returns connected to separate pages) -->
+                        <div class="pt-2 text-left border-t border-zinc-100 space-y-2">
                             <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-1">Description</h4>
-                            <p class="text-xs text-zinc-500 leading-relaxed">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
+                            <p class="text-xs text-zinc-500 leading-relaxed mb-3">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
+                            
+                            <div class="flex items-center justify-between text-xs font-bold border-t pt-2">
+                                <a href="shipping.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
+                                    🚚 Shipping Details &rarr;
+                                </a>
+                                <a href="returns.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
+                                    🔄 Return Policy &rarr;
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- FIX 2: You May Also Like Section positioned nicely at bottom -->
+                <!-- You May Also Like Section -->
                 ${relatedProductsHTML}
             </div>
         </div>
