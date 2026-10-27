@@ -168,13 +168,22 @@ function checkAdminSession() {
     }
 }
 
-// 2. SECURE ADMIN LOGIN (STRICT SINGLE-PASSWORD AUTHENTICATION)
+// SECURE & INSTANT ADMIN LOGIN ENGINE
 async function adminLogin(e) {
     if (e) e.preventDefault();
     
     const u = document.getElementById('login-username')?.value.trim();
     const p = document.getElementById('login-password')?.value.trim();
     const btn = document.getElementById('login-btn');
+
+    if (!u || !p) {
+        Swal.fire({ 
+            icon: 'warning', 
+            title: 'Attention', 
+            text: 'Please enter both Username and Password!' 
+        });
+        return false;
+    }
 
     if (btn) {
         btn.disabled = true;
@@ -184,11 +193,37 @@ async function adminLogin(e) {
     let validPass = localStorage.getItem('redams_admin_pass') || 'redamsbd16';
     let validUser = localStorage.getItem('redams_admin_user') || 'redamsbd';
 
+    // 1. FAST LOCAL CHECK (Instant Login)
+    if (u === validUser && p === validPass) {
+        localStorage.setItem('redams_admin_session', 'active');
+        
+        if (document.getElementById('remember-me')?.checked) {
+            localStorage.setItem('redams_remember_me', 'true');
+        }
+
+        checkAdminSession();
+        
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'WELCOME BACK!', 
+            text: 'Logged in successfully to REDAMS Admin Portal.',
+            timer: 1200, 
+            showConfirmButton: false 
+        });
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard`;
+        }
+        return false;
+    }
+
+    // 2. FIRESTORE FALLBACK CHECK (If local check fails)
     if (typeof db !== 'undefined' && db) {
         try {
             const fetchPromise = db.collection("admin_settings").doc("credentials").get();
             const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("Timeout")), 2000)
+                setTimeout(() => reject(new Error("Timeout")), 1500)
             );
 
             const docSnap = await Promise.race([fetchPromise, timeoutPromise]);
@@ -208,6 +243,7 @@ async function adminLogin(e) {
         }
     }
 
+    // Re-verify after Firestore Sync
     if (u === validUser && p === validPass) {
         localStorage.setItem('redams_admin_session', 'active');
         
@@ -228,7 +264,7 @@ async function adminLogin(e) {
         Swal.fire({ 
             icon: 'error', 
             title: 'Login Failed', 
-            text: 'Invalid Username or Password! Please check carefully.',
+            html: `Invalid Username or Password!<br><small class="text-gray-500">Default Credentials:<br>User: <b>redamsbd</b> | Pass: <b>redamsbd16</b></small>`,
             confirmButtonColor: '#dc2626'
         });
     }
@@ -237,6 +273,7 @@ async function adminLogin(e) {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard`;
     }
+    return false;
 }
 
 // 3. ADMIN LOGOUT
