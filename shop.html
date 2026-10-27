@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redams - Premium Lifestyle</title>
-     <!-- ফ্যাভিকন বা লোগো যুক্ত করার মেইন লাইন -->
+    <title>Redams - Shop Collections</title>
+    <!-- ফ্যাভিকন বা লোগো যুক্ত করার মেইন লাইন -->
     <link rel="icon" type="image/png" href="images/redams logo.jpg">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,20 +33,17 @@
     }
 
     body { font-family: 'Inter', sans-serif; }
-    /* বাকি আপনার আগের স্টাইলগুলো এখানে থাকবে... */
-
-        body { font-family: 'Inter', sans-serif; }
-        .swal2-container { z-index: 10000 !important; }
-        .swal2-popup { border-radius: 15px !important; }
-        .hero-swiper { width: 100%; height: auto; }
-        .swiper-pagination-bullet-active { background: #e11d48 !important; width: 25px !important; border-radius: 5px !important; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-ticker { display: flex; width: max-content; animation: ticker 30s linear infinite; }
-        .payment-card input:checked + div .check-dot { opacity: 1 !important; }
+    .swal2-container { z-index: 10000 !important; }
+    .swal2-popup { border-radius: 15px !important; }
+    .hero-swiper { width: 100%; height: auto; }
+    .swiper-pagination-bullet-active { background: #e11d48 !important; width: 25px !important; border-radius: 5px !important; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+    @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .animate-ticker { display: flex; width: max-content; animation: ticker 30s linear infinite; }
+    .payment-card input:checked + div .check-dot { opacity: 1 !important; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -62,10 +59,10 @@
             <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-10 md:h-12 w-auto object-contain brightness-110">
         </a>
 
-        <!-- ডেস্কটপ মেনু (আগের মতোই আছে) -->
+        <!-- ডেস্কটপ মেনু -->
         <div class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-widest">
             <a href="index.html" class="hover:text-gray-400 transition">Home</a>
-            <a href="#product-grid" class="hover:text-gray-400 transition">All Products</a>
+            <a href="shop.html" class="hover:text-gray-400 transition">All Products</a>
             <div class="relative group">
                 <button class="hover:text-gray-400 transition flex items-center uppercase">
                     Collections <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
@@ -78,7 +75,7 @@
                         <a href="shop.html?cat=hoodie" class="block px-4 py-2 hover:bg-gray-100 transition">Hoodie</a>
                         <a href="shop.html?cat=couple-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Couple T-Shirt</a>
                         <a href="shop.html?cat=polo-tshirt" class="block px-4 py-2 hover:bg-gray-100 transition">Polo T-Shirt</a>
-                         <a href="shop.html?cat=henley" class="block px-4 py-2 hover:bg-gray-100 transition">Henley T-Shirt</a>
+                        <a href="shop.html?cat=henley" class="block px-4 py-2 hover:bg-gray-100 transition">Henley T-Shirt</a>
                     </div>
                 </div>
             </div>
@@ -111,7 +108,7 @@
             <span>Home</span>
             <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
         </a>
-        <a href="#product-grid" onclick="toggleMobileMenu()" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
+        <a href="shop.html" class="text-white text-xs font-bold uppercase tracking-[0.2em] hover:text-red-600 transition flex items-center justify-between">
             <span>All Products</span>
             <i class="fa-solid fa-chevron-right text-[10px] text-gray-600"></i>
         </a>
@@ -130,10 +127,9 @@
     </div>
 </div>
 
-<!-- মোবাইল ওভারলে (এটি একবারই থাকবে) -->
+<!-- মোবাইল ওভারলে -->
 <div id="menu-overlay" onclick="toggleMobileMenu()"></div>
     
-    <!-- pt-32 বা mt-24 যোগ করলে টাইটেলটি নেভিগেশন বারের নিচ থেকে বের হয়ে আসবে -->
 <div class="container mx-auto px-4 pt-32 pb-10"> 
     <h2 id="page-title" class="text-3xl font-black text-center mb-12 text-gray-900 uppercase tracking-tighter">
         Our Collection
@@ -141,15 +137,16 @@
     <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
 </div>
 
-  <div id="product-modal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
-    <div class="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-10 shadow-2xl">
-        <!-- Z-Index, Absolute Positioning এবং Mobile Friendly Touch Target সহ আপডেট করা Cross Button -->
-        <button onclick="closeModal()" class="absolute top-4 right-4 md:right-6 z-[100] w-10 h-10 bg-gray-100 hover:bg-black text-gray-700 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-sm active:scale-95">
-            <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-        
-        <div id="modal-content" class="pt-4 md:pt-0"></div>
+<!-- UPDATED: DEDICATED FULL-VIEW PRODUCT MODAL ENGINE -->
+<div id="product-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-3 md:p-6 overflow-y-auto">
+    <div id="modal-content" class="w-full flex items-center justify-center">
+        <!-- Script automatically injects the clean Goosebumps-style product details here -->
     </div>
+</div>
+
+<!-- STANDALONE DYNAMIC SIZE GUIDE POPUP MODAL -->
+<div id="size-guide-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+    <!-- Size chart content dynamically injected by script.js -->
 </div>
 
 <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[5000] transform translate-x-full transition-transform duration-500 flex flex-col border-l border-gray-100">
@@ -176,103 +173,94 @@
             <textarea id="final-address" placeholder="সম্পূর্ণ ঠিকানা (FOR DELIVERY)" class="w-full p-3 text-sm border rounded-xl outline-none h-16 bg-gray-50 focus:bg-white transition resize-none"></textarea>
         </div>
 
-       <!-- Payment Method Section -->
-<div class="mt-4 space-y-3 bg-gray-50 p-4 rounded-[2rem] border border-gray-100 text-left">
-    <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2 ml-2">Payment Method</p>
-    
-    <div class="grid grid-cols-1 gap-2">
-        <!-- Cash On Delivery -->
-        <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-black cursor-pointer transition">
-            <div class="flex items-center gap-3">
-                <input type="radio" name="payment-method" value="COD" checked class="hidden" onclick="updatePaymentUI('COD')">
-                <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
-                    <div class="w-2 h-2 bg-black rounded-full opacity-0 check-dot transition"></div>
+        <!-- Payment Method Section -->
+        <div class="mt-4 space-y-3 bg-gray-50 p-4 rounded-[2rem] border border-gray-100 text-left">
+            <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2 ml-2">Payment Method</p>
+            
+            <div class="grid grid-cols-1 gap-2">
+                <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-black cursor-pointer transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="payment-method" value="COD" checked class="hidden" onclick="updatePaymentUI('COD')">
+                        <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-black rounded-full opacity-0 check-dot transition"></div>
+                        </div>
+                        <span class="text-[10px] font-black uppercase">Cash On Delivery</span>
+                    </div>
+                    <i class="fa-solid fa-truck-fast text-gray-400 text-xs"></i>
+                </label>
+
+                <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-blue-600 cursor-pointer transition">
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="payment-method" value="Online" class="hidden" onclick="updatePaymentUI('Online')">
+                        <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-blue-600 rounded-full opacity-0 check-dot transition"></div>
+                        </div>
+                        <span class="text-[10px] font-black uppercase">Online Payment (bKash/Nagad)</span>
+                    </div>
+                    <i class="fa-solid fa-credit-card text-gray-400 text-xs"></i>
+                </label>
+            </div>
+
+            <div id="online-sub-options" class="hidden space-y-3 mt-2 animate-fade-in">
+                <div class="flex gap-2">
+                    <button onclick="setOnlineMethod('bKash')" class="flex-1 py-2 px-3 bg-[#e2136e] text-white text-[10px] font-black uppercase rounded-xl shadow-sm hover:opacity-90">bKash</button>
+                    <button onclick="setOnlineMethod('Nagad')" class="flex-1 py-2 px-3 bg-[#f7941d] text-white text-[10px] font-black uppercase rounded-xl shadow-sm hover:opacity-90">Nagad</button>
                 </div>
-                <span class="text-[10px] font-black uppercase">Cash On Delivery</span>
-            </div>
-            <i class="fa-solid fa-truck-fast text-gray-400 text-xs"></i>
-        </label>
 
-        <!-- Online Payment Main Option -->
-        <label class="payment-card relative flex items-center justify-between p-3.5 bg-white rounded-2xl border-2 border-transparent has-[:checked]:border-blue-600 cursor-pointer transition">
-            <div class="flex items-center gap-3">
-                <input type="radio" name="payment-method" value="Online" class="hidden" onclick="updatePaymentUI('Online')">
-                <div class="w-4 h-4 border-2 border-gray-200 rounded-full flex items-center justify-center">
-                    <div class="w-2 h-2 bg-blue-600 rounded-full opacity-0 check-dot transition"></div>
-                </div>
-                <span class="text-[10px] font-black uppercase">Online Payment (bKash/Nagad)</span>
-            </div>
-            <i class="fa-solid fa-credit-card text-gray-400 text-xs"></i>
-        </label>
-    </div>
-
-    <!-- Online Sub-Options (Hidden by default) -->
-    <div id="online-sub-options" class="hidden space-y-3 mt-2 animate-fade-in">
-        <div class="flex gap-2">
-            <button onclick="setOnlineMethod('bKash')" class="flex-1 py-2 px-3 bg-[#e2136e] text-white text-[10px] font-black uppercase rounded-xl shadow-sm hover:opacity-90">bKash</button>
-            <button onclick="setOnlineMethod('Nagad')" class="flex-1 py-2 px-3 bg-[#f7941d] text-white text-[10px] font-black uppercase rounded-xl shadow-sm hover:opacity-90">Nagad</button>
-        </div>
-
-        <!-- Premium Instruction Box -->
-        <div id="payment-instruction" class="p-0 rounded-2xl border overflow-hidden bg-white shadow-sm flex flex-col hidden">
-            <div id="method-header" class="p-3 text-center transition-colors duration-300">
-                <p id="method-name" class="text-[10px] font-black uppercase text-white tracking-widest"></p>
-            </div>
-            <div class="p-4 text-center space-y-3">
-                <div class="space-y-1">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
-                    <div class="bg-gray-50 py-3 rounded-xl border border-dashed border-gray-200">
-                        <span id="display-number" class="text-xl font-black tracking-widest text-black"></span>
+                <div id="payment-instruction" class="p-0 rounded-2xl border overflow-hidden bg-white shadow-sm flex flex-col hidden">
+                    <div id="method-header" class="p-3 text-center transition-colors duration-300">
+                        <p id="method-name" class="text-[10px] font-black uppercase text-white tracking-widest"></p>
+                    </div>
+                    <div class="p-4 text-center space-y-3">
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">নিচের নাম্বারে টাকা পাঠিয়ে দিন (Personal)</p>
+                            <div class="bg-gray-50 py-3 rounded-xl border border-dashed border-gray-200">
+                                <span id="display-number" class="text-xl font-black tracking-widest text-black"></span>
+                            </div>
+                        </div>
+                        <div class="pt-1">
+                            <p class="text-[9px] font-black text-red-600 uppercase italic mb-2">TrxID না দিলে অর্ডার কনফার্ম হবে না</p>
+                            <input type="text" id="trnx-id" oninput="validateOrder()" placeholder="Transaction ID (TRXID) লিখুন" class="w-full p-3.5 text-xs font-bold uppercase border-2 border-gray-100 rounded-2xl outline-none focus:border-black bg-gray-50 transition-all text-center">
+                        </div>
                     </div>
                 </div>
-                <div class="pt-1">
-                    <p class="text-[9px] font-black text-red-600 uppercase italic mb-2">TrxID না দিলে অর্ডার কনফার্ম হবে না</p>
-                    <input type="text" id="trnx-id" oninput="validateOrder()" placeholder="Transaction ID (TRXID) লিখুন" class="w-full p-3.5 text-xs font-bold uppercase border-2 border-gray-100 rounded-2xl outline-none focus:border-black bg-gray-50 transition-all text-center">
+            </div>
+
+            <div class="mt-4 p-4 bg-gray-50 rounded-[2rem] border border-gray-100 text-left">
+                <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-3 ml-2">Promo Code</p>
+                <div class="flex gap-2">
+                    <input type="text" id="promo-input" placeholder="ENTER THE CODE" 
+                        class="flex-1 p-3 text-[10px] font-black uppercase border rounded-xl outline-none bg-white focus:border-black transition">
+                    <button onclick="applyPromoCode()" 
+                        class="px-4 py-3 bg-black text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-600 transition-all">
+                        Apply
+                    </button>
                 </div>
+                <p id="promo-msg" class="mt-2 ml-2 text-[9px] font-bold uppercase hidden"></p>
+            </div>
+            
+            <div id="cart-total" class="pt-2 text-left"></div>
+
+            <div class="flex flex-col gap-3 pt-3">
+                <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full !bg-black hover:!bg-zinc-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all duration-300 disabled:!bg-zinc-400 disabled:!opacity-50 disabled:cursor-not-allowed border border-black/10 active:scale-[0.98]">
+                    <i class="fa-solid fa-bag-shopping text-sm"></i>
+                    <span>Confirm Order</span>
+                </button>
+
+                <button id="whatsapp-order-btn" onclick="orderByWhatsApp()" class="w-full bg-white hover:bg-zinc-50 text-black border-2 border-zinc-200 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
+                    <i class="fa-brands fa-whatsapp text-lg text-[#25D366]"></i>
+                    <span>Order via WhatsApp</span>
+                </button>
             </div>
         </div>
     </div>
-
-    <div class="mt-4 p-4 bg-gray-50 rounded-[2rem] border border-gray-100 text-left">
-    <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-3 ml-2">Promo Code</p>
-    <div class="flex gap-2">
-        <input type="text" id="promo-input" placeholder="ENTER THE CODE" 
-            class="flex-1 p-3 text-[10px] font-black uppercase border rounded-xl outline-none bg-white focus:border-black transition">
-        <button onclick="applyPromoCode()" 
-            class="px-4 py-3 bg-black text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-600 transition-all">
-            Apply
-        </button>
-    </div>
-    <p id="promo-msg" class="mt-2 ml-2 text-[9px] font-bold uppercase hidden"></p>
 </div>
-    
-    <div id="cart-total" class="pt-2 text-left"></div>
-
-     <!-- Dual Action Order Buttons (REDAMS Premium Theme) -->
-    <div class="flex flex-col gap-3 pt-3">
-        
-        <!-- ১. প্রিমিয়াম ব্ল্যাক ইমেইল অর্ডার বাটন -->
-        <button id="confirm-order-btn" onclick="confirmOrder()" disabled class="w-full !bg-black hover:!bg-zinc-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all duration-300 disabled:!bg-zinc-400 disabled:!opacity-50 disabled:cursor-not-allowed border border-black/10 active:scale-[0.98]">
-            <i class="fa-solid fa-bag-shopping text-sm"></i>
-            <span>Confirm Order</span>
-        </button>
-
-        <!-- ২. প্রিমিয়াম মিনিমালিস্ট হোয়াটসঅ্যাপ বাটন -->
-        <button id="whatsapp-order-btn" onclick="orderByWhatsApp()" class="w-full bg-white hover:bg-zinc-50 text-black border-2 border-zinc-200 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all duration-300 active:scale-[0.98]">
-            <i class="fa-brands fa-whatsapp text-lg text-[#25D366]"></i>
-            <span>Order via WhatsApp</span>
-        </button>
-
-</div>
-        </div>
-    </div>
-    
-        
+      
 <style>
     input:checked + div .check-dot { opacity: 1; }
 </style>
-        <section class="container mx-auto px-4 py-24 border-t border-gray-100">
-    
+
+<section class="container mx-auto px-4 py-24 border-t border-gray-100">
     <div class="text-center mb-16">
         <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-black mb-4">Our Community Says</h2>
         <div class="flex items-center justify-center gap-2">
@@ -310,13 +298,11 @@
     </div>
 
     <div class="relative group">
-        <div id="reviews-wrapper" class="flex gap-8 overflow-x-auto pb-10 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide">
-            </div>
+        <div id="reviews-wrapper" class="flex gap-8 overflow-x-auto pb-10 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide"></div>
     </div>
 </section>
 
 <style>
-    /* স্লাইডার লুকানোর জন্য কাস্টম সিএসএস */
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     
@@ -331,67 +317,65 @@
     }
 </style>
 
-    <footer class="bg-[#050505] text-gray-300 py-20 mt-20 border-t border-gray-900">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
-                <div class="md:col-span-1 flex flex-col items-center md:items-start gap-4">
-                    <a href="index.html" class="block">
-                        <img src="images/RedAmS logo main png.png" alt="REDAMS Logo" class="h-10 md:h-12 w-auto object-contain">
-                    </a>
-                    <p class="text-[11px] uppercase tracking-[0.3em] text-gray-500 leading-relaxed max-w-xs text-center md:text-left">Define Your Street Identity. Premium Streetwear from Bangladesh.</p>
-                    <div class="flex gap-5 text-lg text-gray-600 mt-2">
-                        <a href="#" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-facebook"></i></a>
-                        <a href="#" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="space-y-5">
-                    <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Categories</h4>
-                    <ul class="space-y-3.5 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                        <li><a href="shop.html?cat=drop-shoulder" class="hover:text-white hover:pl-2 transition-all duration-300">Drop Shoulder</a></li>
-                        <li><a href="shop.html?cat=acid-wash" class="hover:text-white hover:pl-2 transition-all duration-300">Acid Wash</a></li>
-                        <li><a href="shop.html?cat=hoodie" class="hover:text-white hover:pl-2 transition-all duration-300">Hoodie</a></li>
-                        <li><a href="shop.html" class="hover:text-white hover:pl-2 transition-all duration-300">New Arrivals</a></li>
-                         <li><a href="shop.html?cat=polo-tshirt" class="hover:text-white hover:pl-2 transition-all duration-300">Polo T-Shirt</a></li>
-                        <li><a href="shop.html?cat=henley" class="hover:text-white hover:pl-2 transition-all duration-300">Henley T-Shirt</a></li>
-                    </ul>
-                </div>
-                <div class="space-y-5">
-                    <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Company</h4>
-                    <ul class="space-y-3.5 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                        <li><a href="privacy.html" class="hover:text-white hover:pl-2 transition-all duration-300">Privacy Policy</a></li>
-                        <li><a href="terms.html" class="hover:text-white hover:pl-2 transition-all duration-300">Terms & Conditions</a></li>
-                        <li><a href="return.html" class="hover:text-white hover:pl-2 transition-all duration-300">Return & Refund</a></li>
-                        <li><a href="about.html" class="hover:text-white hover:pl-2 transition-all duration-300">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="space-y-5">
-                    <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Contact Us</h4>
-                    <ul class="space-y-4 text-[10px] md:text-xs font-medium tracking-wide text-gray-400 text-center md:text-left">
-                        <li class="flex items-center gap-3 justify-center md:justify-start">
-                            <i class="fa-solid fa-location-dot text-red-600 text-sm"></i>
-                            <span>Savar, Dhaka, Bangladesh</span>
-                        </li>
-                        <li class="flex items-center gap-3 justify-center md:justify-start">
-                            <i class="fa-solid fa-phone text-red-600 text-sm"></i>
-                            <a href="tel:+8801894357549" class="hover:text-white transition">+880 1894 357549</a>
-                        </li>
-                        <li class="flex items-center gap-3 justify-center md:justify-start">
-                            <i class="fa-solid fa-envelope text-red-600 text-sm"></i>
-                            <a href="mailto:redamsbd16@gmail.com" class="hover:text-white transition">redamsbd16@gmail.com</a>
-                        </li>
-                    </ul>
+<footer class="bg-[#050505] text-gray-300 py-20 mt-20 border-t border-gray-900">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
+            <div class="md:col-span-1 flex flex-col items-center md:items-start gap-4">
+                <a href="index.html" class="block">
+                    <img src="images/RedAmS logo main png.png" alt="REDAMS Logo" class="h-10 md:h-12 w-auto object-contain">
+                </a>
+                <p class="text-[11px] uppercase tracking-[0.3em] text-gray-500 leading-relaxed max-w-xs text-center md:text-left">Define Your Street Identity. Premium Streetwear from Bangladesh.</p>
+                <div class="flex gap-5 text-lg text-gray-600 mt-2">
+                    <a href="https://www.facebook.com/redamsbd" target="_blank" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/redams_bd" target="_blank" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://wa.me/8801894357549" target="_blank" class="hover:text-red-600 transition duration-300"><i class="fa-brands fa-whatsapp"></i></a>
                 </div>
             </div>
-            <div class="mt-20 pt-8 border-t border-gray-900 text-center">
-                <p class="text-[9px] text-gray-700 uppercase tracking-[0.5em] font-medium">
-                    &copy; 2026 REDAMS. ALL RIGHTS RESERVED. DEVELOPED BY RIDWAN.
-                </p>
+            <div class="space-y-5">
+                <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Categories</h4>
+                <ul class="space-y-3.5 text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                    <li><a href="shop.html?cat=drop-shoulder" class="hover:text-white hover:pl-2 transition-all duration-300">Drop Shoulder</a></li>
+                    <li><a href="shop.html?cat=acid-wash" class="hover:text-white hover:pl-2 transition-all duration-300">Acid Wash</a></li>
+                    <li><a href="shop.html?cat=hoodie" class="hover:text-white hover:pl-2 transition-all duration-300">Hoodie</a></li>
+                    <li><a href="shop.html" class="hover:text-white hover:pl-2 transition-all duration-300">New Arrivals</a></li>
+                    <li><a href="shop.html?cat=polo-tshirt" class="hover:text-white hover:pl-2 transition-all duration-300">Polo T-Shirt</a></li>
+                    <li><a href="shop.html?cat=henley" class="hover:text-white hover:pl-2 transition-all duration-300">Henley T-Shirt</a></li>
+                </ul>
+            </div>
+            <div class="space-y-5">
+                <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Company</h4>
+                <ul class="space-y-3.5 text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                    <li><a href="privacy.html" class="hover:text-white hover:pl-2 transition-all duration-300">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-white hover:pl-2 transition-all duration-300">Terms & Conditions</a></li>
+                    <li><a href="return.html" class="hover:text-white hover:pl-2 transition-all duration-300">Return & Refund</a></li>
+                    <li><a href="about.html" class="hover:text-white hover:pl-2 transition-all duration-300">About Us</a></li>
+                </ul>
+            </div>
+            <div class="space-y-5">
+                <h4 class="text-xs font-black uppercase tracking-[0.4em] text-white pb-2 border-b-2 border-red-600 inline-block md:block md:border-none">Contact Us</h4>
+                <ul class="space-y-4 text-[10px] md:text-xs font-medium tracking-wide text-gray-400 text-center md:text-left">
+                    <li class="flex items-center gap-3 justify-center md:justify-start">
+                        <i class="fa-solid fa-location-dot text-red-600 text-sm"></i>
+                        <span>Savar, Dhaka, Bangladesh</span>
+                    </li>
+                    <li class="flex items-center gap-3 justify-center md:justify-start">
+                        <i class="fa-solid fa-phone text-red-600 text-sm"></i>
+                        <a href="tel:+8801894357549" class="hover:text-white transition">+880 1894 357549</a>
+                    </li>
+                    <li class="flex items-center gap-3 justify-center md:justify-start">
+                        <i class="fa-solid fa-envelope text-red-600 text-sm"></i>
+                        <a href="mailto:redamsbd16@gmail.com" class="hover:text-white transition">redamsbd16@gmail.com</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </footer>
-
-  <!-- ================= PREMIUM & PERFECTLY ROUNDED CHAT BUTTONS ================= -->
+        <div class="mt-20 pt-8 border-t border-gray-900 text-center">
+            <p class="text-[9px] text-gray-700 uppercase tracking-[0.5em] font-medium">
+                &copy; 2026 REDAMS. ALL RIGHTS RESERVED. DEVELOPED BY RIDWAN.
+            </p>
+        </div>
+    </div>
+</footer>
 
 <style>
   @keyframes customPulse {
@@ -413,13 +397,9 @@
    target="_blank" 
    class="fixed bottom-24 right-6 z-[9999] bg-[#25D366] w-14 h-14 rounded-full flex items-center justify-center p-0 shadow-[0_8px_30px_rgb(37,211,102,0.4)] hover:-translate-y-2 hover:scale-110 transition-all duration-300 ease-out group animate-pulse-whatsapp"
    style="aspect-ratio: 1 / 1;">
-    
-    <!-- Real & Fixed Aspect WhatsApp Icon -->
     <svg class="w-8 h-8 text-white fill-current flex-shrink-0" viewBox="0 0 24 24" style="display: block; width: 32px; height: 32px;">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
     </svg>
-
-    <!-- Premium Glassmorphic Tooltip -->
     <span class="absolute right-16 bg-white/80 backdrop-blur-md text-black text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 whitespace-nowrap pointer-events-none">
         Message us
     </span>
@@ -430,19 +410,15 @@
    target="_blank" 
    class="fixed bottom-6 right-6 z-[9999] bg-[#0084FF] w-14 h-14 rounded-full flex items-center justify-center p-0 shadow-[0_8px_30px_rgb(0,132,255,0.4)] hover:-translate-y-2 hover:scale-110 transition-all duration-300 ease-out group animate-pulse-messenger"
    style="aspect-ratio: 1 / 1;">
-    
-    <!-- Real Messenger Icon -->
     <svg class="w-7 h-7 text-white fill-current flex-shrink-0" viewBox="0 0 24 24" style="display: block; width: 28px; height: 28px;">
         <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.467 8.654V24l4.088-2.242c1.092.3 2.246.464 3.445.464 6.627 0 12-4.975 12-11.111C24 4.974 18.627 0 12 0zm1.257 14.86l-3.08-3.275-6.015 3.275 6.613-7.017 3.14 3.274 5.954-3.274-6.612 7.017z"/>
     </svg>
-
-    <!-- Premium Glassmorphic Tooltip -->
     <span class="absolute right-16 bg-white/80 backdrop-blur-md text-black text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 whitespace-nowrap pointer-events-none">
         Chat with us
     </span>
 </a>
 
-    <script src="script.js"></script>
+<script src="script.js"></script>
 <!-- REDAMS Master Hybrid Data Sync Engine for Shop Page -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -472,17 +448,14 @@
         window.allProducts = combined;
         window.products = combined;
 
-        // ১. ৩ডি হ্যাঙ্গার থাকলে তাতে রেন্ডার করবে
         if (typeof renderNewArrivals === 'function') {
             renderNewArrivals(combined.slice(0, 10));
         }
 
-        // ২. ক্যাটালগ গ্রিডে প্রোডাক্ট রেন্ডার
         if (typeof renderProducts === 'function') {
             renderProducts(combined);
         }
 
-        // ৩. ইউআরএল এর ক্যাটাগরি (যেমন ?cat=drop-shoulder) অনুযায়ী ফিল্টার
         const urlParams = new URLSearchParams(window.location.search);
         const categoryParam = urlParams.get('cat');
         
@@ -492,13 +465,11 @@
             filterCategory('all');
         }
 
-        // 8. ইভেন্ট বাটন আবার সক্রিয় করা
         if (typeof attachProductEvents === 'function') {
             attachProductEvents();
         }
     }
 
-    // JSON ফাইল লোড
     fetch('products.json')
         .then(res => res.json())
         .then(data => {
@@ -507,7 +478,6 @@
         })
         .catch(err => console.log("JSON Load:", err));
 
-    // Firebase Firestore থেকে রিয়েলটাইম ডেটা লোড
     db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
         window.firebaseProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         syncAndRenderAllProducts();
