@@ -45,7 +45,7 @@ const defaultSizeCharts = {
         { size: 'M', chest: '38', length: '27', sleeve: '8' },
         { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
         { size: 'XL', chest: '42', length: '29', sleeve: '9' },
-        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
+        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
     ],
     'acid-wash': [
         { size: 'M', chest: '40', length: '28', sleeve: '8.5' },
@@ -57,7 +57,7 @@ const defaultSizeCharts = {
         { size: 'M', chest: '38', length: '27', sleeve: '8' },
         { size: 'L', chest: '40', length: '28', sleeve: '8.5' },
         { size: 'XL', chest: '42', length: '29', sleeve: '9' },
-        { size: 'XXL', chest: '44', length: '30', sleeve: '9.5' }
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
     ],
     'couple-tshirt': [
         { size: 'M', chest: '38/40', length: '27/28', sleeve: '8/8.5' },
@@ -101,10 +101,12 @@ function getCategoryFromURL() {
 window.syncAndRenderAllProducts = function() {
     const combinedMap = new Map();
 
+    // Priority 1: Firebase Firestore Admin data (overrides static JSON)
     (window.firebaseProducts || []).forEach(item => {
         if (item && item.id) combinedMap.set(String(item.id), item);
     });
 
+    // Priority 2: Local JSON fallback
     (window.localJsonProducts || []).forEach(item => {
         if (item && item.id && !combinedMap.has(String(item.id))) {
             combinedMap.set(String(item.id), item);
@@ -356,7 +358,7 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. VECTOR SIZE CHART ENGINE
+// 4. VECTOR SIZE CHART ENGINE (Admin Firestore Sync)
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
@@ -378,25 +380,17 @@ async function openSizeGuideModal(category) {
     }
 
     modal.innerHTML = `
-        <div class="relative w-full max-w-xl bg-white shadow-2xl rounded-3xl border border-zinc-200 overflow-hidden my-6">
-            <div class="bg-black text-white px-6 py-4 flex items-center justify-between">
-                <span class="font-black tracking-widest text-lg text-red-600">RED<span class="text-white">AMS</span></span>
-                <button onclick="closeSizeGuideModal()" class="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center font-bold hover:bg-red-600 transition">&times;</button>
+        <div class="relative w-full max-w-md bg-white shadow-2xl rounded-3xl border border-zinc-200 overflow-hidden my-auto max-h-[90vh] overflow-y-auto p-5 md:p-6 text-black">
+            <div class="flex items-center justify-between border-b border-zinc-100 pb-3 mb-4">
+                <span class="font-black tracking-widest text-base text-black">RED<span class="text-red-600">AMS</span> SIZE GUIDE</span>
+                <button onclick="closeSizeGuideModal()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 flex items-center justify-center font-bold hover:bg-black hover:text-white transition cursor-pointer">&times;</button>
             </div>
 
-            <div class="p-6 md:p-8 text-center text-black">
-                <div class="flex justify-between items-center text-[10px] font-black tracking-wider uppercase text-zinc-800 border-b border-zinc-100 pb-3 mb-6">
-                    <div class="text-left">
-                        <p class="font-bold">REDAMS</p>
-                        <p class="text-zinc-500">ART MEETS STYLE</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold">UNISEX ·</p>
-                        <p class="text-zinc-500">RELAXED FIT</p>
-                    </div>
-                </div>
+            <div class="text-center">
+                <h3 class="text-xl font-black italic uppercase tracking-tight text-black">${formattedCatName}</h3>
+                <p class="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">RELAXED UNISEX FIT</p>
 
-                <div class="w-40 mx-auto my-4 relative">
+                <div class="w-36 mx-auto my-3 relative">
                     <svg viewBox="0 0 200 220" class="w-full h-auto drop-shadow-sm">
                         <path d="M 60,30 L 80,10 L 120,10 L 140,30 L 190,65 L 165,100 L 145,85 L 145,195 L 55,195 L 55,85 L 35,100 L 10,65 Z" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
                         <path d="M 80,10 L 100,45 L 120,10" fill="none" stroke="#000" stroke-width="3"/>
@@ -408,60 +402,48 @@ async function openSizeGuideModal(category) {
                     </svg>
                 </div>
 
-                <h3 class="text-2xl font-black italic uppercase tracking-tighter mt-2 text-black">${formattedCatName}</h3>
-                <p class="text-xs font-black uppercase tracking-widest text-zinc-500 mb-6">SIZE CHART</p>
-
-                <div class="overflow-x-auto border border-black mb-6">
+                <div class="overflow-x-auto border border-black mb-4 rounded-xl">
                     <table class="w-full text-center text-xs font-bold border-collapse">
                         <thead>
                             <tr class="bg-black text-white text-[10px] uppercase font-black tracking-wider">
-                                <th class="py-3 px-2 border-r border-zinc-700">SIZE</th>
-                                <th class="py-3 px-2 border-r border-zinc-700">CHEST (ROUND)</th>
-                                <th class="py-3 px-2 border-r border-zinc-700">LENGTH</th>
-                                <th class="py-3 px-2">SLEEVE</th>
+                                <th class="py-2.5 px-2 border-r border-zinc-700">SIZE</th>
+                                <th class="py-2.5 px-2 border-r border-zinc-700">CHEST (ROUND)</th>
+                                <th class="py-2.5 px-2 border-r border-zinc-700">LENGTH</th>
+                                <th class="py-2.5 px-2">SLEEVE</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-black text-black">
                             ${chartRows.map((r, idx) => `
                                 <tr class="hover:bg-zinc-50">
-                                    <td class="py-3 px-2 font-black border-r border-black">${r.size}</td>
-                                    <td class="py-3 px-2 border-r border-black">${r.chest}</td>
-                                    <td class="py-3 px-2 border-r border-black">${r.length}</td>
-                                    ${idx === 0 ? `<td rowspan="${chartRows.length}" class="py-3 px-2 align-middle font-black bg-white border-black">${r.sleeve}</td>` : ''}
+                                    <td class="py-2.5 px-2 font-black border-r border-black">${r.size}</td>
+                                    <td class="py-2.5 px-2 border-r border-black">${r.chest}</td>
+                                    <td class="py-2.5 px-2 border-r border-black">${r.length}</td>
+                                    ${idx === 0 ? `<td rowspan="${chartRows.length}" class="py-2.5 px-2 align-middle font-black bg-white border-black">${r.sleeve}</td>` : ''}
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>
 
-                <div class="flex items-center border border-black p-2.5 rounded-lg mb-3">
-                    <div class="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-sm shrink-0 mr-3">
-                        &rarr;
-                    </div>
-                    <p class="text-[11px] font-black uppercase text-zinc-900 tracking-tight text-left">
-                        All size measurements are expressed in inch.
-                    </p>
-                </div>
-
-                <div class="inline-block bg-red-100 text-red-700 border border-red-200 text-[10px] font-black uppercase px-4 py-1 rounded-full tracking-wider">
+                <div class="inline-block bg-red-50 text-red-600 border border-red-200 text-[10px] font-black uppercase px-4 py-1.5 rounded-full tracking-wider mb-2">
                     Size tolerance &plusmn; 0.39-0.79 INCH
                 </div>
+                <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">All measurements are expressed in inches.</p>
             </div>
         </div>
     `;
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    modal.className = "fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto";
 }
 
 function closeSizeGuideModal() {
     const modal = document.getElementById('size-guide-modal');
     if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.className = "hidden";
     }
 }
 
+// ===== Related Products Generator (Category Based) =====
 function generateRelatedProductsHTML(currentId, category) {
     if (!window.allProducts || window.allProducts.length === 0) return '';
     
@@ -475,20 +457,16 @@ function generateRelatedProductsHTML(currentId, category) {
     if (related.length === 0) return '';
 
     return `
-        <div class="col-span-1 md:col-span-2 mt-8 pt-6 border-t border-zinc-200 text-left">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-red-600">Explore More</span>
-                    <h3 class="text-base font-black uppercase tracking-tight text-zinc-900">YOU MAY ALSO LIKE</h3>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="w-full mt-8 pt-6 border-t border-zinc-200 text-left block col-span-1 md:col-span-2">
+            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 block mb-1">Explore More</span>
+            <h3 class="text-base font-black uppercase tracking-tight text-zinc-900 mb-4">YOU MAY ALSO LIKE</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 ${related.map(rel => {
                     const relImg = (rel.images && rel.images[0]) ? rel.images[0] : (rel.image || 'images/placeholder.jpg');
                     return `
-                        <div onclick="openModal('${rel.id}')" class="group cursor-pointer bg-zinc-50 p-2 rounded-xl border border-zinc-200/60 hover:shadow-md hover:bg-white transition">
+                        <div onclick="openModal('${rel.id}')" class="group cursor-pointer bg-zinc-50 p-2 rounded-xl border border-zinc-200 hover:bg-white hover:shadow-md transition duration-300">
                             <div class="aspect-[3/4] overflow-hidden rounded-lg mb-2 bg-white">
-                                <img src="${relImg}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="${rel.name}">
+                                <img src="${relImg}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${rel.name}">
                             </div>
                             <h4 class="font-bold text-[10px] text-zinc-800 uppercase tracking-tight line-clamp-1">${rel.name}</h4>
                             <p class="font-black text-xs text-black mt-0.5">৳ ${rel.price}</p>
@@ -501,7 +479,7 @@ function generateRelatedProductsHTML(currentId, category) {
 }
 
 // =================================================================
-// 5. STABLE CLEAN PRODUCT DETAIL MODAL
+// 5. STABLE & CLEAN PRODUCT DETAIL MODAL (PC & Mobile Perfect)
 // =================================================================
 function openModal(id) {
     const p = window.findProductById(id);
@@ -520,7 +498,7 @@ function openModal(id) {
     window.location.hash = `product-${id}`;
     const modal = document.getElementById('product-modal');
     const content = document.getElementById('modal-content');
-    if (!content) return;
+    if (!modal || !content) return;
 
     selectedSize = '';
     selectedColor = '';
@@ -533,6 +511,7 @@ function openModal(id) {
     let sizesHTML = '';
     let colorsHTML = '';
 
+    // Couple T-Shirt dual size selection support
     if (p.category === 'couple-tshirt') {
         sizesHTML += `
             <div class="space-y-3">
@@ -594,13 +573,14 @@ function openModal(id) {
         }
     }
 
+    // FIX 1: Only display thumbnails if current product has MULTIPLE images
     let imagesHTML = '';
     if (p.images && Array.isArray(p.images) && p.images.length > 1) {
         imagesHTML = `
-            <div class="flex gap-2 overflow-x-auto py-1 custom-scrollbar">
+            <div class="flex gap-2 overflow-x-auto py-2 custom-scrollbar">
                 ${p.images.map((img) => `
                     <img src="${img}" onclick="document.getElementById('main-view').src='${img}'" 
-                         class="w-14 h-16 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition shrink-0">
+                         class="w-14 h-16 object-cover rounded-xl cursor-pointer border-2 border-transparent hover:border-black transition shrink-0 shadow-sm">
                 `).join('')}
             </div>
         `;
@@ -609,85 +589,97 @@ function openModal(id) {
     const relatedProductsHTML = generateRelatedProductsHTML(p.id, p.category);
 
     content.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left p-2 md:p-4">
+        <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-4 md:p-8 relative shadow-2xl my-auto text-left border border-zinc-100">
             
-            <div class="space-y-3">
-                <div class="relative overflow-hidden rounded-2xl bg-zinc-100 aspect-[3/4] border border-zinc-200">
-                    <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-full h-full object-cover transition duration-300">
-                </div>
-                ${imagesHTML}
+            <!-- Modal Header with Fixed Close Button -->
+            <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md pb-3 pt-1 border-b border-zinc-100 flex items-center justify-between mb-4">
+                <span class="font-black text-sm tracking-widest text-black uppercase">RED<span class="text-red-600">AMS</span> PRODUCT DETAIL</span>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 flex items-center justify-center font-bold hover:bg-black hover:text-white transition cursor-pointer">
+                    &times;
+                </button>
             </div>
 
-            <div class="flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-1 rounded-full">${p.category || 'Apparel'}</span>
-                        <button onclick="shareProductLink('${p.id}')" class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 hover:bg-black hover:text-white transition">
-                            <i class="fa-solid fa-share-nodes text-xs"></i>
-                        </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                
+                <!-- Product Images -->
+                <div class="space-y-3">
+                    <div class="relative overflow-hidden rounded-2xl bg-zinc-50 aspect-[3/4] border border-zinc-200">
+                        <img id="main-view" src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-full h-full object-cover transition duration-300">
                     </div>
+                    ${imagesHTML}
+                </div>
 
-                    <h2 class="text-xl md:text-2xl font-black uppercase text-zinc-900 tracking-tight mb-2">${p.name}</h2>
-                    
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="text-2xl font-black text-black">৳ ${p.price}</span>
-                        ${hasDiscount ? `<span class="text-sm font-bold text-zinc-400 line-through">৳ ${p.originalPrice}</span>` : ''}
-                    </div>
+                <!-- Product Details & Actions -->
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2.5 py-1 rounded-full">${p.category || 'Apparel'}</span>
+                            <button onclick="shareProductLink('${p.id}')" class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 hover:bg-black hover:text-white transition">
+                                <i class="fa-solid fa-share-nodes text-xs"></i>
+                            </button>
+                        </div>
 
-                    <div class="space-y-4 border-t border-b border-zinc-100 py-4 my-2">
-                        ${colorsHTML ? `<div><p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Color</p>${colorsHTML}</div>` : ''}
+                        <h2 class="text-xl md:text-2xl font-black uppercase text-zinc-900 tracking-tight mb-2">${p.name}</h2>
                         
-                        ${sizesHTML ? `
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <p class="text-[10px] font-black uppercase text-zinc-400">Select Size</p>
-                                    <button onclick="openSizeGuideModal('${p.category}')" class="text-[10px] font-black uppercase text-red-600 hover:underline flex items-center gap-1">
-                                        📏 Size Guide
-                                    </button>
-                                </div>
-                                ${sizesHTML}
-                            </div>
-                        ` : ''}
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-2xl font-black text-black">৳ ${p.price}</span>
+                            ${hasDiscount ? `<span class="text-sm font-bold text-zinc-400 line-through">৳ ${p.originalPrice}</span>` : ''}
+                        </div>
 
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Quantity</p>
-                            <div class="flex items-center border border-zinc-200 rounded-xl bg-zinc-50 w-fit">
-                                <button onclick="updateQty(-1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-l-xl">-</button>
-                                <span id="modal-qty" class="px-4 font-black text-base">1</span>
-                                <button onclick="updateQty(1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-r-xl">+</button>
+                        <div class="space-y-4 border-t border-b border-zinc-100 py-4 my-2">
+                            ${colorsHTML ? `<div><p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Color</p>${colorsHTML}</div>` : ''}
+                            
+                            ${sizesHTML ? `
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <p class="text-[10px] font-black uppercase text-zinc-400">Select Size</p>
+                                        <button onclick="openSizeGuideModal('${p.category}')" class="text-[10px] font-black uppercase text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                            📏 Size Guide
+                                        </button>
+                                    </div>
+                                    ${sizesHTML}
+                                </div>
+                            ` : ''}
+
+                            <div>
+                                <p class="text-[10px] font-black uppercase text-zinc-400 mb-2">Quantity</p>
+                                <div class="flex items-center border border-zinc-200 rounded-xl bg-zinc-50 w-fit">
+                                    <button onclick="updateQty(-1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-l-xl">-</button>
+                                    <span id="modal-qty" class="px-4 font-black text-base">1</span>
+                                    <button onclick="updateQty(1)" class="px-4 py-2 font-bold text-sm hover:bg-zinc-200 transition rounded-r-xl">+</button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <button onclick="addToCart('${p.id}')" class="w-full bg-black hover:bg-red-600 text-white py-4 rounded-xl font-black uppercase tracking-wider transition duration-300 text-xs shadow-lg cursor-pointer">
+                            Add To Cart ↘
+                        </button>
+                        
+                        <div class="pt-2 text-left">
+                            <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-1">Description</h4>
+                            <p class="text-xs text-zinc-500 leading-relaxed">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 space-y-3">
-                    <button onclick="addToCart('${p.id}')" class="w-full bg-black hover:bg-red-600 text-white py-4 rounded-xl font-black uppercase tracking-wider transition duration-300 text-xs shadow-lg">
-                        Add To Cart ↘
-                    </button>
-                    
-                    <div class="pt-2 text-left">
-                        <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-1">Description</h4>
-                        <p class="text-xs text-zinc-500 leading-relaxed">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
-                    </div>
-                </div>
+                <!-- FIX 2: You May Also Like Section positioned nicely at bottom -->
+                ${relatedProductsHTML}
             </div>
-
-            ${relatedProductsHTML}
         </div>
     `;
 
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
+    modal.className = "fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 overflow-y-auto";
+    document.body.style.overflow = "hidden";
 }
 
 function closeModal() {
     const modal = document.getElementById('product-modal');
     if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.className = "hidden";
     }
+    document.body.style.overflow = "auto";
     history.pushState("", document.title, window.location.pathname + window.location.search);
 }
 
