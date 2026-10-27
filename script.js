@@ -644,23 +644,16 @@ function openModal(id) {
                                 <a href="return.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
                                     🔄 Return Policy &rarr;
                                 </a>
-                                <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition flex items-center gap-1">
-                                    Explore More Items <span>→</span>
-                                </a>
+                                
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- You May Also Like Section -->
-                <div class="col-span-1 md:col-span-2 mt-6">
-                    <div class="flex items-center justify-between mb-4 border-t pt-4">
-                        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-900">You May Also Like</h3>
-                        <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition">
-                            View All ↘
-                        </a>
                     </div>
                     ${relatedProductsHTML}
+                    <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition flex items-center gap-1">
+                                    Explore More Items <span>→</span>
+                                </a>
                 </div>
             </div>
         </div>
