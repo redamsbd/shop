@@ -641,11 +641,11 @@ function openModal(id) {
                             <p class="text-xs text-zinc-500 leading-relaxed mb-3">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
                             
                             <div class="flex items-center justify-between text-xs font-bold border-t pt-2">
-                                <a href="shipping.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
-                                    🚚 Shipping Details &rarr;
-                                </a>
-                                <a href="returns.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
+                                <a href="return.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
                                     🔄 Return Policy &rarr;
+                                </a>
+                                <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition flex items-center gap-1">
+                                    Explore More Items <span>→</span>
                                 </a>
                             </div>
                         </div>
@@ -653,7 +653,15 @@ function openModal(id) {
                 </div>
 
                 <!-- You May Also Like Section -->
-                ${relatedProductsHTML}
+                <div class="col-span-1 md:col-span-2 mt-6">
+                    <div class="flex items-center justify-between mb-4 border-t pt-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-900">You May Also Like</h3>
+                        <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition">
+                            View All ↘
+                        </a>
+                    </div>
+                    ${relatedProductsHTML}
+                </div>
             </div>
         </div>
     `;
@@ -661,7 +669,6 @@ function openModal(id) {
     modal.className = "fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 overflow-y-auto";
     document.body.style.overflow = "hidden";
 }
-
 function closeModal() {
     const modal = document.getElementById('product-modal');
     if (modal) {
