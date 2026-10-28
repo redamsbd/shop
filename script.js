@@ -1407,3 +1407,53 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof updateCartUI === 'function') updateCartUI();
     if (typeof checkUrlAndOpenModal === 'function') checkUrlAndOpenModal();
 });
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('menu-overlay');
+    if (menu && overlay) {
+        menu.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('active');
+    }
+}
+function toggleSearchModal() {
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+        modal.classList.toggle('hidden');
+        modal.classList.toggle('flex');
+        if (!modal.classList.contains('hidden')) {
+            document.getElementById('live-search-input').focus();
+        }
+    }
+}
+
+function handleLiveSearch(query) {
+    const container = document.getElementById('search-results-container');
+    if (!container) return;
+
+    if (!query.trim()) {
+        container.innerHTML = '<p class="text-xs text-zinc-400 text-center py-6 uppercase font-bold tracking-widest">Type something to search...</p>';
+        return;
+    }
+
+    const allProds = window.allProducts || window.products || [];
+    const filtered = allProds.filter(p => 
+        p.name.toLowerCase().includes(query.toLowerCase()) || 
+        (p.category && p.category.toLowerCase().includes(query.toLowerCase()))
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-xs text-zinc-400 text-center py-6 uppercase font-bold tracking-widest">No products found!</p>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(p => `
+        <div onclick="openModal('${p.id}'); toggleSearchModal();" class="flex items-center gap-4 p-3 bg-zinc-50 hover:bg-zinc-100 rounded-2xl cursor-pointer transition border border-zinc-100">
+            <img src="${p.images && p.images[0] ? p.images[0] : (p.image || 'images/placeholder.jpg')}" class="w-12 h-14 object-cover rounded-xl">
+            <div class="flex-1 min-w-0">
+                <span class="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${p.category || 'Apparel'}</span>
+                <h4 class="text-xs font-bold uppercase truncate text-zinc-900 mt-1">${p.name}</h4>
+                <p class="text-xs font-black text-black mt-0.5">৳ ${p.price}</p>
+            </div>
+        </div>
+    `).join('');
+}
