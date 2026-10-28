@@ -262,62 +262,201 @@
     input:checked + div .check-dot { opacity: 1; }
 </style>
 
-<section class="container mx-auto px-4 py-24 border-t border-gray-100">
-    <div class="text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-black mb-4">Our Community Says</h2>
-        <div class="flex items-center justify-center gap-2">
-            <div class="h-[1px] w-12 bg-gray-200"></div>
-            <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">Verified Feedback</p>
-            <div class="h-[1px] w-12 bg-gray-200"></div>
+<!-- REDAMS Premium Interactive Review & Community Section -->
+<section class="reviews-section py-16 px-4 max-w-7xl mx-auto border-t border-zinc-100">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">VERIFIED FEEDBACK</span>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tighter text-black">OUR COMMUNITY SAYS</h2>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Overall Rating Badge -->
+            <div class="flex items-center gap-3 bg-zinc-50 border border-zinc-200/80 px-5 py-3 rounded-2xl shadow-sm">
+                <span class="text-2xl font-black text-black">4.9</span>
+                <div>
+                    <div class="flex text-yellow-400 text-xs gap-0.5">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-[9px] font-bold text-zinc-400 uppercase tracking-tight mt-0.5" id="review-count-text">BASED ON 500+ REVIEWS</p>
+                </div>
+            </div>
+
+            <!-- Navigation Controls & Write Review Button -->
+            <div class="flex items-center gap-2">
+                <button onclick="scrollReviews('left')" class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200/80 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                </button>
+                <button onclick="scrollReviews('right')" class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200/80 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                </button>
+            </div>
+
+            <button onclick="openReviewModal()" class="bg-black hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-pen-to-square"></i> WRITE A REVIEW
+            </button>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto mb-20 p-10 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-center gap-12">
-        <div class="text-center">
-            <h2 class="text-7xl font-black leading-none">4.9</h2>
-            <div class="flex text-yellow-400 text-sm mt-3 justify-center">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-            </div>
-            <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-300 mt-4">Based on 500+ Orders</p>
-        </div>
-        
-        <div class="hidden md:block h-20 w-[1px] bg-gray-100"></div>
-
-        <div class="flex-1 w-full max-w-xs space-y-4">
-            <div class="flex items-center gap-4">
-                <span class="text-[9px] font-black w-3">5</span>
-                <div class="flex-1 h-1.5 bg-gray-50 rounded-full overflow-hidden">
-                    <div class="w-[94%] h-full bg-black"></div>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <span class="text-[9px] font-black w-3">4</span>
-                <div class="flex-1 h-1.5 bg-gray-50 rounded-full overflow-hidden">
-                    <div class="w-[6%] h-full bg-gray-200"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Review Carousel Container -->
     <div class="relative group">
-        <div id="reviews-wrapper" class="flex gap-8 overflow-x-auto pb-10 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none scrollbar-hide"></div>
+        <!-- Edge Mask Gradients -->
+        <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-r from-gray-50 via-gray-50/80 to-transparent z-10"></div>
+        <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent z-10"></div>
+
+        <!-- Scrollable Wrapper -->
+        <div id="reviews-wrapper" 
+             class="flex gap-6 overflow-x-auto py-6 px-4 md:px-6
+                    snap-x snap-mandatory scroll-smooth 
+                    select-none cursor-grab active:cursor-grabbing 
+                    scrollbar-hide transition-all">
+            <!-- Review cards dynamically render here from script.js -->
+        </div>
     </div>
 </section>
 
+<!-- Inline Styles & Mouse Drag / Navigation Script -->
 <style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    .review-card {
-        flex: 0 0 auto;
-        width: 360px;
-        snap-align: center;
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
     }
-    
-    @media (max-width: 768px) {
-        .review-card { width: 300px; }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    #reviews-wrapper > div {
+        scroll-snap-align: center;
+        flex-shrink: 0;
     }
 </style>
+
+<script>
+    // Arrow Button Click Handler
+    function scrollReviews(direction) {
+        const wrapper = document.getElementById('reviews-wrapper');
+        if (!wrapper) return;
+        const scrollAmount = 360; // Card width approx
+        if (direction === 'left') {
+            wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        } else {
+            wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    }
+
+    // Mouse Drag Scroll Engine
+    document.addEventListener("DOMContentLoaded", () => {
+        const slider = document.getElementById('reviews-wrapper');
+        if (!slider) return;
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('cursor-grabbing');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('cursor-grabbing');
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('cursor-grabbing');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    });
+</script>
+<!-- REDAMS Ultra-Premium Customer Review Modal -->
+<div id="review-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-md p-3 md:p-6 transition-all duration-300">
+    <div class="relative bg-white border border-zinc-100 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden my-auto max-h-[90vh] flex flex-col text-black animate-fade-in">
+        
+        <!-- Sticky Header (Close Button Never Gets Hidden) -->
+        <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-black">RED<span class="text-red-600">AMS</span> FEEDBACK</span>
+            </div>
+            <button type="button" onclick="closeReviewModal()" class="w-9 h-9 rounded-full bg-zinc-100 hover:bg-black hover:text-white text-zinc-700 font-bold flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm active:scale-95">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Modal Content -->
+        <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+            <!-- Modal Title & Subtitle -->
+            <div class="text-left mb-6">
+                <div class="inline-flex items-center gap-1.5 bg-red-50 border border-red-100 px-3 py-1 rounded-full mb-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-red-600">VERIFIED COMMUNITY FEEDBACK</span>
+                </div>
+                <h3 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-black">LEAVE A REVIEW</h3>
+                <p class="text-xs text-zinc-500 font-medium mt-1.5 leading-relaxed">
+                    Help the REDAMS community by sharing your honest feedback on fabric quality, sizing, and overall experience.
+                </p>
+            </div>
+
+            <!-- Form Engine -->
+            <form onsubmit="submitCustomerReview(event)" class="space-y-4 text-left">
+                <!-- Star Rating Field -->
+                <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-zinc-400 tracking-wider">YOUR RATING</label>
+                        <span class="text-xs font-bold text-black" id="rating-status-text">5.0 - Outstanding</span>
+                    </div>
+                    <div class="flex gap-1.5 text-2xl text-yellow-400 cursor-pointer" id="modal-star-rating">
+                        <i class="fa-solid fa-star hover:scale-110 transition-transform active:scale-90" onclick="setReviewRating(1)"></i>
+                        <i class="fa-solid fa-star hover:scale-110 transition-transform active:scale-90" onclick="setReviewRating(2)"></i>
+                        <i class="fa-solid fa-star hover:scale-110 transition-transform active:scale-90" onclick="setReviewRating(3)"></i>
+                        <i class="fa-solid fa-star hover:scale-110 transition-transform active:scale-90" onclick="setReviewRating(4)"></i>
+                        <i class="fa-solid fa-star hover:scale-110 transition-transform active:scale-90" onclick="setReviewRating(5)"></i>
+                    </div>
+                </div>
+
+                <!-- Input: Name -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider">FULL NAME</label>
+                    <input type="text" id="review-user-name" required placeholder="e.g. Tanvir Ahmed" class="w-full bg-zinc-50 border border-zinc-200/80 rounded-xl px-4 py-3.5 text-xs font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-all shadow-sm">
+                </div>
+
+                <!-- Input: Email -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider">EMAIL ADDRESS (VERIFIED BUYER)</label>
+                    <input type="email" id="review-user-email" required placeholder="e.g. name@gmail.com" class="w-full bg-zinc-50 border border-zinc-200/80 rounded-xl px-4 py-3.5 text-xs font-bold text-black focus:outline-none focus:border-black focus:bg-white transition-all shadow-sm">
+                </div>
+
+                <!-- Input: Review Text -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider">YOUR HONEST REVIEW</label>
+                    <textarea id="review-user-text" required rows="3" placeholder="Share details regarding fabric feel, fit, sizing, print finish, or delivery speed..." class="w-full bg-zinc-50 border border-zinc-200/80 rounded-xl px-4 py-3.5 text-xs font-medium text-black focus:outline-none focus:border-black focus:bg-white transition-all resize-none shadow-sm"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submit-review-btn" class="w-full bg-black hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-red-600/20 active:scale-[0.98] flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                    SUBMIT REVIEW ↘
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 
 <footer class="bg-[#050505] text-gray-300 py-20 mt-20 border-t border-gray-900">
     <div class="container mx-auto px-6">
