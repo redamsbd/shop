@@ -339,86 +339,87 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. VECTOR SIZE CHART ENGINE
+// 4. VECTOR SIZE CHART ENGINE (UPDATED & ADMIN-SYNCED)
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
+    const titleElem = document.getElementById('modal-size-chart-title');
+    const tableBody = document.getElementById('modal-size-chart-body');
+
     if (!modal) return;
 
     const catKey = (category || 'regular-tshirt').toLowerCase();
     const formattedCatName = catKey.replace(/-/g, ' ').toUpperCase();
+
+    if (titleElem) {
+        titleElem.innerText = `${formattedCatName} SIZE GUIDE`;
+    }
+
+    // Modal Display
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // Loading Placeholder in Table
+    if (tableBody) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="p-8 text-center text-zinc-400 font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-lg mb-1 block"></i> Syncing Measurement Data...
+                </td>
+            </tr>
+        `;
+    }
+
     let chartRows = defaultSizeCharts[catKey] || defaultSizeCharts['regular-tshirt'];
 
     try {
         if (window.firebase && firebase.firestore) {
             const doc = await firebase.firestore().collection('size_charts').doc(catKey).get();
-            if (doc.exists && doc.data().rows && doc.data().rows.length > 0) {
-                chartRows = doc.data().rows;
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.rows && Array.isArray(data.rows) && data.rows.length > 0) {
+                    chartRows = data.rows;
+                } else if (data.measurements && typeof data.measurements === 'object') {
+                    chartRows = Object.keys(data.measurements).map(sz => ({
+                        size: sz,
+                        chest: data.measurements[sz].chest || '-',
+                        length: data.measurements[sz].length || '-',
+                        sleeve: data.measurements[sz].sleeve || '-'
+                    }));
+                }
             }
         }
     } catch (err) {
         console.log("Firestore Size Chart Fetch Notice:", err);
     }
 
-    modal.innerHTML = `
-        <div class="relative w-full max-w-md bg-white shadow-2xl rounded-3xl border border-zinc-200 overflow-hidden my-auto max-h-[90vh] overflow-y-auto p-5 md:p-6 text-black">
-            <div class="flex items-center justify-between border-b border-zinc-100 pb-3 mb-4">
-                <span class="font-black tracking-widest text-base text-black">RED<span class="text-red-600">AMS</span> SIZE GUIDE</span>
-                <button onclick="closeSizeGuideModal()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 flex items-center justify-center font-bold hover:bg-black hover:text-white transition cursor-pointer">&times;</button>
-            </div>
-
-            <div class="text-center">
-                <h3 class="text-xl font-black italic uppercase tracking-tight text-black">${formattedCatName}</h3>
-                <p class="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">RELAXED UNISEX FIT</p>
-
-                <div class="w-36 mx-auto my-3 relative">
-                    <svg viewBox="0 0 200 220" class="w-full h-auto drop-shadow-sm">
-                        <path d="M 60,30 L 80,10 L 120,10 L 140,30 L 190,65 L 165,100 L 145,85 L 145,195 L 55,195 L 55,85 L 35,100 L 10,65 Z" fill="none" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
-                        <path d="M 80,10 L 100,45 L 120,10" fill="none" stroke="#000" stroke-width="3"/>
-                        <line x1="55" y1="75" x2="145" y2="75" stroke="#000" stroke-width="2" stroke-dasharray="3,3"/>
-                        <line x1="100" y1="75" x2="100" y2="195" stroke="#000" stroke-width="2" stroke-dasharray="3,3"/>
-                        <text x="105" y="88" font-size="9" font-weight="bold" fill="#333">Chest</text>
-                        <text x="75" y="140" font-size="9" font-weight="bold" fill="#333" transform="rotate(-90 75 140)">Length</text>
-                    </svg>
-                </div>
-
-                <div class="overflow-x-auto border border-black mb-4 rounded-xl">
-                    <table class="w-full text-center text-xs font-bold border-collapse">
-                        <thead>
-                            <tr class="bg-black text-white text-[10px] uppercase font-black">
-                                <th class="py-2.5 px-2 border-r border-zinc-700">SIZE</th>
-                                <th class="py-2.5 px-2 border-r border-zinc-700">CHEST (ROUND)</th>
-                                <th class="py-2.5 px-2 border-r border-zinc-700">LENGTH</th>
-                                <th class="py-2.5 px-2">SLEEVE</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-black text-black">
-                            ${chartRows.map((r, idx) => `
-                                <tr class="hover:bg-zinc-50">
-                                    <td class="py-2.5 px-2 font-black border-r border-black">${r.size}</td>
-                                    <td class="py-2.5 px-2 border-r border-black">${r.chest}</td>
-                                    <td class="py-2.5 px-2 border-r border-black">${r.length}</td>
-                                    ${idx === 0 ? `<td rowspan="${chartRows.length}" class="py-2.5 px-2 align-middle font-black bg-white border-black">${r.sleeve}</td>` : ''}
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="inline-block bg-red-50 text-red-600 border border-red-200 text-[10px] font-black uppercase px-4 py-1.5 rounded-full tracking-wider mb-2">
-                    Size tolerance &plusmn; 0.39-0.79 INCH
-                </div>
-            </div>
-        </div>
-    `;
-
-    modal.className = "fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto";
+    if (tableBody) {
+        if (!chartRows || chartRows.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="p-6 text-center text-zinc-400 font-bold uppercase text-xs">
+                        No measurement data available for this category.
+                    </td>
+                </tr>
+            `;
+        } else {
+            tableBody.innerHTML = chartRows.map(r => `
+                <tr class="hover:bg-zinc-50 transition-colors">
+                    <td class="p-3.5 font-black text-black border-r border-zinc-100 bg-zinc-50/50">${r.size || 'N/A'}</td>
+                    <td class="p-3.5 border-r border-zinc-100 font-bold text-zinc-800">${r.chest || '-'}″</td>
+                    <td class="p-3.5 border-r border-zinc-100 font-bold text-zinc-800">${r.length || '-'}″</td>
+                    <td class="p-3.5 font-bold text-zinc-800">${r.sleeve || '-'}″</td>
+                </tr>
+            `).join('');
+        }
+    }
 }
 
 function closeSizeGuideModal() {
     const modal = document.getElementById('size-guide-modal');
     if (modal) {
-        modal.className = "hidden";
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 
@@ -649,12 +650,12 @@ function openModal(id) {
                         </div>
                     </div>
                 </div>
-                    </div>
-                    ${relatedProductsHTML}
-                    <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition flex items-center gap-1">
-                                    Explore More Items <span>→</span>
-                                </a>
-                </div>
+            </div>
+            ${relatedProductsHTML}
+            <div class="mt-4 text-left">
+                <a href="shop.html?cat=${p.category}" class="text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-black transition flex items-center gap-1">
+                    Explore More Items <span>→</span>
+                </a>
             </div>
         </div>
     `;
@@ -662,6 +663,7 @@ function openModal(id) {
     modal.className = "fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 overflow-y-auto";
     document.body.style.overflow = "hidden";
 }
+
 function closeModal() {
     const modal = document.getElementById('product-modal');
     if (modal) {
@@ -1407,6 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof updateCartUI === 'function') updateCartUI();
     if (typeof checkUrlAndOpenModal === 'function') checkUrlAndOpenModal();
 });
+
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('menu-overlay');
@@ -1415,6 +1418,7 @@ function toggleMobileMenu() {
         overlay.classList.toggle('active');
     }
 }
+
 function toggleSearchModal() {
     const modal = document.getElementById('search-modal');
     if (modal) {
