@@ -162,7 +162,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="flex items-center space-x-6">
-            <button class="text-lg hover:text-gray-400 transition"><i class="fa-solid fa-magnifying-glass"></i></button>
+           <button onclick="toggleSearchModal()" class="text-lg hover:text-gray-400 transition cursor-pointer">
+    <i class="fa-solid fa-magnifying-glass"></i>
+</button>
             <button class="relative text-lg hover:text-gray-400 transition" onclick="toggleCart()">
                 <i class="fa-solid fa-bag-shopping"></i>
                 <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">0</span>
@@ -1035,6 +1037,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         syncAndRenderAllProducts();
     });
 </script>
+    <div id="search-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="bg-white w-full max-w-xl rounded-3xl p-6 relative shadow-2xl text-left">
+        <button onclick="toggleSearchModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-800 font-bold hover:bg-black hover:text-white transition cursor-pointer">
+            &times;
+        </button>
+        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-3">Search Products</h3>
+        <div class="relative">
+            <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" placeholder="Type product name (e.g. Drop shoulder, Henley)..." class="w-full p-4 pl-4 pr-10 border border-zinc-200 rounded-2xl text-xs font-bold uppercase outline-none focus:border-black bg-zinc-50">
+        </div>
+        <div id="search-results-container" class="mt-4 max-h-72 overflow-y-auto space-y-2 custom-scrollbar">
+            <!-- Search results dynamically render here -->
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
