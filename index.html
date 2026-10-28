@@ -702,6 +702,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="flex flex-wrap items-center gap-4">
+            <!-- Overall Rating Badge -->
             <div class="flex items-center gap-3 bg-zinc-50 border border-zinc-200/80 px-5 py-3 rounded-2xl shadow-sm">
                 <span class="text-2xl font-black text-black">4.9</span>
                 <div>
@@ -716,18 +717,102 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
             </div>
 
-            <button onclick="openReviewModal()" class="bg-black hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2">
+            <!-- Navigation Controls & Write Review Button -->
+            <div class="flex items-center gap-2">
+                <button onclick="scrollReviews('left')" class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200/80 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                </button>
+                <button onclick="scrollReviews('right')" class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200/80 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                </button>
+            </div>
+
+            <button onclick="openReviewModal()" class="bg-black hover:bg-red-600 text-white text-xs font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-pen-to-square"></i> WRITE A REVIEW
             </button>
         </div>
     </div>
 
+    <!-- Review Carousel Container -->
     <div class="relative group">
-        <div id="reviews-wrapper" class="flex gap-5 overflow-x-auto custom-scrollbar py-4 scroll-smooth">
-            <!-- Review cards dynamically render here -->
+        <!-- Edge Mask Gradients -->
+        <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-r from-gray-50 via-gray-50/80 to-transparent z-10"></div>
+        <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent z-10"></div>
+
+        <!-- Scrollable Wrapper -->
+        <div id="reviews-wrapper" 
+             class="flex gap-6 overflow-x-auto py-6 px-4 md:px-6
+                    snap-x snap-mandatory scroll-smooth 
+                    select-none cursor-grab active:cursor-grabbing 
+                    scrollbar-hide transition-all">
+            <!-- Review cards dynamically render here from script.js -->
         </div>
     </div>
 </section>
+
+<!-- Inline Styles & Mouse Drag / Navigation Script -->
+<style>
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    #reviews-wrapper > div {
+        scroll-snap-align: center;
+        flex-shrink: 0;
+    }
+</style>
+
+<script>
+    // Arrow Button Click Handler
+    function scrollReviews(direction) {
+        const wrapper = document.getElementById('reviews-wrapper');
+        if (!wrapper) return;
+        const scrollAmount = 360; // Card width approx
+        if (direction === 'left') {
+            wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        } else {
+            wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    }
+
+    // Mouse Drag Scroll Engine
+    document.addEventListener("DOMContentLoaded", () => {
+        const slider = document.getElementById('reviews-wrapper');
+        if (!slider) return;
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('cursor-grabbing');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('cursor-grabbing');
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('cursor-grabbing');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    });
+</script>
 <!-- REDAMS Ultra-Premium Customer Review Modal -->
 <div id="review-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-md p-3 md:p-6 transition-all duration-300">
     <div class="relative bg-white border border-zinc-100 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden my-auto max-h-[90vh] flex flex-col text-black animate-fade-in">
