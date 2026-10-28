@@ -33,62 +33,62 @@ let currentEditImages = [];
 
 // Default Fallback Size Measurements (In Inches)
 const DEFAULT_SIZE_CHARTS = {
-    'drop-shoulder': {
-        'S': { chest: '40', length: '27', sleeve: '8.5' },
-        'M': { chest: '42', length: '28', sleeve: '9' },
-        'L': { chest: '44', length: '29', sleeve: '9.5' },
-        'XL': { chest: '46', length: '30', sleeve: '10' },
-        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
-    },
-    'polo-tshirt': {
-        'S': { chest: '38', length: '26', sleeve: '7.5' },
-        'M': { chest: '40', length: '27', sleeve: '8' },
-        'L': { chest: '42', length: '28', sleeve: '8.5' },
-        'XL': { chest: '44', length: '29', sleeve: '9' },
-        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
-    },
-    'hoodie': {
-        'S': { chest: '42', length: '27', sleeve: '24' },
-        'M': { chest: '44', length: '28', sleeve: '25' },
-        'L': { chest: '46', length: '29', sleeve: '26' },
-        'XL': { chest: '48', length: '30', sleeve: '27' },
-        'XXL': { chest: '50', length: '31', sleeve: '28' }
-    },
-    'regular-tshirt': {
-        'S': { chest: '38', length: '26', sleeve: '7.5' },
-        'M': { chest: '40', length: '27', sleeve: '8' },
-        'L': { chest: '42', length: '28', sleeve: '8.5' },
-        'XL': { chest: '44', length: '29', sleeve: '9' },
-        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
-    },
-    'acid-wash': {
-        'S': { chest: '40', length: '27', sleeve: '8.5' },
-        'M': { chest: '42', length: '28', sleeve: '9' },
-        'L': { chest: '44', length: '29', sleeve: '9.5' },
-        'XL': { chest: '46', length: '30', sleeve: '10' },
-        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
-    },
-    'couple-tshirt': {
-        'S': { chest: '38', length: '26', sleeve: '7.5' },
-        'M': { chest: '40', length: '27', sleeve: '8' },
-        'L': { chest: '42', length: '28', sleeve: '8.5' },
-        'XL': { chest: '44', length: '29', sleeve: '9' },
-        'XXL': { chest: '46', length: '30', sleeve: '9.5' }
-    },
-    'henley': {
-        'S': { chest: '38', length: '26', sleeve: '8' },
-        'M': { chest: '40', length: '27', sleeve: '8.5' },
-        'L': { chest: '42', length: '28', sleeve: '9' },
-        'XL': { chest: '44', length: '29', sleeve: '9.5' },
-        'XXL': { chest: '46', length: '30', sleeve: '10' }
-    },
-    'combo': {
-        'S': { chest: '40', length: '27', sleeve: '8.5' },
-        'M': { chest: '42', length: '28', sleeve: '9' },
-        'L': { chest: '44', length: '29', sleeve: '9.5' },
-        'XL': { chest: '46', length: '30', sleeve: '10' },
-        'XXL': { chest: '48', length: '31', sleeve: '10.5' }
-    }
+    'drop-shoulder': [
+        { size: 'S', chest: '40', length: '27', sleeve: '8.5' },
+        { size: 'M', chest: '42', length: '28', sleeve: '9' },
+        { size: 'L', chest: '44', length: '29', sleeve: '9.5' },
+        { size: 'XL', chest: '46', length: '30', sleeve: '10' },
+        { size: 'XXL', chest: '48', length: '31', sleeve: '10.5' }
+    ],
+    'polo-tshirt': [
+        { size: 'S', chest: '38', length: '26', sleeve: '7.5' },
+        { size: 'M', chest: '40', length: '27', sleeve: '8' },
+        { size: 'L', chest: '42', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '44', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
+    ],
+    'hoodie': [
+        { size: 'S', chest: '42', length: '27', sleeve: '24' },
+        { size: 'M', chest: '44', length: '28', sleeve: '25' },
+        { size: 'L', chest: '46', length: '29', sleeve: '26' },
+        { size: 'XL', chest: '48', length: '30', sleeve: '27' },
+        { size: 'XXL', chest: '50', length: '31', sleeve: '28' }
+    ],
+    'regular-tshirt': [
+        { size: 'S', chest: '38', length: '26', sleeve: '7.5' },
+        { size: 'M', chest: '40', length: '27', sleeve: '8' },
+        { size: 'L', chest: '42', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '44', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
+    ],
+    'acid-wash': [
+        { size: 'S', chest: '40', length: '27', sleeve: '8.5' },
+        { size: 'M', chest: '42', length: '28', sleeve: '9' },
+        { size: 'L', chest: '44', length: '29', sleeve: '9.5' },
+        { size: 'XL', chest: '46', length: '30', sleeve: '10' },
+        { size: 'XXL', chest: '48', length: '31', sleeve: '10.5' }
+    ],
+    'couple-tshirt': [
+        { size: 'S', chest: '38', length: '26', sleeve: '7.5' },
+        { size: 'M', chest: '40', length: '27', sleeve: '8' },
+        { size: 'L', chest: '42', length: '28', sleeve: '8.5' },
+        { size: 'XL', chest: '44', length: '29', sleeve: '9' },
+        { size: 'XXL', chest: '46', length: '30', sleeve: '9.5' }
+    ],
+    'henley': [
+        { size: 'S', chest: '38', length: '26', sleeve: '8' },
+        { size: 'M', chest: '40', length: '27', sleeve: '8.5' },
+        { size: 'L', chest: '42', length: '28', sleeve: '9' },
+        { size: 'XL', chest: '44', length: '29', sleeve: '9.5' },
+        { size: 'XXL', chest: '46', length: '30', sleeve: '10' }
+    ],
+    'combo': [
+        { size: 'S', chest: '40', length: '27', sleeve: '8.5' },
+        { size: 'M', chest: '42', length: '28', sleeve: '9' },
+        { size: 'L', chest: '44', length: '29', sleeve: '9.5' },
+        { size: 'XL', chest: '46', length: '30', sleeve: '10' },
+        { size: 'XXL', chest: '48', length: '31', sleeve: '10.5' }
+    ]
 };
 
 // =================================================================
@@ -1793,71 +1793,168 @@ function deleteReview(id) {
 }
 
 // =================================================================
-// CATEGORY SIZE CHART EDITOR ENGINE
+// CATEGORY SIZE CHART EDITOR ENGINE (ULTRA-DYNAMIC REFACTORED)
 // =================================================================
 
 async function loadCategorySizeChartToEditor() {
-    const category = document.getElementById('editor-chart-category')?.value || 'drop-shoulder';
+    const categorySelect = document.getElementById('editor-chart-category');
     const tbody = document.getElementById('size-chart-inputs-body');
     if (!tbody) return;
 
+    const category = categorySelect?.value || 'drop-shoulder';
+
     tbody.innerHTML = `
         <tr>
-            <td colspan="4" class="p-4 text-center text-xs font-bold text-gray-400">
-                <i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Loading size measurements...
+            <td colspan="5" class="p-6 text-center text-xs font-bold text-gray-400">
+                <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-base mb-1 block"></i> Loading size measurements...
             </td>
         </tr>
     `;
 
-    let chartData = DEFAULT_SIZE_CHARTS[category] || DEFAULT_SIZE_CHARTS['drop-shoulder'];
+    let rowsData = DEFAULT_SIZE_CHARTS[category] || DEFAULT_SIZE_CHARTS['drop-shoulder'];
 
     try {
         const docSnap = await db.collection("size_charts").doc(category).get();
         if (docSnap.exists) {
-            chartData = docSnap.data().measurements || docSnap.data();
+            const data = docSnap.data();
+            if (data.rows && Array.isArray(data.rows)) {
+                rowsData = data.rows;
+            } else if (data.measurements && typeof data.measurements === 'object') {
+                rowsData = Object.keys(data.measurements).map(sz => ({
+                    size: sz,
+                    chest: data.measurements[sz].chest || '',
+                    length: data.measurements[sz].length || '',
+                    sleeve: data.measurements[sz].sleeve || ''
+                }));
+            }
         }
     } catch (err) {
         console.warn("Using fallback default size chart data:", err);
     }
 
-    const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    renderSizeChartRowsHTML(rowsData);
+}
 
-    tbody.innerHTML = sizes.map(sz => {
-        const item = chartData[sz] || { chest: '', length: '', sleeve: '' };
-        return `
-            <tr class="hover:bg-gray-50 border-b border-gray-100">
-                <td class="p-3 font-black text-gray-900 text-sm">${sz}</td>
-                <td class="p-3">
-                    <input type="text" id="chart-${sz}-chest" value="${item.chest || ''}" placeholder="e.g. 42" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition">
-                </td>
-                <td class="p-3">
-                    <input type="text" id="chart-${sz}-length" value="${item.length || ''}" placeholder="e.g. 28" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition">
-                </td>
-                <td class="p-3">
-                    <input type="text" id="chart-${sz}-sleeve" value="${item.sleeve || ''}" placeholder="e.g. 9" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition">
+function renderSizeChartRowsHTML(rows) {
+    const tbody = document.getElementById('size-chart-inputs-body');
+    if (!tbody) return;
+
+    if (!rows || rows.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-6 text-center text-xs font-bold text-gray-400">
+                    No sizes recorded. Click "Add Row" to create measurements.
                 </td>
             </tr>
         `;
-    }).join('');
+        return;
+    }
+
+    tbody.innerHTML = rows.map(r => `
+        <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+            <td class="p-3 border-r border-gray-100">
+                <input type="text" value="${r.size || ''}" placeholder="e.g. M" class="chart-size-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+            </td>
+            <td class="p-3 border-r border-gray-100">
+                <input type="text" value="${r.chest || ''}" placeholder="e.g. 42" class="chart-chest-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+            </td>
+            <td class="p-3 border-r border-gray-100">
+                <input type="text" value="${r.length || ''}" placeholder="e.g. 28" class="chart-length-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+            </td>
+            <td class="p-3 border-r border-gray-100">
+                <input type="text" value="${r.sleeve || ''}" placeholder="e.g. 9" class="chart-sleeve-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+            </td>
+            <td class="p-3 text-center">
+                <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function addNewSizeChartRow() {
+    const tbody = document.getElementById('size-chart-inputs-body');
+    if (!tbody) return;
+
+    // Remove empty placeholder if any
+    if (tbody.children.length === 1 && tbody.children[0].querySelector('td[colspan]')) {
+        tbody.innerHTML = '';
+    }
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-gray-50/80 transition-colors border-b border-gray-100";
+    tr.innerHTML = `
+        <td class="p-3 border-r border-gray-100">
+            <input type="text" placeholder="e.g. XL" class="chart-size-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+        </td>
+        <td class="p-3 border-r border-gray-100">
+            <input type="text" placeholder="e.g. 44" class="chart-chest-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+        </td>
+        <td class="p-3 border-r border-gray-100">
+            <input type="text" placeholder="e.g. 30" class="chart-length-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+        </td>
+        <td class="p-3 border-r border-gray-100">
+            <input type="text" placeholder="e.g. 9.5" class="chart-sleeve-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+        </td>
+        <td class="p-3 text-center">
+            <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function deleteSizeChartRow(btn) {
+    const row = btn.closest('tr');
+    if (row) row.remove();
 }
 
 async function saveCategorySizeChart() {
     const category = document.getElementById('editor-chart-category')?.value || 'drop-shoulder';
-    const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-    const updatedMeasurements = {};
+    const tableRows = document.querySelectorAll('#size-chart-inputs-body tr');
+    const rowsData = [];
+    const measurementsMap = {};
 
-    sizes.forEach(sz => {
-        updatedMeasurements[sz] = {
-            chest: document.getElementById(`chart-${sz}-chest`)?.value.trim() || '',
-            length: document.getElementById(`chart-${sz}-length`)?.value.trim() || '',
-            sleeve: document.getElementById(`chart-${sz}-sleeve`)?.value.trim() || ''
-        };
+    tableRows.forEach(row => {
+        const size = row.querySelector('.chart-size-val')?.value.trim();
+        const chest = row.querySelector('.chart-chest-val')?.value.trim();
+        const length = row.querySelector('.chart-length-val')?.value.trim();
+        const sleeve = row.querySelector('.chart-sleeve-val')?.value.trim();
+
+        if (size || chest || length || sleeve) {
+            const szKey = size || 'N/A';
+            const rowObj = {
+                size: szKey,
+                chest: chest || '-',
+                length: length || '-',
+                sleeve: sleeve || '-'
+            };
+            rowsData.push(rowObj);
+            measurementsMap[szKey] = {
+                chest: chest || '-',
+                length: length || '-',
+                sleeve: sleeve || '-'
+            };
+        }
     });
+
+    if (rowsData.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Empty Size Chart',
+            text: 'Please add at least one row with valid size measurements.',
+            confirmButtonColor: '#000'
+        });
+        return;
+    }
 
     try {
         await db.collection("size_charts").doc(category).set({
             category: category,
-            measurements: updatedMeasurements,
+            rows: rowsData,
+            measurements: measurementsMap,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
