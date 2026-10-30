@@ -704,17 +704,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </div>
 
-    <div class="mt-4 p-4 bg-gray-50 rounded-[2rem] border border-gray-100 text-left">
+   <div class="mt-4 p-4 bg-gray-50 rounded-[2rem] border border-gray-100 text-left">
     <p class="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-3 ml-2">Promo Code</p>
-    <div class="flex gap-2">
+    
+    <!-- Input & Apply Button Group -->
+    <div id="promo-input-wrapper" class="flex gap-2">
         <input type="text" id="promo-input" placeholder="ENTER THE CODE" 
-            class="flex-1 p-3 text-[10px] font-black uppercase border rounded-xl outline-none bg-white focus:border-black transition">
-        <button onclick="applyPromoCode()" 
-            class="px-4 py-3 bg-black text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-600 transition-all">
+            class="flex-1 p-3 text-[10px] font-black uppercase border border-gray-200 rounded-xl outline-none bg-white focus:border-black transition">
+        <button type="button" onclick="applyPromoCode()" 
+            class="px-4 py-3 bg-black text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-600 transition-all cursor-pointer">
             Apply
         </button>
     </div>
+
+    <!-- Error/Notice Message Text -->
     <p id="promo-msg" class="mt-2 ml-2 text-[9px] font-bold uppercase hidden"></p>
+
+    <!-- Success Notice Box (Appears when Promo is Active) -->
+    <div id="applied-promo-box" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+            <span id="applied-promo-text" class="text-[10px] font-black uppercase text-emerald-700 tracking-wider">
+                PROMO APPLIED
+            </span>
+        </div>
+        <button type="button" onclick="removeAppliedPromo()" class="text-[9px] font-black uppercase text-red-600 hover:underline cursor-pointer">
+            Remove
+        </button>
+    </div>
 </div>
 
 <div id="cart-total" class="pt-2 text-left"></div>
