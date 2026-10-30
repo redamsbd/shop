@@ -20,85 +20,72 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         .sidebar-active { background-color: #dc2626 !important; color: #ffffff !important; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 110; }
         .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
-        
-        /* সাইডবার ফিক্সড রাখার জন্য CSS ক্লাস যুক্ত করা হয়েছে */
-        .admin-sidebar {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 
-    <!-- পুরো লেআউটের জন্য রুট ফ্লেক্স কন্টেইনার -->
-    <div class="flex min-h-screen">
-         
-<!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
-<div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
-    <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
-        
-        <!-- Top Gradient Accent Bar -->
-        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-purple-600 to-black"></div>
+    <!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
+    <div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
+        <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
+            
+            <!-- Top Gradient Accent Bar -->
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-purple-600 to-black"></div>
 
-        <!-- Brand Header -->
-        <div class="text-center mb-6">
-            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 inline-block mb-2">SECURE HUB ENGINE</span>
-            <h1 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
-            <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Executive Master Portal V3.0</p>
-        </div>
-
-        <!-- Form Wrapper with Onsubmit Event -->
-       <form onsubmit="adminLogin(event); return false;" class="space-y-4">
-            <!-- Username Input -->
-            <div>
-                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Username / Access ID</label>
-                <div class="relative">
-                    <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="text" id="login-username" required placeholder="Enter Username" class="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
-                </div>
+            <!-- Brand Header -->
+            <div class="text-center mb-6">
+                <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 inline-block mb-2">SECURE HUB ENGINE</span>
+                <h1 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">REDAMS <span class="text-red-600">ADMIN</span></h1>
+                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Executive Master Portal V3.0</p>
             </div>
 
-            <!-- Password Input with Eye Icon Toggle -->
-            <div>
-                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Master Password</label>
-                <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
-                    <button type="button" onclick="togglePasswordVisibility('login-password', 'pass-eye-icon')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-xs">
-                        <i class="fa-solid fa-eye" id="pass-eye-icon"></i>
+            <!-- Form Wrapper with Onsubmit Event -->
+            <form onsubmit="adminLogin(event); return false;" class="space-y-4">
+                <!-- Username Input -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Username / Access ID</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="login-username" required placeholder="Enter Username" class="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Password Input with Eye Icon Toggle -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Master Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                        <button type="button" onclick="togglePasswordVisibility('login-password', 'pass-eye-icon')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-xs">
+                            <i class="fa-solid fa-eye" id="pass-eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember & Forgot Password Bar -->
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <label class="flex items-center gap-1.5 text-gray-500 font-bold cursor-pointer select-none">
+                        <input type="checkbox" id="remember-me" class="rounded text-red-600 focus:ring-0 w-3.5 h-3.5">
+                        <span class="text-[11px]">Remember me</span>
+                    </label>
+                    <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-red-600 font-black hover:underline transition">
+                        Forgot Password?
                     </button>
                 </div>
-            </div>
 
-            <!-- Remember & Forgot Password Bar -->
-            <div class="flex items-center justify-between text-xs pt-1">
-                <label class="flex items-center gap-1.5 text-gray-500 font-bold cursor-pointer select-none">
-                    <input type="checkbox" id="remember-me" class="rounded text-red-600 focus:ring-0 w-3.5 h-3.5">
-                    <span class="text-[11px]">Remember me</span>
-                </label>
-                <button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-red-600 font-black hover:underline transition">
-                    Forgot Password?
+                <!-- Submit Button -->
+                <button type="submit" id="login-btn" class="w-full bg-red-600 hover:bg-black text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 transition duration-300 active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
                 </button>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" id="login-btn" class="w-full bg-red-600 hover:bg-black text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-red-600/20 transition duration-300 active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
-            </button>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
-
 <!-- FORGOT PASSWORD & EMAIL OTP RECOVERY MODAL -->
 <div id="forgot-password-modal" class="modal-overlay z-[120]">
     <div class="bg-white p-6 md:p-8 rounded-3xl max-w-md w-full mx-4 shadow-2xl border border-gray-100">
@@ -1269,6 +1256,52 @@
         </div>
     </div>
 </div>
+     <!-- MAIN DASHBOARD LAYOUT WRAPPER (FIXED HEIGHT) -->
+    <div class="flex h-screen w-screen overflow-hidden">
+
+        <!-- FIXED SIDEBAR ENGINE (ALWAYS VISIBLE & UNSTUCK) -->
+        <aside class="w-64 h-full bg-zinc-900 text-white p-5 flex flex-col justify-between shrink-0 border-r border-zinc-800 z-50">
+            <!-- Top Section: Logo & Menu -->
+            <div>
+                <!-- Brand Header -->
+                <div class="flex items-center gap-3 mb-8 pb-4 border-b border-zinc-800">
+                    <img src="images/RedAmS logo main png.png" alt="REDAMS" class="h-8 w-auto">
+                    <div>
+                        <h1 class="font-black text-sm uppercase tracking-wider text-white">REDAMS</h1>
+                        <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">Admin Engine</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="space-y-2 text-xs font-bold uppercase tracking-wider">
+                    <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800 transition sidebar-active">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-boxes-stacked"></i> Size & Inventory</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                    <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white transition">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-ruler-combined"></i> Size Charts Editor</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                    <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white transition">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-ticket"></i> Promo Codes</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Bottom Actions (Change Password & Logout) -->
+            <div class="pt-4 border-t border-zinc-800 space-y-2 text-xs font-bold uppercase">
+                <button class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white transition">
+                    <i class="fa-solid fa-key text-amber-500"></i> Change Password
+                </button>
+                <button class="w-full flex items-center gap-3 p-3 rounded-xl bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition">
+                    <i class="fa-solid fa-power-off"></i> Logout Engine
+                </button>
+            </div>
+        </aside>
+
+        <!-- INDEPENDENT SCROLLABLE MAIN CONTENT AREA -->
+        <main class="flex-1 h-full overflow-y-auto p-6 md:p-8 custom-scrollbar">
 
 <!-- EXTERNAL JAVASCRIPT LINK -->
 <script src="admin.js"></script>
