@@ -1796,6 +1796,9 @@ function deleteReview(id) {
 // CATEGORY SIZE CHART EDITOR ENGINE (ULTRA-DYNAMIC REFACTORED)
 // =================================================================
 
+// Default columns state for size charts
+let currentSizeChartColumns = ['size', 'chest', 'length', 'sleeve'];
+
 async function loadCategorySizeChartToEditor() {
     const categorySelect = document.getElementById('editor-chart-category');
     const tbody = document.getElementById('size-chart-inputs-body');
@@ -1805,18 +1808,22 @@ async function loadCategorySizeChartToEditor() {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="5" class="p-6 text-center text-xs font-bold text-gray-400">
+            <td colspan="10" class="p-6 text-center text-xs font-bold text-gray-400">
                 <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-base mb-1 block"></i> Loading size measurements...
             </td>
         </tr>
     `;
 
     let rowsData = DEFAULT_SIZE_CHARTS[category] || DEFAULT_SIZE_CHARTS['drop-shoulder'];
+    currentSizeChartColumns = ['size', 'chest', 'length', 'sleeve'];
 
     try {
         const docSnap = await db.collection("size_charts").doc(category).get();
         if (docSnap.exists) {
             const data = docSnap.data();
+            if (data.columns && Array.isArray(data.columns) && data.columns.length > 0) {
+                currentSizeChartColumns = data.columns;
+            }
             if (data.rows && Array.isArray(data.rows)) {
                 rowsData = data.rows;
             } else if (data.measurements && typeof data.measurements === 'object') {
@@ -1832,7 +1839,100 @@ async function loadCategorySizeChartToEditor() {
         console.warn("Using fallback default size chart data:", err);
     }
 
+    renderSizeChartHeadersHTML();
     renderSizeChartRowsHTML(rowsData);
+}
+
+function renderSizeChartHeadersHTML() {
+    const headerRow = document.getElementById('size-chart-headers-row');
+    if (!headerRow) return;
+
+    headerRow.innerHTML = currentSizeChartColumns.map((col, colIdx) => `
+        <th class="p-3 border-r border-gray-800 relative group">
+            <div class="flex items-center justify-between gap-2">
+                <input type="text" value="${col.toUpperCase()}" onchange="updateColumnKey(${colIdx}, this.value)" class="bg-transparent text-white font-black uppercase outline-none focus:bg-gray-800 p-1 rounded w-full text-xs">
+                ${currentSizeChartColumns.length > 1 ? `
+                    <button type="button" onclick="deleteSizeChartColumn(${colIdx})" class="text-red-400 hover:text-red-300 p-1 text-xs" title="Delete Column">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                ` : ''}
+            </div>
+        </th>
+    `).join('') + `<th class="p-3 text-center w-20">Action</th>`;
+}
+
+function updateColumnKey(colIdx, newValue) {
+    const cleanKey = newValue.trim().toLowerCase().replace(/\s+/g, '_') || `col_${colIdx + 1}`;
+    currentSizeChartColumns[colIdx] = cleanKey;
+    renderSizeChartHeadersHTML();
+}
+
+function addNewSizeChartColumn() {
+    Swal.fire({
+        title: 'Add New Measurement Column',
+        input: 'text',
+        inputPlaceholder: 'e.g. Shoulder, Waist, Hip',
+        showCancelButton: true,
+        confirmButtonColor: '#9333ea',
+        confirmButtonText: 'Add Column',
+        customClass: {
+            input: 'text-xs font-bold'
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value.trim()) {
+            const newColKey = result.value.trim().toLowerCase().replace(/\s+/g, '_');
+            if (currentSizeChartColumns.includes(newColKey)) {
+                Swal.fire({ icon: 'warning', title: 'Duplicate', text: 'Column already exists!' });
+                return;
+            }
+            currentSizeChartColumns.push(newColKey);
+            
+            // Append cell to existing table rows dynamically
+            const tbody = document.getElementById('size-chart-inputs-body');
+            const trs = tbody.querySelectorAll('tr');
+            trs.forEach(tr => {
+                if (!tr.querySelector('td[colspan]')) {
+                    const actionTd = tr.querySelector('td:last-child');
+                    const newTd = document.createElement('td');
+                    newTd.className = "p-3 border-r border-gray-100";
+                    newTd.innerHTML = `<input type="text" data-key="${newColKey}" placeholder="-" class="chart-cell-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">`;
+                    tr.insertBefore(newTd, actionTd);
+                }
+            });
+
+            renderSizeChartHeadersHTML();
+        }
+    });
+}
+
+function deleteSizeChartColumn(colIdx) {
+    if (currentSizeChartColumns.length <= 1) {
+        Swal.fire({ icon: 'warning', title: 'Action Denied', text: 'At least one measurement column is required!' });
+        return;
+    }
+
+    const targetKey = currentSizeChartColumns[colIdx];
+    currentSizeChartColumns.splice(colIdx, 1);
+    
+    // Retain input data while removing column
+    const tbody = document.getElementById('size-chart-inputs-body');
+    const tableRows = tbody.querySelectorAll('tr');
+    const currentRowsData = [];
+
+    tableRows.forEach(tr => {
+        const rowObj = {};
+        const inputs = tr.querySelectorAll('.chart-cell-val');
+        inputs.forEach(input => {
+            const key = input.getAttribute('data-key');
+            if (key !== targetKey && currentSizeChartColumns.includes(key)) {
+                rowObj[key] = input.value;
+            }
+        });
+        if (Object.keys(rowObj).length > 0) currentRowsData.push(rowObj);
+    });
+
+    renderSizeChartHeadersHTML();
+    renderSizeChartRowsHTML(currentRowsData);
 }
 
 function renderSizeChartRowsHTML(rows) {
@@ -1842,8 +1942,8 @@ function renderSizeChartRowsHTML(rows) {
     if (!rows || rows.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="p-6 text-center text-xs font-bold text-gray-400">
-                    No sizes recorded. Click "Add Row" to create measurements.
+                <td colspan="${currentSizeChartColumns.length + 1}" class="p-6 text-center text-xs font-bold text-gray-400">
+                    No measurements recorded. Click "Add Row" to create.
                 </td>
             </tr>
         `;
@@ -1852,18 +1952,11 @@ function renderSizeChartRowsHTML(rows) {
 
     tbody.innerHTML = rows.map(r => `
         <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
-            <td class="p-3 border-r border-gray-100">
-                <input type="text" value="${r.size || ''}" placeholder="e.g. M" class="chart-size-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-            </td>
-            <td class="p-3 border-r border-gray-100">
-                <input type="text" value="${r.chest || ''}" placeholder="e.g. 42" class="chart-chest-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-            </td>
-            <td class="p-3 border-r border-gray-100">
-                <input type="text" value="${r.length || ''}" placeholder="e.g. 28" class="chart-length-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-            </td>
-            <td class="p-3 border-r border-gray-100">
-                <input type="text" value="${r.sleeve || ''}" placeholder="e.g. 9" class="chart-sleeve-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-            </td>
+            ${currentSizeChartColumns.map(col => `
+                <td class="p-3 border-r border-gray-100">
+                    <input type="text" data-key="${col}" value="${r[col] || ''}" placeholder="-" class="chart-cell-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+                </td>
+            `).join('')}
             <td class="p-3 text-center">
                 <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
                     <i class="fa-solid fa-trash-can text-xs"></i>
@@ -1877,26 +1970,17 @@ function addNewSizeChartRow() {
     const tbody = document.getElementById('size-chart-inputs-body');
     if (!tbody) return;
 
-    // Remove empty placeholder if any
     if (tbody.children.length === 1 && tbody.children[0].querySelector('td[colspan]')) {
         tbody.innerHTML = '';
     }
 
     const tr = document.createElement('tr');
     tr.className = "hover:bg-gray-50/80 transition-colors border-b border-gray-100";
-    tr.innerHTML = `
+    tr.innerHTML = currentSizeChartColumns.map(col => `
         <td class="p-3 border-r border-gray-100">
-            <input type="text" placeholder="e.g. XL" class="chart-size-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
+            <input type="text" data-key="${col}" placeholder="-" class="chart-cell-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
         </td>
-        <td class="p-3 border-r border-gray-100">
-            <input type="text" placeholder="e.g. 44" class="chart-chest-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-        </td>
-        <td class="p-3 border-r border-gray-100">
-            <input type="text" placeholder="e.g. 30" class="chart-length-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-        </td>
-        <td class="p-3 border-r border-gray-100">
-            <input type="text" placeholder="e.g. 9.5" class="chart-sleeve-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-        </td>
+    `).join('') + `
         <td class="p-3 text-center">
             <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
                 <i class="fa-solid fa-trash-can text-xs"></i>
@@ -1915,28 +1999,21 @@ async function saveCategorySizeChart() {
     const category = document.getElementById('editor-chart-category')?.value || 'drop-shoulder';
     const tableRows = document.querySelectorAll('#size-chart-inputs-body tr');
     const rowsData = [];
-    const measurementsMap = {};
 
     tableRows.forEach(row => {
-        const size = row.querySelector('.chart-size-val')?.value.trim();
-        const chest = row.querySelector('.chart-chest-val')?.value.trim();
-        const length = row.querySelector('.chart-length-val')?.value.trim();
-        const sleeve = row.querySelector('.chart-sleeve-val')?.value.trim();
+        const rowObj = {};
+        const inputs = row.querySelectorAll('.chart-cell-val');
+        let hasValue = false;
 
-        if (size || chest || length || sleeve) {
-            const szKey = size || 'N/A';
-            const rowObj = {
-                size: szKey,
-                chest: chest || '-',
-                length: length || '-',
-                sleeve: sleeve || '-'
-            };
+        inputs.forEach(input => {
+            const key = input.getAttribute('data-key');
+            const val = input.value.trim();
+            if (val) hasValue = true;
+            rowObj[key] = val || '-';
+        });
+
+        if (hasValue) {
             rowsData.push(rowObj);
-            measurementsMap[szKey] = {
-                chest: chest || '-',
-                length: length || '-',
-                sleeve: sleeve || '-'
-            };
         }
     });
 
@@ -1953,15 +2030,15 @@ async function saveCategorySizeChart() {
     try {
         await db.collection("size_charts").doc(category).set({
             category: category,
+            columns: currentSizeChartColumns,
             rows: rowsData,
-            measurements: measurementsMap,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
         Swal.fire({
             icon: 'success',
             title: 'SIZE CHART SAVED!',
-            text: `Updated size measurements for category: ${category.toUpperCase()}`,
+            text: `Updated measurements & dynamic structure for ${category.toUpperCase()}`,
             timer: 1500,
             showConfirmButton: false
         });
