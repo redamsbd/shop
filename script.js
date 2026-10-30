@@ -1,6 +1,6 @@
-// =================================================================
-// REDAMS Master Script Engine (script.js) - Goosebumps-Style Engine
-// =================================================================
+// ========================================
+// REDAMS Master Script Engine (script.js) 
+// ========================================
 
 // ===== Global Variables =====
 window.allProducts = [];
@@ -16,7 +16,11 @@ let selectedColorP1 = '';
 let selectedColorP2 = '';
 let modalQty = 1;
 let isPaymentVerified = false;
-let activePromo = null;
+
+// Dynamic Promo Storage Variables
+let activePromo = null;        // Active promo code string (e.g. 'REDAMS20')
+let activePromoData = null;    // Full promo document object fetched from Firestore
+
 let selectedSubMethod = "bKash"; // Default Online Method
 
 const WHATSAPP_NUMBER = "8801894357549";
@@ -64,18 +68,6 @@ const defaultSizeCharts = {
         { size: 'L', chest: '40/42', length: '28/29', sleeve: '8.5/9' },
         { size: 'XL', chest: '42/44', length: '29/30', sleeve: '9/9.5' }
     ]
-};
-
-// ===== Promo Code List =====
-const promoList = {
-    "": { type: "delivery", value: 0, applicableCategories: [] },
-    "REDAMS10": { type: "percent", value: 10, applicableCategories: [] },
-    "WELCOME20": { type: "percent", value: 20, applicableCategories: [] },
-    "DROPDROP15": { type: "percent", value: 15, applicableCategories: ['drop-shoulder'] },
-    "DROPOFF25": { type: "percent", value: 25, applicableCategories: ['drop-shoulder'] },
-    "REGULAR10": { type: "percent", value: 10, applicableCategories: ['regular-tshirt'] },
-    "WELCOME100": { type: "fixed", value: 100, applicableCategories: ['henley'] },
-    "ACIDWASH12": { type: "percent", value: 12, applicableCategories: ['acid-wash'] }
 };
 
 // ===== Save Cart to Storage =====
@@ -449,6 +441,7 @@ function closeSizeGuideModal() {
         modal.classList.remove('flex');
     }
 }
+
 // ===== Related Products Generator (Category Based) =====
 function generateRelatedProductsHTML(currentId, category) {
     if (!window.allProducts || window.allProducts.length === 0) return '';
@@ -662,7 +655,7 @@ function openModal(id) {
                             Add To Cart ↘
                         </button>
                         
-                        <!-- Page Links (Delivery & Returns connected to separate pages) -->
+                        <!-- Page Links -->
                         <div class="pt-2 text-left border-t border-zinc-100 space-y-2">
                             <h4 class="text-[10px] font-black uppercase text-zinc-900 mb-1">Description</h4>
                             <p class="text-xs text-zinc-500 leading-relaxed mb-3">${p.description || "Premium quality apparel crafted for maximum style and everyday comfort."}</p>
@@ -671,7 +664,6 @@ function openModal(id) {
                                 <a href="return.html" target="_blank" class="text-zinc-600 hover:text-black flex items-center gap-1">
                                     🔄 Return Policy &rarr;
                                 </a>
-                                
                             </div>
                         </div>
                     </div>
@@ -742,7 +734,151 @@ function addToCart(id) {
 window.addToCartFromModal = addToCart;
 
 // =================================================================
-// 6. CHECKOUT & PAYMENT CONTROLLER
+// 6. ULTRA-DYNAMIC PROMO CODE FRONTEND ENGINE (FIREBASE CONNECTED)
+// =================================================================
+
+async function applyPromoCode() {
+    const promoInput = document.getElementById('promo-input');
+    const promoMsg = document.getElementById('promo-msg');
+    const code = promoInput ? promoInput.value.trim().toUpperCase() : '';
+
+    if (promoMsg) {
+        promoMsg.classList.add('hidden');
+        promoMsg.className = 'mt-2 ml-2 text-[9px] font-bold uppercase hidden';
+    }
+
+    if (!code) {
+        showPromoMessage("Please enter a promo code", "text-red-500");
+        return;
+    }
+
+    if (!cart || cart.length === 0) {
+        showPromoMessage("Your cart is empty", "text-red-500");
+        return;
+    }
+
+    try {
+        if (window.firebase && firebase.firestore) {
+            const docSnap = await firebase.firestore().collection("promos").doc(code).get();
+
+            if (!docSnap.exists) {
+                showPromoMessage("Invalid promo code", "text-red-500");
+                return;
+            }
+
+            const promo = docSnap.data();
+
+            // Scope & Eligibility Validation
+            let isEligible = false;
+            let targetMsg = "";
+
+            if (promo.scope === 'category') {
+                isEligible = cart.some(item => (item.category || '').toLowerCase() === (promo.targetCategory || '').toLowerCase());
+                targetMsg = `Valid for ${promo.targetCategory.toUpperCase()} category only`;
+            } else if (promo.scope === 'product') {
+                isEligible = cart.some(item => String(item.id) === String(promo.targetProductId));
+                targetMsg = "Valid for specific item in your cart";
+            } else {
+                // Global Scope
+                isEligible = true;
+            }
+
+            if (!isEligible) {
+                showPromoMessage(targetMsg || "Promo not applicable for current cart items", "text-amber-600");
+                return;
+            }
+
+            // Save Active Promo
+            activePromoData = promo;
+            activePromo = code;
+
+            showAppliedPromoNotice(code, promo);
+            updateCartUI();
+
+            showPromoMessage("Promo code applied successfully!", "text-emerald-600");
+        }
+    } catch (err) {
+        console.error("Promo apply error:", err);
+        showPromoMessage("Error verifying promo code", "text-red-500");
+    }
+}
+
+function showPromoMessage(msg, colorClass) {
+    const promoMsg = document.getElementById('promo-msg');
+    if (promoMsg) {
+        promoMsg.innerText = msg;
+        promoMsg.className = `mt-2 ml-2 text-[9px] font-bold uppercase ${colorClass}`;
+        promoMsg.classList.remove('hidden');
+    }
+}
+
+function showAppliedPromoNotice(code, promo) {
+    const promoBox = document.getElementById('applied-promo-box');
+    const promoText = document.getElementById('applied-promo-text');
+    const inputWrapper = document.getElementById('promo-input-wrapper');
+
+    let valText = promo.type === 'percent' ? `${promo.value}% OFF` : (promo.type === 'fixed' ? `৳${promo.value} OFF` : 'FREE DELIVERY');
+
+    if (promoText) {
+        promoText.innerText = `CODE: ${code} (${valText})`;
+    }
+
+    if (promoBox) promoBox.classList.remove('hidden');
+    if (inputWrapper) inputWrapper.classList.add('hidden');
+}
+
+function removeAppliedPromo() {
+    activePromoData = null;
+    activePromo = null;
+
+    const promoBox = document.getElementById('applied-promo-box');
+    const inputWrapper = document.getElementById('promo-input-wrapper');
+    const promoInput = document.getElementById('promo-input');
+    const promoMsg = document.getElementById('promo-msg');
+
+    if (promoBox) promoBox.classList.add('hidden');
+    if (inputWrapper) inputWrapper.classList.remove('hidden');
+    if (promoInput) promoInput.value = '';
+    if (promoMsg) promoMsg.classList.add('hidden');
+
+    updateCartUI();
+}
+
+function calculatePromoDiscount(subtotal, baseDeliveryCharge) {
+    if (!activePromoData) return { discountAmount: 0, finalDeliveryCharge: baseDeliveryCharge };
+
+    let discountAmount = 0;
+    let finalDeliveryCharge = baseDeliveryCharge;
+
+    const { type, value, scope, targetCategory, targetProductId } = activePromoData;
+
+    // Filter applicable items total bill
+    let applicableSubtotal = subtotal;
+
+    if (scope === 'category') {
+        applicableSubtotal = cart
+            .filter(item => (item.category || '').toLowerCase() === (targetCategory || '').toLowerCase())
+            .reduce((sum, item) => sum + (item.price * item.qty), 0);
+    } else if (scope === 'product') {
+        applicableSubtotal = cart
+            .filter(item => String(item.id) === String(targetProductId))
+            .reduce((sum, item) => sum + (item.price * item.qty), 0);
+    }
+
+    // Discount Calculation
+    if (type === 'delivery') {
+        finalDeliveryCharge = 0;
+    } else if (type === 'percent') {
+        discountAmount = (applicableSubtotal * value) / 100;
+    } else if (type === 'fixed') {
+        discountAmount = Math.min(value, applicableSubtotal);
+    }
+
+    return { discountAmount, finalDeliveryCharge };
+}
+
+// =================================================================
+// 7. CHECKOUT & PAYMENT CONTROLLER
 // =================================================================
 function updatePaymentUI(method) {
     const onlineSubOptions = document.getElementById('online-sub-options');
@@ -927,25 +1063,10 @@ async function confirmOrder() {
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
     if (eligibleQty >= 3) baseCharge = 0;
 
-    let discount = 0;
-    let promoInfo = "NONE";
+    const { discountAmount, finalDeliveryCharge } = calculatePromoDiscount(subtotal, baseCharge);
+    let promoInfo = activePromo ? activePromo : "NONE";
 
-    if (activePromo) {
-        const promo = promoList[activePromo];
-        promoInfo = activePromo;
-        if (promo.applicableCategories && promo.applicableCategories.length > 0) {
-            const applicableSubtotal = cart.filter(item => promo.applicableCategories.includes(item.category)).reduce((sum, item) => sum + (item.price * item.qty), 0);
-            if (promo.type === "delivery") baseCharge = 0;
-            else if (promo.type === "percent") discount = (applicableSubtotal * promo.value) / 100;
-            else if (promo.type === "fixed") discount = promo.value;
-        } else {
-            if (promo.type === "delivery") baseCharge = 0;
-            else if (promo.type === "percent") discount = (subtotal * promo.value) / 100;
-            else if (promo.type === "fixed") discount = promo.value;
-        }
-    }
-
-    const totalBill = subtotal + baseCharge - discount;
+    const totalBill = subtotal + finalDeliveryCharge - discountAmount;
     const subMethodStr = typeof selectedSubMethod !== 'undefined' ? selectedSubMethod : '';
     let paymentStatus = paymentMethod === 'COD' ? "CASH ON DELIVERY (UNPAID)" : `ONLINE PAID (${subMethodStr})`;
     let finalPayable = paymentMethod === 'COD' ? totalBill : 0;
@@ -966,8 +1087,8 @@ async function confirmOrder() {
                 Ordered_Items: itemsText,
                 Subtotal: `৳${subtotal}`,
                 Promo_Used: promoInfo,
-                Discount: `৳${discount.toFixed(0)}`,
-                Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
+                Discount: `৳${discountAmount.toFixed(0)}`,
+                Delivery_Charge: finalDeliveryCharge === 0 ? "FREE" : `৳${finalDeliveryCharge}`,
                 TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
                 amount: Math.round(totalBill),
                 Payment_Method: `${paymentMethod} (${subMethodStr})`,
@@ -996,8 +1117,8 @@ async function confirmOrder() {
         Ordered_Items: itemsText,
         Subtotal: `৳${subtotal}`,
         Promo_Used: promoInfo,
-        Discount: `৳${discount.toFixed(0)}`,
-        Delivery_Charge: baseCharge === 0 ? "FREE" : `৳${baseCharge}`,
+        Discount: `৳${discountAmount.toFixed(0)}`,
+        Delivery_Charge: finalDeliveryCharge === 0 ? "FREE" : `৳${finalDeliveryCharge}`,
         TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
         Payment_Method: `${paymentMethod} (${subMethodStr})`,
         Payment_Status: paymentStatus,
@@ -1016,8 +1137,10 @@ async function confirmOrder() {
             cart = [];
             localStorage.removeItem('redams_cart');
             activePromo = null;
+            activePromoData = null;
             
             clearCheckoutInputs();
+            removeAppliedPromo();
             if (typeof updateCartUI === "function") updateCartUI();
             if (typeof toggleCart === "function") toggleCart(false);
 
@@ -1073,7 +1196,9 @@ async function orderByWhatsApp() {
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
     let baseCharge = deliveryOption ? parseInt(deliveryOption.value) : 80;
-    const totalBill = subtotal + baseCharge;
+
+    const { discountAmount, finalDeliveryCharge } = calculatePromoDiscount(subtotal, baseCharge);
+    const totalBill = subtotal + finalDeliveryCharge - discountAmount;
     const subMethodStr = typeof selectedSubMethod !== 'undefined' ? selectedSubMethod : '';
 
     try {
@@ -1084,8 +1209,10 @@ async function orderByWhatsApp() {
                 Delivery_Address: address,
                 Ordered_Items: itemsText,
                 Subtotal: `৳${subtotal}`,
-                Delivery_Charge: `৳${baseCharge}`,
-                TOTAL_BILL: `৳${totalBill}`,
+                Promo_Used: activePromo ? activePromo : "NONE",
+                Discount: `৳${discountAmount.toFixed(0)}`,
+                Delivery_Charge: finalDeliveryCharge === 0 ? "FREE" : `৳${finalDeliveryCharge}`,
+                TOTAL_BILL: `৳${totalBill.toFixed(0)}`,
                 amount: Math.round(totalBill),
                 Payment_Method: `${paymentMethod} (${subMethodStr})`,
                 Transaction_ID: trnxId,
@@ -1101,13 +1228,19 @@ async function orderByWhatsApp() {
     let message = `🚨 *NEW ORDER - REDAMS WEBSITE*\n\n`;
     message += `👤 *Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Address: ${address}\n\n`;
     message += `🛒 *Ordered Items:*\n${itemsText}\n`;
-    message += `💰 *Total Bill:* ৳${totalBill}\n`;
+    if (discountAmount > 0) message += `🏷️ *Promo Discount:* -৳${discountAmount.toFixed(0)} (${activePromo})\n`;
+    message += `🚚 *Delivery Charge:* ${finalDeliveryCharge === 0 ? "FREE" : `৳${finalDeliveryCharge}`}\n`;
+    message += `💰 *Total Bill:* ৳${totalBill.toFixed(0)}\n`;
     message += `💳 *Payment Method:* ${paymentMethod} (${subMethodStr})\n`;
     message += `• TrxID: ${trnxId}\n\nPlease confirm my order!`;
 
     cart = [];
     localStorage.removeItem('redams_cart');
+    activePromo = null;
+    activePromoData = null;
+
     clearCheckoutInputs();
+    removeAppliedPromo();
     if (typeof updateCartUI === "function") updateCartUI();
     if (typeof toggleCart === "function") toggleCart(false);
 
@@ -1149,15 +1282,17 @@ function updateCartUI(isPaidOverride = null) {
     }
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked');
-    let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 90);
+    let baseDeliveryCharge = parseInt(deliveryOption ? deliveryOption.value : 80);
 
-    let finalTotal = subtotal + baseDeliveryCharge;
+    const { discountAmount, finalDeliveryCharge } = calculatePromoDiscount(subtotal, baseDeliveryCharge);
+    let finalTotal = Math.max(0, subtotal + finalDeliveryCharge - discountAmount);
 
     if (totalElement) {
         totalElement.innerHTML = `
             <div class="space-y-1 mb-3 pt-4 border-t text-left">
                 <div class="flex justify-between text-[10px] text-gray-400 uppercase font-bold"><span>Subtotal</span><span>৳${subtotal}</span></div>
-                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery</span><span>৳${baseDeliveryCharge}</span></div>
+                ${discountAmount > 0 ? `<div class="flex justify-between text-[10px] text-emerald-600 uppercase font-bold"><span>Discount</span><span>-৳${discountAmount.toFixed(0)}</span></div>` : ''}
+                <div class="flex justify-between text-[10px] uppercase font-bold"><span>Delivery</span><span>${finalDeliveryCharge === 0 ? '<span class="text-emerald-600">FREE</span>' : `৳${finalDeliveryCharge}`}</span></div>
                 <div class="flex justify-between items-center border-t pt-2 mt-2">
                     <span class="text-xs font-black uppercase">Total</span>
                     <span class="text-2xl font-black text-black">৳${finalTotal.toFixed(0)}</span>
@@ -1222,7 +1357,7 @@ window.addEventListener('DOMContentLoaded', checkUrlAndOpenModal);
 window.addEventListener('hashchange', checkUrlAndOpenModal);
 
 // =================================================================
-// 7. CUSTOMER REVIEW ENGINE
+// 8. CUSTOMER REVIEW ENGINE
 // =================================================================
 let currentSelectedRating = 5;
 
@@ -1402,7 +1537,7 @@ function loadReviews() {
 }
 
 // =================================================================
-// 8. EVENT BINDINGS ON LOAD
+// 9. EVENT BINDINGS ON LOAD
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
     ['final-name', 'final-phone', 'final-address', 'trnx-id'].forEach(id => {
