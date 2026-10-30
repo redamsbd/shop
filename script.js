@@ -339,14 +339,14 @@ function displayProducts(products, showAll = false) {
 window.renderProducts = displayProducts;
 
 // =================================================================
-// 4. VECTOR SIZE CHART ENGINE (UPDATED & ADMIN-SYNCED)
+// 4. VECTOR SIZE CHART ENGINE (UPDATED & ADMIN-SYNCED DYNAMIC ENGINE)
 // =================================================================
 async function openSizeGuideModal(category) {
     const modal = document.getElementById('size-guide-modal');
     const titleElem = document.getElementById('modal-size-chart-title');
-    const tableBody = document.getElementById('modal-size-chart-body');
+    const tableElem = document.querySelector('#size-guide-modal table');
 
-    if (!modal) return;
+    if (!modal || !tableElem) return;
 
     const catKey = (category || 'regular-tshirt').toLowerCase();
     const formattedCatName = catKey.replace(/-/g, ' ').toUpperCase();
@@ -359,24 +359,33 @@ async function openSizeGuideModal(category) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
+    // Default column fallback
+    let columns = ['size', 'chest', 'length', 'sleeve'];
+    let chartRows = defaultSizeCharts[catKey] || defaultSizeCharts['regular-tshirt'];
+
     // Loading Placeholder in Table
-    if (tableBody) {
-        tableBody.innerHTML = `
+    tableElem.innerHTML = `
+        <tbody>
             <tr>
-                <td colspan="4" class="p-8 text-center text-zinc-400 font-bold uppercase tracking-wider">
+                <td colspan="10" class="p-8 text-center text-zinc-400 font-bold uppercase tracking-wider">
                     <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-lg mb-1 block"></i> Syncing Measurement Data...
                 </td>
             </tr>
-        `;
-    }
-
-    let chartRows = defaultSizeCharts[catKey] || defaultSizeCharts['regular-tshirt'];
+        </tbody>
+    `;
 
     try {
         if (window.firebase && firebase.firestore) {
             const doc = await firebase.firestore().collection('size_charts').doc(catKey).get();
             if (doc.exists) {
                 const data = doc.data();
+
+                // Dynamic columns extraction
+                if (data.columns && Array.isArray(data.columns) && data.columns.length > 0) {
+                    columns = data.columns;
+                }
+
+                // Dynamic rows extraction
                 if (data.rows && Array.isArray(data.rows) && data.rows.length > 0) {
                     chartRows = data.rows;
                 } else if (data.measurements && typeof data.measurements === 'object') {
@@ -393,26 +402,44 @@ async function openSizeGuideModal(category) {
         console.log("Firestore Size Chart Fetch Notice:", err);
     }
 
-    if (tableBody) {
-        if (!chartRows || chartRows.length === 0) {
-            tableBody.innerHTML = `
+    // Render Dynamic Table Header
+    const theadHTML = `
+        <thead>
+            <tr class="bg-black text-white text-[10px] font-black uppercase tracking-wider">
+                ${columns.map(col => `<th class="p-3.5 border-r border-zinc-800 last:border-r-0">${col.replace(/_/g, ' ')}</th>`).join('')}
+            </tr>
+        </thead>
+    `;
+
+    // Render Dynamic Table Body Rows
+    let tbodyHTML = '';
+    if (!chartRows || chartRows.length === 0) {
+        tbodyHTML = `
+            <tbody class="divide-y divide-zinc-100 text-xs font-bold bg-white">
                 <tr>
-                    <td colspan="4" class="p-6 text-center text-zinc-400 font-bold uppercase text-xs">
+                    <td colspan="${columns.length}" class="p-6 text-center text-zinc-400 font-bold uppercase text-xs">
                         No measurement data available for this category.
                     </td>
                 </tr>
-            `;
-        } else {
-            tableBody.innerHTML = chartRows.map(r => `
-                <tr class="hover:bg-zinc-50 transition-colors">
-                    <td class="p-3.5 font-black text-black border-r border-zinc-100 bg-zinc-50/50">${r.size || 'N/A'}</td>
-                    <td class="p-3.5 border-r border-zinc-100 font-bold text-zinc-800">${r.chest || '-'}″</td>
-                    <td class="p-3.5 border-r border-zinc-100 font-bold text-zinc-800">${r.length || '-'}″</td>
-                    <td class="p-3.5 font-bold text-zinc-800">${r.sleeve || '-'}″</td>
-                </tr>
-            `).join('');
-        }
+            </tbody>
+        `;
+    } else {
+        tbodyHTML = `
+            <tbody class="divide-y divide-zinc-100 text-xs font-bold bg-white">
+                ${chartRows.map(r => `
+                    <tr class="hover:bg-zinc-50 transition-colors">
+                        ${columns.map((col, idx) => `
+                            <td class="p-3.5 ${idx === 0 ? 'font-black text-black bg-zinc-50/50' : 'text-zinc-800'} border-r border-zinc-100 last:border-r-0">
+                                ${r[col] || '-'}
+                            </td>
+                        `).join('')}
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
     }
+
+    tableElem.innerHTML = theadHTML + tbodyHTML;
 }
 
 function closeSizeGuideModal() {
@@ -422,7 +449,6 @@ function closeSizeGuideModal() {
         modal.classList.remove('flex');
     }
 }
-
 // ===== Related Products Generator (Category Based) =====
 function generateRelatedProductsHTML(currentId, category) {
     if (!window.allProducts || window.allProducts.length === 0) return '';
