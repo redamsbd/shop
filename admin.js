@@ -1642,54 +1642,205 @@ async function toggleSingleSize(productId, sizeName, newAvailability) {
     await db.collection("products").doc(productId).update({ sizes: updatedSizes });
 }
 
+// =================================================================
+// UPDATED PROMO CODE ENGINE (GLOBAL, CATEGORY & PRODUCT SPECIFIC)
+// =================================================================
+
 function openAddPromoModal() { 
     const promoModal = document.getElementById('promo-modal');
-    if (promoModal) {
-        promoModal.classList.remove('hidden');
-        promoModal.classList.add('active'); 
+    if (!promoModal) return;
+
+    // Reset Form Fields
+    if (document.getElementById('promo-code')) document.getElementById('promo-code').value = '';
+    if (document.getElementById('promo-type')) document.getElementById('promo-type').value = 'percent';
+    if (document.getElementById('promo-value')) document.getElementById('promo-value').value = '';
+    if (document.getElementById('promo-scope')) document.getElementById('promo-scope').value = 'global';
+
+    // Populate Individual Products Dropdown
+    populatePromoProductDropdown();
+
+    // Reset Target Visibilities
+    handlePromoScopeChange();
+    togglePromoValueInput();
+
+    // Display Modal
+    promoModal.classList.remove('hidden');
+    promoModal.classList.add('flex');
+}
+
+function populatePromoProductDropdown() {
+    const productSelect = document.getElementById('promo-target-product');
+    if (!productSelect) return;
+
+    const products = window.allProducts || [];
+    if (products.length === 0) {
+        productSelect.innerHTML = `<option value="">No products available</option>`;
+        return;
+    }
+
+    productSelect.innerHTML = products.map(p => `
+        <option value="${p.id}">${p.name} (৳${p.price}) [${p.category || 'N/A'}]</option>
+    `).join('');
+}
+
+function handlePromoScopeChange() {
+    const scope = document.getElementById('promo-scope')?.value || 'global';
+    const categoryWrapper = document.getElementById('promo-category-target');
+    const productWrapper = document.getElementById('promo-product-target');
+
+    if (categoryWrapper) categoryWrapper.classList.add('hidden');
+    if (productWrapper) productWrapper.classList.add('hidden');
+
+    if (scope === 'category' && categoryWrapper) {
+        categoryWrapper.classList.remove('hidden');
+    } else if (scope === 'product' && productWrapper) {
+        productWrapper.classList.remove('hidden');
+    }
+}
+
+function togglePromoValueInput() {
+    const type = document.getElementById('promo-type')?.value;
+    const valueWrapper = document.getElementById('promo-value-wrapper');
+    const valueInput = document.getElementById('promo-value');
+
+    if (type === 'delivery') {
+        if (valueWrapper) valueWrapper.classList.add('opacity-50', 'pointer-events-none');
+        if (valueInput) valueInput.value = '0';
+    } else {
+        if (valueWrapper) valueWrapper.classList.remove('opacity-50', 'pointer-events-none');
     }
 }
 
 async function savePromo() {
     const code = document.getElementById('promo-code')?.value.trim().toUpperCase();
     const type = document.getElementById('promo-type')?.value;
-    const val = parseInt(document.getElementById('promo-value')?.value) || 0;
+    const valueNum = parseFloat(document.getElementById('promo-value')?.value || 0);
+    const scope = document.getElementById('promo-scope')?.value || 'global';
 
-    if (!code) return;
+    const targetCategory = document.getElementById('promo-target-category')?.value;
+    const targetProductId = document.getElementById('promo-target-product')?.value;
 
-    await db.collection("promos").doc(code).set({
+    if (!code) {
+        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Please enter a valid Promo Code string.' });
+        return;
+    }
+
+    if (type !== 'delivery' && (isNaN(valueNum) || valueNum <= 0)) {
+        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Please enter a valid discount amount or percentage.' });
+        return;
+    }
+
+    if (scope === 'product' && !targetProductId) {
+        Swal.fire({ icon: 'warning', title: 'Attention!', text: 'Please select a target product.' });
+        return;
+    }
+
+    const promoData = {
         code: code,
-        type: type,
-        value: val,
+        type: type, // 'percent', 'fixed', 'delivery'
+        value: type === 'delivery' ? 0 : valueNum,
+        scope: scope, // 'global', 'category', 'product'
+        targetCategory: scope === 'category' ? targetCategory : null,
+        targetProductId: scope === 'product' ? String(targetProductId) : null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    };
 
-    Swal.fire({ icon: 'success', title: 'Promo Created!' });
-    closeModal('promo-modal');
+    try {
+        await db.collection("promos").doc(code).set(promoData);
+
+        closeModal('promo-modal');
+
+        Swal.fire({
+            icon: 'success',
+            title: 'PROMO CREATED!',
+            text: `Voucher Code '${code}' is now active.`,
+            timer: 1500,
+            showConfirmButton: false
+        });
+    } catch (err) {
+        console.error("Save Promo Error:", err);
+        Swal.fire({ icon: 'error', title: 'Failed to Save', text: err.message });
+    }
 }
 
 function renderPromoTab() {
     const table = document.getElementById('promo-table');
     if (!table) return;
 
-    if (allPromos.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No promo codes created yet.</td></tr>';
-        return;
-    }
+    db.collection("promos").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+            table.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400 font-bold uppercase text-xs">No active promo codes created yet.</td></tr>';
+            return;
+        }
 
-    table.innerHTML = allPromos.map(p => `
-        <tr>
-            <td class="px-4 py-3 font-black text-red-600">${p.code}</td>
-            <td class="px-4 py-3 font-bold text-xs uppercase">${p.type}</td>
-            <td class="px-4 py-3 font-bold">${p.type === 'percent' ? p.value + '%' : '৳' + p.value}</td>
-            <td class="px-4 py-3"><button onclick="deletePromo('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
-    `).join('');
+        table.innerHTML = snapshot.docs.map(doc => {
+            const p = doc.data();
+            const id = doc.id;
+
+            // Type Label Formatting
+            let typeBadge = '';
+            if (p.type === 'percent') {
+                typeBadge = `<span class="bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">% Percentage</span>`;
+            } else if (p.type === 'fixed') {
+                typeBadge = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">৳ Fixed Cash</span>`;
+            } else {
+                typeBadge = `<span class="bg-purple-50 text-purple-600 border border-purple-200 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">🚚 Free Delivery</span>`;
+            }
+
+            // Target Scope Display Text
+            let targetText = '';
+            if (p.scope === 'category') {
+                targetText = `<span class="text-cyan-600 font-black uppercase">📁 Category: ${p.targetCategory || 'N/A'}</span>`;
+            } else if (p.scope === 'product') {
+                const matchedProduct = (window.allProducts || []).find(item => String(item.id) === String(p.targetProductId));
+                const prodName = matchedProduct ? matchedProduct.name : `Product ID: ${p.targetProductId}`;
+                targetText = `<span class="text-purple-600 font-black uppercase">👕 Product: ${prodName}</span>`;
+            } else {
+                targetText = `<span class="text-gray-500 font-black uppercase">🌐 All Products (Global)</span>`;
+            }
+
+            // Discount Display
+            const valDisplay = p.type === 'percent' ? `${p.value}% OFF` : (p.type === 'fixed' ? `৳${p.value} OFF` : 'FREE DELIVERY');
+
+            return `
+                <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                    <td class="px-5 py-4 font-black text-black tracking-wider uppercase">${p.code}</td>
+                    <td class="px-5 py-4">${typeBadge}</td>
+                    <td class="px-5 py-4 font-black text-gray-900">${valDisplay}</td>
+                    <td class="px-5 py-4 text-xs">${targetText}</td>
+                    <td class="px-5 py-4 text-right">
+                        <button type="button" onclick="deletePromo('${id}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center cursor-pointer active:scale-95 shadow-sm" title="Delete Promo">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }, (err) => {
+        console.error("Error fetching promos:", err);
+    });
 }
 
 async function deletePromo(id) {
-    await db.collection("promos").doc(id).delete();
+    Swal.fire({
+        title: 'Delete Promo Voucher?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#000',
+        confirmButtonText: 'Delete'
+    }).then(async (res) => {
+        if (res.isConfirmed) {
+            await db.collection("promos").doc(id).delete();
+            Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1000, showConfirmButton: false });
+        }
+    });
 }
+
+// =================================================================
+// REVIEWS ENGINE
+// =================================================================
 
 function initAdminReviewManager() {
     db.collection("reviews").orderBy("createdAt", "desc").onSnapshot(snapshot => {
@@ -1791,7 +1942,6 @@ function deleteReview(id) {
         if (res.isConfirmed) db.collection("reviews").doc(id).delete();
     });
 }
-
 // =================================================================
 // CATEGORY SIZE CHART EDITOR ENGINE (ULTRA-DYNAMIC REFACTORED)
 // =================================================================
