@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REDAMS Executive Master Admin Engine</title>
     <link rel="icon" type="image/png" href="images/redams logo.jpg">
@@ -27,10 +27,22 @@
         .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
+        
+        /* সাইডবার ফিক্সড রাখার জন্য CSS ক্লাস যুক্ত করা হয়েছে */
+        .admin-sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 
+    <!-- পুরো লেআউটের জন্য রুট ফ্লেক্স কন্টেইনার -->
+    <div class="flex min-h-screen">
+         
 <!-- ULTRA-PREMIUM LOGIN GATEWAY & RECOVERY SYSTEM -->
 <div id="login-modal" class="fixed inset-0 bg-gray-950/85 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-300">
     <div class="bg-white p-7 md:p-9 rounded-3xl shadow-2xl max-w-sm w-full border border-gray-100 relative overflow-hidden card-shadow">
