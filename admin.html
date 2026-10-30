@@ -640,34 +640,42 @@
     </div>
 </div>
         <!-- 8. PROMO CODES TAB -->
-        <div id="promo-content" class="tab-content hidden space-y-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                <div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">DISCOUNT ENGINE</span>
-                    <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight mt-1">Promo Code Management</h1>
-                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Create flat discount or percentage promo vouchers for customer checkout</p>
-                </div>
-                <button type="button" onclick="openAddPromoModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition shrink-0">
-                    <i class="fa-solid fa-plus"></i> Create Promo Code
-                </button>
+<div id="promo-content" class="tab-content hidden space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+        <div>
+            <div class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 px-3 py-1 rounded-full mb-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-amber-600">DYNAMIC DISCOUNT ENGINE</span>
             </div>
+            <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Promo Code Management</h1>
+            <p class="text-xs text-gray-500 font-medium mt-0.5">Create global, category-wise, or individual product promo vouchers with automated validation</p>
+        </div>
+        <button type="button" onclick="openAddPromoModal()" class="bg-black hover:bg-red-600 text-white px-6 py-3.5 rounded-2xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-lg hover:shadow-red-600/20 flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95">
+            <i class="fa-solid fa-plus"></i> Create New Voucher
+        </button>
+    </div>
 
-            <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left min-w-[650px]">
-                        <thead class="bg-gray-50/80 border-b border-gray-200">
-                            <tr>
-                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Promo Code</th>
-                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Discount Type</th>
-                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Value Amount</th>
-                                <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div> <!-- /#promo-content -->
+    <!-- Promo Table List -->
+    <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left min-w-[750px]">
+                <thead class="bg-gray-900 text-white text-[10px] font-black uppercase tracking-wider">
+                    <tr>
+                        <th class="px-5 py-4 border-r border-gray-800">Promo Code</th>
+                        <th class="px-5 py-4 border-r border-gray-800">Discount Type</th>
+                        <th class="px-5 py-4 border-r border-gray-800">Value Amount</th>
+                        <th class="px-5 py-4 border-r border-gray-800">Applicable Target</th>
+                        <th class="px-5 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="promo-table" class="divide-y divide-gray-100 text-xs md:text-sm bg-white font-bold">
+                    <!-- Dynamic Promo List Loaded via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> <!-- /#promo-content -->
 
     </main> <!-- /Main Content Panel Wrapper -->
 
@@ -1165,21 +1173,86 @@
     </div>
 </div>
 
-<!-- PROMO MODAL -->
-<div id="promo-modal" class="modal-overlay">
-    <div class="bg-white p-6 rounded-3xl max-w-md w-full mx-4 shadow-2xl">
-        <h2 class="text-xl font-black mb-4 text-gray-900">Create Promo</h2>
-        <div class="space-y-3">
-            <input type="text" id="promo-code" placeholder="PROMO CODE" class="w-full p-3 border border-gray-200 rounded-xl font-bold text-xs uppercase">
-            <select id="promo-type" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-                <option value="percent">Percentage (%)</option>
-                <option value="fixed">Fixed Amount (৳)</option>
-                <option value="delivery">Free Delivery</option>
-            </select>
-            <input type="number" id="promo-value" placeholder="Value" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-semibold">
-            <div class="flex gap-3 pt-2">
-                <button onclick="savePromo()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Create</button>
-                <button onclick="closeModal('promo-modal')" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-bold text-xs">Cancel</button>
+<!-- PROMO MODAL (ULTRA-PREMIUM TARGETING ENGINE) -->
+<div id="promo-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300">
+    <div class="bg-white p-6 md:p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-gray-100 relative text-black animate-fade-in my-auto max-h-[92vh] overflow-y-auto custom-scrollbar">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                <h2 class="text-lg font-black uppercase text-gray-900 tracking-tight">Create Promo Voucher</h2>
+            </div>
+            <button type="button" onclick="closeModal('promo-modal')" class="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center font-bold hover:bg-black hover:text-white transition cursor-pointer">
+                &times;
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Promo Code Input -->
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Voucher Code String</label>
+                <input type="text" id="promo-code" placeholder="e.g. REDAMS20, SUMMER100" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl font-black text-xs uppercase text-gray-900 outline-none focus:border-black focus:bg-white transition shadow-sm">
+            </div>
+
+            <!-- Discount Type & Value -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Discount Type</label>
+                    <select id="promo-type" onchange="togglePromoValueInput()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-black focus:bg-white transition shadow-sm cursor-pointer">
+                        <option value="percent">Percentage (%) Discount</option>
+                        <option value="fixed">Fixed Amount (৳) Discount</option>
+                        <option value="delivery">Free Delivery Offer</option>
+                    </select>
+                </div>
+
+                <div id="promo-value-wrapper">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Discount Amount / %</label>
+                    <input type="number" id="promo-value" placeholder="e.g. 15 or 100" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-black focus:bg-white transition shadow-sm">
+                </div>
+            </div>
+
+            <!-- Applicable Target Scope Selection -->
+            <div>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-wider">Target Applicability Scope</label>
+                <select id="promo-scope" onchange="handlePromoScopeChange()" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-black focus:bg-white transition shadow-sm cursor-pointer">
+                    <option value="global">🌐 All Products (Global Cart Promo)</option>
+                    <option value="category">📁 Specific Category Only</option>
+                    <option value="product">👕 Individual Specific Product Only</option>
+                </select>
+            </div>
+
+            <!-- Conditional Category Target Selector -->
+            <div id="promo-category-target" class="hidden">
+                <label class="block text-[10px] font-black uppercase text-cyan-600 mb-1 tracking-wider">Select Target Category</label>
+                <select id="promo-target-category" class="w-full p-3.5 bg-cyan-50/50 border border-cyan-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm cursor-pointer">
+                    <option value="drop-shoulder">Drop Shoulder T-Shirt</option>
+                    <option value="polo-tshirt">Polo T-Shirt</option>
+                    <option value="hoodie">Hoodie / Sweatshirt</option>
+                    <option value="regular-tshirt">Regular T-Shirt</option>
+                    <option value="acid-wash">Acid Wash T-Shirt</option>
+                    <option value="couple-tshirt">Couple T-Shirt</option>
+                    <option value="henley">Henley T-Shirt</option>
+                    <option value="combo">Combo Offer</option>
+                </select>
+            </div>
+
+            <!-- Conditional Product Target Selector -->
+            <div id="promo-product-target" class="hidden">
+                <label class="block text-[10px] font-black uppercase text-purple-600 mb-1 tracking-wider">Select Target Specific Product</label>
+                <select id="promo-target-product" class="w-full p-3.5 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-black text-gray-900 outline-none focus:border-purple-600 focus:bg-white transition shadow-sm cursor-pointer">
+                    <!-- Loaded dynamically via JS using allProducts -->
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-3">
+                <button type="button" onclick="savePromo()" class="flex-1 bg-black hover:bg-red-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition shadow-lg cursor-pointer">
+                    Save Promo Voucher ↘
+                </button>
+                <button type="button" onclick="closeModal('promo-modal')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
