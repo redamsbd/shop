@@ -918,7 +918,7 @@
     "price": 250,
     "originalPrice": 550,
     "category": "henley",
-    "isOutOfStock": true,
+    "isOutOfStock": false,
     "description": "<b>Fabric:</b> Premium Organic 100% Cotton skin friendly high density primium waffle fabric.<br><b>Style:</b> Minimalist Henley T-Shirt with Premium Button Placket.<br><b>Detail:</b> Fine Stitching & Breathable Comfort. 250+ GSM <br>Perfect for your everyday casual & smart look.",
     "images": [
       "images/henley tee front nevy blue.jpg",
@@ -930,8 +930,8 @@
     "sizes": [
       { "name": "M", "available": false },
       { "name": "L", "available": false },
-      { "name": "XL", "available": false },
-      { "name": "XXL", "available": false }
+      { "name": "XL", "available": true },
+      { "name": "XXL", "available": true }
     ]
 },
     {
@@ -952,7 +952,7 @@
     "sizes": [
       { "name": "M", "available": false },
       { "name": "L", "available": false },
-      { "name": "XL", "available": false },
+      { "name": "XL", "available": true },
       { "name": "XXL", "available": false }
     ]
 },
