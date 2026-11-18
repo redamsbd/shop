@@ -1735,15 +1735,22 @@ async function dispatchCourierParcel(e) {
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
                 liveApiStatus = resData.data.order_status || "Pending";
 
-               // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ রাউন্ড-আপ (Math.ceil) হিসাব
+                // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ রাউন্ড-আপ (Math.ceil) হিসাব
                 const rawDeliveryFee = Number(resData.data.delivery_fee || 0);
                 const rawCodFee = resData.data.cod_fee !== undefined 
                     ? Number(resData.data.cod_fee) 
                     : (detectedCity !== 1 ? (codAmount * 0.01) : 0);
 
-                // দশমিকের পর কোনো পয়সা থাকলেই পরবর্তী পূর্ণ টাকায় (Round Up) নিয়ে যাবে
+                // দশমিকের পর কোনো পয়সা থাকলেই পরবর্তী পূর্ণ টাকায় (Round Up) নিয়ে যাবে
                 courierOriginalFee = Math.ceil(rawDeliveryFee);
                 courierCodCharge = Math.ceil(rawCodFee);
+            } else {
+                throw new Error(resData?.message || "Pathao Rejected Parcel");
+            }
+        }
+
+        const totalCourierDeduction = courierOriginalFee + courierCodCharge;
+        const netReceivableAmount = codAmount - totalCourierDeduction;
 
         // Firebase-এ সম্পূর্ণ আর্থিক ও লজিস্টিক রেকর্ড সংরক্ষণ
         await db.collection("courier_shipments").add({
@@ -1975,7 +1982,8 @@ async function inspectCourierShipment(shipmentId) {
         showCloseButton: true
     });
 }
-// প্রিন্টেবল প্রিমিয়াম REDAMS ব্র্যান্ডেড পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
+
+// প্রিন্টেবল প্রিমিয়াম REDAMS ব্র্যান্ডেড পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
 function printParcelSlip(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
@@ -2252,6 +2260,7 @@ function printParcelSlip(shipmentId) {
     `);
     printWin.document.close();
 }
+
 // রিয়েল লাইভ স্ট্যাটাস সিঙ্ক (Steadfast & Pathao উভয় API থেকে আসল স্ট্যাটাস আপডেট)
 async function syncLiveCourierStatuses() {
     const activeShipments = allCourierShipments.filter(s => ['In Transit', 'Hold'].includes(s.status) && s.consignmentId);
