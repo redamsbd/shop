@@ -1065,7 +1065,7 @@ async function deleteProduct(id) {
 }
 
 // =================================================================
-// ORDERS MANAGEMENT ENGINE (UPGRADED V4.0 OMNICHANNEL)
+// ORDERS MANAGEMENT ENGINE (RESPONSIVE PC + MOBILE V4.2)
 // =================================================================
 
 function openAddOrderModal() { 
@@ -1140,15 +1140,30 @@ function renderOrdersTab(ordersToRender = allOrders) {
         if (kpiCompleted) kpiCompleted.innerText = allOrders.filter(o => ['Completed', 'Delivered'].includes(o.status || '')).length;
     }
 
-    const table = document.getElementById('orders-table');
-    if (!table) return;
+    const tbody = document.getElementById('orders-table');
+    if (!tbody) return;
+
+    // ২. প্যারেন্ট কন্টেইনার ও টেবিলকে অটোমেটিক ফুল-রেসপন্সিভ করা (PC-তে ডানপাশ কাটবে না, Mobile-এ কার্ড হবে)
+    const mainEl = document.querySelector('main');
+    if (mainEl) mainEl.classList.add('min-w-0');
+
+    const tableEl = tbody.closest('table');
+    const theadEl = tableEl ? tableEl.querySelector('thead') : null;
+    if (tableEl) {
+        tableEl.classList.remove('min-w-[920px]', 'min-w-[750px]');
+        tableEl.classList.add('block', 'md:table', 'w-full');
+    }
+    if (theadEl) {
+        theadEl.classList.add('hidden', 'md:table-header-group');
+    }
+    tbody.classList.add('block', 'md:table-row-group', 'p-3', 'md:p-0', 'space-y-3', 'md:space-y-0', 'bg-gray-50/60', 'md:bg-white');
 
     if (!ordersToRender || ordersToRender.length === 0) {
-        table.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 font-bold uppercase text-xs">No matching orders found.</td></tr>';
+        tbody.innerHTML = '<tr class="block md:table-row"><td colspan="6" class="block md:table-cell p-8 text-center text-gray-400 font-bold uppercase text-xs">No matching orders found.</td></tr>';
         return;
     }
 
-    table.innerHTML = ordersToRender.map(o => {
+    tbody.innerHTML = ordersToRender.map(o => {
         const source = o.orderSource || o.source || 'Website';
         const method = o.Payment_Method || o.paymentMethod || 'COD';
         const status = o.status || 'Pending';
@@ -1158,6 +1173,8 @@ function renderOrdersTab(ordersToRender = allOrders) {
         const waPhone = cleanPhone.startsWith('88') ? cleanPhone : '88' + cleanPhone;
         const address = o.Delivery_Address || o.address || '';
         const itemsText = o.Ordered_Items || o.items || o.Product_Details || 'Apparel Item';
+        const billText = o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0));
+        const shortId = o.id.substring(0, 6).toUpperCase();
         
         // চ্যানেল ব্যাজ স্টাইল
         let sourceBadge = 'text-red-600 bg-red-50 border-red-200';
@@ -1190,70 +1207,86 @@ function renderOrdersTab(ordersToRender = allOrders) {
         }
 
         return `
-            <tr class="hover:bg-gray-50/90 transition border-b border-gray-100">
-                <!-- Order ID & Channel -->
-                <td class="px-5 py-3.5 align-top">
-                    <span class="font-mono font-black text-gray-900 text-xs block">#${o.id.substring(0, 6).toUpperCase()}</span>
-                    <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase border px-2 py-0.5 rounded-md mt-1 ${sourceBadge}">
-                        <i class="${sourceIcon}"></i> ${source}
-                    </span>
-                    ${dateStr ? `<span class="block text-[10px] font-semibold text-gray-400 mt-1">${dateStr}</span>` : ''}
-                </td>
-
-                <!-- Customer & Direct Call/WA -->
-                <td class="px-5 py-3.5 align-top">
-                    <p class="font-black text-gray-900 text-xs">${custName}</p>
-                    <div class="flex items-center gap-1.5 mt-1">
-                        <span class="text-xs text-gray-600 font-mono font-bold">${custPhone}</span>
-                        ${cleanPhone ? `
-                            <a href="tel:${cleanPhone}" title="Call Customer" class="w-5 h-5 rounded-md bg-green-50 text-green-600 hover:bg-green-600 hover:text-white flex items-center justify-center text-[9px] transition">
-                                <i class="fa-solid fa-phone"></i>
-                            </a>
-                            <a href="https://wa.me/${waPhone}" target="_blank" title="WhatsApp Chat" class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center text-[10px] transition">
-                                <i class="fa-brands fa-whatsapp"></i>
-                            </a>
-                        ` : ''}
+            <tr class="block md:table-row bg-white rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-gray-200/80 md:border-0 md:border-b md:border-gray-100 p-3.5 md:p-0 hover:bg-gray-50/90 transition">
+                
+                <!-- 1. Order ID & Channel -->
+                <td class="flex md:table-cell items-center justify-between md:px-3.5 md:py-3.5 pb-2.5 md:pb-3.5 border-b border-gray-100 md:border-0 align-top">
+                    <div class="flex md:block items-center gap-2">
+                        <span class="font-mono font-black text-gray-900 text-xs block">#${shortId}</span>
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase border px-1.5 py-0.5 rounded mt-0 md:mt-1 ${sourceBadge}">
+                            <i class="${sourceIcon}"></i> ${source}
+                        </span>
                     </div>
-                    ${address ? `<p class="text-[10px] text-gray-400 font-medium mt-1 max-w-[190px] truncate" title="${address}">${address}</p>` : ''}
+                    ${dateStr ? `<span class="block text-[9px] font-semibold text-gray-400 md:mt-1">${dateStr}</span>` : ''}
                 </td>
 
-                <!-- Ordered Items -->
-                <td class="px-5 py-3.5 align-top">
-                    <div class="text-[11px] font-bold text-gray-800 max-w-[210px] line-clamp-2 leading-relaxed" title="${itemsText}">
+                <!-- 2. Customer & Direct Call/WA -->
+                <td class="block md:table-cell md:px-3.5 md:py-3.5 py-2 md:py-3.5 align-top">
+                    <div class="flex items-center justify-between md:block">
+                        <p class="font-black text-gray-900 text-xs">${custName}</p>
+                        <div class="flex items-center gap-1 mt-0 md:mt-1">
+                            <span class="text-[11px] text-gray-600 font-mono font-bold">${custPhone}</span>
+                            ${cleanPhone ? `
+                                <a href="tel:${cleanPhone}" title="Call Customer" class="w-5 h-5 rounded bg-green-50 text-green-600 hover:bg-green-600 hover:text-white flex items-center justify-center text-[9px] transition shrink-0">
+                                    <i class="fa-solid fa-phone"></i>
+                                </a>
+                                <a href="https://wa.me/${waPhone}" target="_blank" title="WhatsApp Chat" class="w-5 h-5 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center text-[10px] transition shrink-0">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ${address ? `<p class="text-[10px] text-gray-400 font-medium mt-1 md:max-w-[155px] truncate" title="${address}">${address}</p>` : ''}
+                </td>
+
+                <!-- 3. Ordered Items -->
+                <td class="block md:table-cell md:px-3.5 md:py-3.5 py-2 md:py-3.5 align-top">
+                    <div class="bg-gray-50 md:bg-transparent p-2 md:p-0 rounded-xl border border-gray-100 md:border-0 text-[11px] font-bold text-gray-800 md:max-w-[165px] line-clamp-2 leading-snug" title="${itemsText}">
                         ${itemsText}
                     </div>
                 </td>
 
-                <!-- Total & Payment -->
-                <td class="px-5 py-3.5 align-top">
-                    <span class="font-black text-red-600 text-sm block">${o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0))}</span>
-                    <span class="inline-block text-[10px] font-bold text-gray-700 mt-0.5">${method}</span>
-                    ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[9px] font-mono font-bold text-purple-700 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded mt-0.5 inline-block">Trx: ${o.Transaction_ID}</span>` : ''}
+                <!-- 4. Total & Payment -->
+                <td class="flex md:table-cell items-center justify-between md:px-3.5 md:py-3.5 py-2 md:py-3.5 border-t border-gray-100 md:border-0 align-top whitespace-nowrap">
+                    <span class="font-black text-red-600 text-sm md:text-xs block">${billText}</span>
+                    <div class="text-right md:text-left">
+                        <span class="inline-block text-[10px] font-bold text-gray-700">${method}</span>
+                        ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<span class="block text-[9px] font-mono font-bold text-purple-700 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded mt-0.5">Trx: ${o.Transaction_ID}</span>` : ''}
+                    </div>
                 </td>
 
-                <!-- INLINE EDITABLE STATUS DROPDOWN (Fixes manual courier booking status issue) -->
-                <td class="px-5 py-3.5 align-top">
-                    <select onchange="updateOrderStatusDirectly('${o.id}', this.value)" 
-                            class="px-2.5 py-1.5 rounded-xl text-[11px] font-black border outline-none cursor-pointer transition shadow-sm ${statusSelectStyle}">
-                        <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
-                        <option value="Confirmed" ${status === 'Confirmed' ? 'selected' : ''}>✅ Confirmed</option>
-                        <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>🚚 Shipped / Courier</option>
-                        <option value="Completed" ${(status === 'Completed' || status === 'Delivered') ? 'selected' : ''}>🎉 Completed / Paid</option>
-                        <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
-                    </select>
+                <!-- 5 & 6. Status + Quick Actions (Side-by-side on Mobile, Separate Columns on PC) -->
+                <td class="block md:table-cell md:px-3 md:py-3.5 pt-2 md:pt-3.5 align-top">
+                    <div class="flex items-center justify-between gap-2 md:block">
+                        <select onchange="updateOrderStatusDirectly('${o.id}', this.value)" 
+                                class="flex-1 md:flex-none px-2 py-1.5 rounded-xl text-[11px] font-black border outline-none cursor-pointer transition shadow-sm ${statusSelectStyle}">
+                            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="Confirmed" ${status === 'Confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                            <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>🚚 Shipped</option>
+                            <option value="Completed" ${(status === 'Completed' || status === 'Delivered') ? 'selected' : ''}>🎉 Completed</option>
+                            <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                        </select>
+
+                        <!-- Mobile Actions (Visible only on mobile) -->
+                        <div class="flex md:hidden items-center gap-1.5 shrink-0">
+                            <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-xs rounded-xl"><i class="fa-solid fa-eye"></i></button>
+                            <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl"><i class="fa-solid fa-truck-fast"></i></button>
+                            <button onclick="deleteOrder('${o.id}')" class="p-1.5 bg-red-50 text-red-600 font-bold text-xs rounded-xl"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
                 </td>
 
-                <!-- Quick Actions -->
-                <td class="px-5 py-3.5 align-top text-right whitespace-nowrap">
-                    <div class="flex items-center justify-end gap-1.5">
-                        <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-black transition cursor-pointer" title="View Full Details">
-                            <i class="fa-solid fa-eye"></i> Details
+                <!-- Desktop Quick Actions Column (Hidden on mobile, compact on PC so nothing cuts off) -->
+                <td class="hidden md:table-cell px-3.5 py-3.5 align-top text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1">
+                        <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-[11px] rounded-xl hover:bg-black transition cursor-pointer" title="View Full Details">
+                            <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-purple-700 transition cursor-pointer" title="Dispatch Courier">
+                        <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-[11px] rounded-xl hover:bg-purple-700 transition cursor-pointer" title="Dispatch Courier">
                             <i class="fa-solid fa-truck-fast"></i>
                         </button>
                         <button onclick="deleteOrder('${o.id}')" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition cursor-pointer" title="Delete Order">
-                            <i class="fa-solid fa-trash"></i>
+                            <i class="fa-solid fa-trash text-xs"></i>
                         </button>
                     </div>
                 </td>
@@ -1262,7 +1295,7 @@ function renderOrdersTab(ordersToRender = allOrders) {
     }).join('');
 }
 
-// ম্যানুয়ালি কুরিয়ার বুক করার পর বা যেকোনো সময় সরাসরি স্ট্যাটাস আপডেট করার ফাংশন
+// ম্যানুয়ালি কুরিয়ার বুক করার পর বা যেকোনো সময় সরাসরি স্ট্যাটাস আপডেট করার ফাংশন
 async function updateOrderStatusDirectly(orderId, newStatus) {
     try {
         await db.collection("orders").doc(orderId).update({
@@ -1295,7 +1328,7 @@ function viewOrderDetails(orderId) {
     const rawPhone = order.Customer_Phone || order.customerPhone || 'N/A';
     document.getElementById('detail-cust-phone').innerText = rawPhone; 
 
-    // মডালের ভেতরের কল ও হোয়াটসঅ্যাপ বাটন কানেক্ট করা
+    // মডালের ভেতরের কল ও হোয়াটসঅ্যাপ বাটন কানেক্ট করা
     const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
     const callBtn = document.getElementById('detail-phone-call-btn');
     const waBtn = document.getElementById('detail-whatsapp-btn');
