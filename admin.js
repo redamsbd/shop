@@ -475,6 +475,8 @@ async function verifyOTPAndResetPassword() {
 // DASHBOARD INIT & REALTIME LISTENERS (UPGRADED V4.0)
 // =================================================================
 
+let salesChartInstance = null;
+
 function initDashboard() {
     switchTab('dashboard');
 
@@ -525,8 +527,9 @@ function updateStats() {
     if (pendingElem) pendingElem.innerText = allOrders.filter(o => (o.status || 'Pending') === 'Pending').length;
     if (stockElem) stockElem.innerText = allProducts.filter(p => p.isOutOfStock).length;
 
-    // ২. প্রিমিয়াম ড্যাশবোর্ড উইজেটগুলো লাইভ আপডেট
+    // ২. প্রিমিয়াম ড্যাশবোর্ড উইজেট ও সেলস চার্ট লাইভ আপডেট
     syncPremiumDashboardWidgets();
+    renderSalesChart();
 }
 
 function syncPremiumDashboardWidgets() {
@@ -570,7 +573,7 @@ function syncPremiumDashboardWidgets() {
         }).join('');
     }
 
-    // খ. চ্যানেল অনুযায়ী (Website, Facebook, WhatsApp, Manual) অর্ডার ব্রেকডাউন
+    // খ. চ্যানেল অনুযায়ী (Website, Facebook, WhatsApp, Manual) অর্ডার ব্রেকডাউন
     if (Array.isArray(allOrders)) {
         const total = allOrders.length;
         const countBySource = (src) => allOrders.filter(o => (o.source || o.channel || o.ORDER_SOURCE || 'Website').toLowerCase().includes(src)).length;
@@ -593,7 +596,7 @@ function syncPremiumDashboardWidgets() {
         setBar('wa', wa);
         setBar('manual', manual);
 
-        // গ. সর্বশেষ ৫টি Pending অর্ডার কিউ (সরাসরি কুরিয়ার বুকিং বাটনসহ)
+        // গ. সর্বশেষ ৫টি Pending অর্ডার কিউ (সরাসরি কুরিয়ার বুকিং বাটনসহ)
         const pendingOrders = allOrders.filter(o => (o.status || 'Pending') === 'Pending').slice(0, 5);
         const pendingBody = document.getElementById('dash-pending-orders-body');
         if (pendingBody) {
@@ -636,6 +639,105 @@ function syncPremiumDashboardWidgets() {
     }
 }
 
+function renderSalesChart() {
+    const ctx = document.getElementById('salesChart');
+    if (!ctx || !Array.isArray(allOrders)) return;
+
+    const labels = [];
+    const revenueData = [];
+    const orderCountData = [];
+
+    // শেষ ৭ দিনের তারিখ অনুযায়ী সেলস ও অর্ডার ভলিউম হিসাব
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const displayLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        labels.push(displayLabel);
+
+        const dayOrders = allOrders.filter(o => {
+            if (!o.createdAt) return false;
+            const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+            return !isNaN(orderDate) && orderDate.toISOString().split('T')[0] === dateStr;
+        });
+
+        orderCountData.push(dayOrders.length);
+
+        const dayRev = dayOrders.reduce((sum, o) => {
+            if ((o.status || '') === 'Cancelled') return sum;
+            const val = parseInt(String(o.TOTAL_BILL || o.amount || o.totalAmount || 0).replace(/[^0-9]/g, '')) || 0;
+            return sum + val;
+        }, 0);
+        revenueData.push(dayRev);
+    }
+
+    if (salesChartInstance) {
+        salesChartInstance.destroy();
+    }
+
+    salesChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Sales Volume (৳)',
+                    data: revenueData,
+                    backgroundColor: 'rgba(220, 38, 38, 0.85)',
+                    borderRadius: 8,
+                    barPercentage: 0.5,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Total Orders',
+                    data: orderCountData,
+                    type: 'line',
+                    borderColor: '#111827',
+                    backgroundColor: '#111827',
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    tension: 0.35,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    labels: { font: { family: 'Inter', weight: 'bold', size: 11 } }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter', weight: 'bold', size: 10 } }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => '৳' + value,
+                        font: { family: 'Inter', weight: 'bold', size: 10 }
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: { drawOnChartArea: false },
+                    ticks: {
+                        stepSize: 1,
+                        font: { family: 'Inter', weight: 'bold', size: 10 }
+                    }
+                }
+            }
+        }
+    });
+}
 // =================================================================
 // PRODUCTS CATALOG & CLOUDINARY ENGINE
 // =================================================================
