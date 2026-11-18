@@ -739,7 +739,7 @@ function renderSalesChart() {
     });
 }
 // =================================================================
-// PRODUCTS CATALOG & CLOUDINARY ENGINE
+// PRODUCTS CATALOG & CLOUDINARY ENGINE (V2.0 PRO)
 // =================================================================
 
 function openAddProductModal() {
@@ -896,7 +896,9 @@ function filterProductsCatalog() {
     const selectedStock = document.getElementById('product-stock-filter')?.value || 'all';
 
     const filtered = allProducts.filter(p => {
-        const matchesQuery = (p.name || '').toLowerCase().includes(query) || (p.category || '').toLowerCase().includes(query);
+        const matchesQuery = (p.name || '').toLowerCase().includes(query) || 
+                             (p.category || '').toLowerCase().includes(query) ||
+                             String(p.price || '').includes(query);
         const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
         const matchesStock = selectedStock === 'all' || 
                              (selectedStock === 'in-stock' && !p.isOutOfStock) || 
@@ -911,6 +913,19 @@ function filterProductsCatalog() {
 function renderProductsTab(productsToRender = allProducts) {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
+
+    // ৪টি KPI কার্ডের লাইভ হিসাব আপডেট
+    const totalCount = Array.isArray(allProducts) ? allProducts.length : 0;
+    const inStockCount = Array.isArray(allProducts) ? allProducts.filter(p => !p.isOutOfStock).length : 0;
+    const outStockCount = totalCount - inStockCount;
+    const avgPrice = totalCount > 0 
+        ? Math.round(allProducts.reduce((sum, p) => sum + (Number(p.price) || 0), 0) / totalCount) 
+        : 0;
+
+    if (document.getElementById('stat-cat-total')) document.getElementById('stat-cat-total').innerText = totalCount;
+    if (document.getElementById('stat-cat-instock')) document.getElementById('stat-cat-instock').innerText = inStockCount;
+    if (document.getElementById('stat-cat-outstock')) document.getElementById('stat-cat-outstock').innerText = outStockCount;
+    if (document.getElementById('stat-cat-avgprice')) document.getElementById('stat-cat-avgprice').innerText = `৳${avgPrice.toLocaleString()}`;
 
     if (!productsToRender || productsToRender.length === 0) {
         grid.innerHTML = `
@@ -927,38 +942,82 @@ function renderProductsTab(productsToRender = allProducts) {
         const mainImg = imagesList[0] || 'images/placeholder.jpg';
         const imageCount = imagesList.length;
 
+        // ডিসকাউন্ট % হিসাব
+        let discountBadge = '';
+        if (p.originalPrice && Number(p.originalPrice) > Number(p.price)) {
+            const offPct = Math.round(((Number(p.originalPrice) - Number(p.price)) / Number(p.originalPrice)) * 100);
+            if (offPct > 0) {
+                discountBadge = `<span class="text-[9px] font-black uppercase text-white bg-red-600 px-2 py-0.5 rounded-md shadow-sm">-${offPct}% OFF</span>`;
+            }
+        }
+
+        // স্টকড সাইজ ও কালার সামারি
+        let sizesPreview = '';
+        if (Array.isArray(p.sizes)) {
+            sizesPreview = p.sizes.map(s => `
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${s.available ? 'bg-gray-100 text-gray-800' : 'bg-red-50 text-red-400 line-through'}">${s.name}</span>
+            `).join('');
+        } else if (p.sizes && typeof p.sizes === 'object') {
+            sizesPreview = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-50 text-purple-700">Couple Set</span>`;
+        }
+
+        const colorCount = Array.isArray(p.colors) ? p.colors.length : (p.colors ? 2 : 1);
+
         return `
-            <div class="bg-white rounded-2xl border border-gray-100 card-shadow overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="bg-white rounded-3xl border border-gray-100 card-shadow overflow-hidden group hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col justify-between">
                 <div class="relative aspect-[3/4] bg-gray-50 overflow-hidden">
                     <img src="${mainImg}" alt="${p.altText || p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    
+                    <!-- Top-Left Badges -->
                     <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start">
                         <span class="text-[9px] font-black uppercase text-white bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-full shadow-sm">${p.category}</span>
+                        ${discountBadge}
                         ${imageCount > 1 ? `<span class="text-[9px] font-bold text-gray-900 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-md shadow-sm"><i class="fa-regular fa-images"></i> ${imageCount}</span>` : ''}
                     </div>
+
+                    <!-- Top-Right Stock Pill -->
                     <div class="absolute top-2.5 right-2.5">
                         <span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-sm ${p.isOutOfStock ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}">
-                            ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
+                            ${p.isOutOfStock ? 'Sold Out' : 'In Stock'}
                         </span>
                     </div>
+
+                    <!-- Bottom-Right Quick Share Link -->
+                    <button type="button" onclick="copyProductShopLink('${p.id}')" class="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-xl bg-white/90 hover:bg-black text-gray-900 hover:text-white backdrop-blur-md shadow-md flex items-center justify-center text-xs transition cursor-pointer" title="Copy Customer Product Link">
+                        <i class="fa-solid fa-link"></i>
+                    </button>
                 </div>
 
                 <div class="p-4 flex-1 flex flex-col justify-between">
                     <div>
-                        <h3 class="font-black text-gray-900 text-sm truncate" title="${p.name}">${p.name}</h3>
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-black text-gray-900 text-sm truncate" title="${p.name}">${p.name}</h3>
+                            <span class="text-[9px] font-bold text-gray-400 shrink-0">${colorCount} Color${colorCount > 1 ? 's' : ''}</span>
+                        </div>
+                        
                         <div class="flex items-baseline gap-2 mt-1">
-                            <span class="text-sm font-black text-red-600">৳${p.price}</span>
+                            <span class="text-base font-black text-red-600">৳${p.price}</span>
                             ${p.originalPrice ? `<span class="text-xs font-bold text-gray-400 line-through">৳${p.originalPrice}</span>` : ''}
+                        </div>
+
+                        <!-- Available Sizes Row -->
+                        <div class="flex flex-wrap items-center gap-1 mt-2.5">
+                            ${sizesPreview}
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-3 border-t border-gray-100 mt-3">
-                        <button onclick="editProduct('${p.id}')" class="flex-1 bg-gray-900 hover:bg-black text-white text-[11px] font-black uppercase py-2 rounded-xl transition flex items-center justify-center gap-1">
+                    <!-- Action Toolbar -->
+                    <div class="flex items-center gap-1.5 pt-3 border-t border-gray-100 mt-3">
+                        <button type="button" onclick="editProduct('${p.id}')" class="flex-1 bg-gray-900 hover:bg-black text-white text-[11px] font-black uppercase py-2 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
-                        <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="p-2 rounded-xl border text-xs font-bold transition ${p.isOutOfStock ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}" title="Quick Stock Toggle">
+                        <button type="button" onclick="duplicateProduct('${p.id}')" class="p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-100 transition text-xs cursor-pointer" title="Clone / Duplicate Product">
+                            <i class="fa-regular fa-clone"></i>
+                        </button>
+                        <button type="button" onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="p-2 rounded-xl border text-xs font-bold transition cursor-pointer ${p.isOutOfStock ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-600 hover:text-white' : 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-600 hover:text-white'}" title="Toggle In/Out of Stock">
                             <i class="fa-solid ${p.isOutOfStock ? 'fa-check' : 'fa-ban'}"></i>
                         </button>
-                        <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition text-xs" title="Delete Product">
+                        <button type="button" onclick="deleteProduct('${p.id}')" class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition text-xs cursor-pointer" title="Delete Product">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -966,6 +1025,40 @@ function renderProductsTab(productsToRender = allProducts) {
             </div>
         `;
     }).join('');
+}
+
+// প্রোডাক্ট ডুপ্লিকেট / ক্লোন করার ফাংশন
+function duplicateProduct(id) {
+    const product = allProducts.find(p => p.id === id || String(p.id) === String(id));
+    if (!product) return;
+
+    editProduct(id);
+    document.getElementById('product-edit-id').value = '';
+    document.getElementById('product-name').value = `${product.name} (Copy)`;
+    document.getElementById('product-form-title').innerText = 'Duplicate Product (Save as New)';
+
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: 'Cloned! Update name/images & click Publish.',
+        timer: 2500,
+        showConfirmButton: false
+    });
+}
+
+// কাস্টমার প্রোডাক্ট লিংক কপি করার ফাংশন
+function copyProductShopLink(id) {
+    const shareUrl = `https://redamsbd.me/product.html?id=${id}`;
+    navigator.clipboard.writeText(shareUrl);
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Product Link Copied!',
+        timer: 1400,
+        showConfirmButton: false
+    });
 }
 
 function editProduct(id) {
