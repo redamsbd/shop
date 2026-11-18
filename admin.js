@@ -2771,41 +2771,76 @@ function copyTrackingCode(code) {
     navigator.clipboard.writeText(code);
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `Copied: ${code}`, timer: 1200, showConfirmButton: false });
 }
-//=======================================================
-// INVENTORY, REVIEWS & PROMO ENGINE
+
+// =================================================================
+// INVENTORY, REVIEWS & PROMO ENGINE (V2.0 PRO)
 // =================================================================
 
-function renderInventoryTab() {
+function filterInventoryMatrix() {
+    const query = document.getElementById('inventory-search-input')?.value.toLowerCase().trim() || '';
+    const cat = document.getElementById('inventory-category-filter')?.value || 'all';
+    const stock = document.getElementById('inventory-stock-filter')?.value || 'all';
+
+    const filtered = allProducts.filter(p => {
+        const matchQ = (p.name || '').toLowerCase().includes(query) || (p.category || '').toLowerCase().includes(query);
+        const matchCat = cat === 'all' || p.category === cat;
+        const matchStock = stock === 'all' || (stock === 'in-stock' && !p.isOutOfStock) || (stock === 'out-of-stock' && p.isOutOfStock);
+        return matchQ && matchCat && matchStock;
+    });
+
+    renderInventoryTab(filtered);
+}
+
+function renderInventoryTab(productsList = allProducts) {
     const table = document.getElementById('inventory-table');
     if (!table) return;
 
-    if (allProducts.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">No products available.</td></tr>';
+    if (!productsList || productsList.length === 0) {
+        table.innerHTML = '<tr class="block md:table-row"><td colspan="4" class="block md:table-cell p-8 text-center text-gray-400 font-bold uppercase text-xs">No matching products in inventory.</td></tr>';
         return;
     }
 
-    table.innerHTML = allProducts.map(p => {
+    table.innerHTML = productsList.map(p => {
+        const thumbImg = (Array.isArray(p.images) && p.images[0]) ? p.images[0] : 'images/placeholder.jpg';
         let sizesHtml = '';
+
         if (Array.isArray(p.sizes)) {
             sizesHtml = p.sizes.map(s => `
-                <button onclick="toggleSingleSize('${p.id}', '${s.name}', ${!s.available})" class="px-2 py-1 text-[10px] font-black rounded-md mr-1 mb-1 transition ${s.available ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200 line-through opacity-60'}">
-                    ${s.name}: ${s.available ? 'In' : 'Out'}
+                <button type="button" onclick="toggleSingleSize('${p.id}', '${s.name}', ${!s.available})" 
+                    class="px-2.5 py-1.5 text-[10px] font-black rounded-xl mr-1.5 mb-1 transition cursor-pointer inline-flex items-center gap-1 ${s.available ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-600 hover:text-white' : 'bg-red-50 text-red-500 border border-red-200 line-through opacity-75 hover:opacity-100'}">
+                    <span>${s.name}</span>
+                    <i class="fa-solid ${s.available ? 'fa-check text-[9px]' : 'fa-xmark text-[9px]'}"></i>
                 </button>
             `).join('');
         } else {
-            sizesHtml = '<span class="text-xs text-gray-400">Couple Special Sizes</span>';
+            sizesHtml = '<span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">Couple Set Sizes (Edit in Catalog)</span>';
         }
 
         return `
-            <tr>
-                <td class="px-4 py-3 font-bold text-gray-900">${p.name}</td>
-                <td class="px-4 py-3 text-xs font-bold uppercase text-gray-500">${p.category}</td>
-                <td class="px-4 py-3">
-                    <button onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" class="px-2.5 py-1 text-xs rounded-xl font-bold ${p.isOutOfStock ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-800'}">
-                        ${p.isOutOfStock ? 'Out of Stock' : 'In Stock'}
+            <tr class="block md:table-row bg-white rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-gray-200/80 md:border-0 md:border-b md:border-gray-100 p-3.5 md:p-0 hover:bg-gray-50/90 transition">
+                <td class="flex md:table-cell items-center justify-between md:px-5 md:py-3.5 pb-2.5 md:pb-3.5 border-b border-gray-100 md:border-0">
+                    <div class="flex items-center gap-3">
+                        <img src="${thumbImg}" class="w-10 h-12 rounded-xl object-cover border border-gray-200 shrink-0">
+                        <div>
+                            <p class="font-black text-gray-900 text-xs">${p.name}</p>
+                            <p class="text-[10px] font-bold text-red-600 mt-0.5">৳${p.price}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="hidden md:table-cell px-5 py-3.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 text-[10px] font-black uppercase">${p.category}</span>
+                </td>
+                <td class="flex md:table-cell items-center justify-between md:px-5 md:py-3.5 py-2.5 md:py-3.5 border-b border-gray-100 md:border-0">
+                    <span class="md:hidden text-[10px] font-black uppercase text-gray-400">Overall Stock:</span>
+                    <button type="button" onclick="toggleOverallStock('${p.id}', ${!p.isOutOfStock})" 
+                        class="px-3 py-1.5 text-[11px] rounded-xl font-black uppercase tracking-wider transition cursor-pointer ${p.isOutOfStock ? 'bg-red-100 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-600 hover:text-white'}">
+                        ${p.isOutOfStock ? '❌ Out of Stock' : '✅ In Stock'}
                     </button>
                 </td>
-                <td class="px-4 py-3">${sizesHtml}</td>
+                <td class="block md:table-cell md:px-5 md:py-3.5 pt-2.5 md:pt-3.5">
+                    <span class="block md:hidden text-[10px] font-black uppercase text-gray-400 mb-1.5">Tap Size to Toggle:</span>
+                    <div class="flex flex-wrap items-center">${sizesHtml}</div>
+                </td>
             </tr>
         `;
     }).join('');
@@ -2813,6 +2848,14 @@ function renderInventoryTab() {
 
 async function toggleOverallStock(id, newStatus) {
     await db.collection("products").doc(id).update({ isOutOfStock: newStatus });
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: newStatus ? 'Marked Out of Stock' : 'Marked In Stock',
+        timer: 1200,
+        showConfirmButton: false
+    });
 }
 
 async function toggleSingleSize(productId, sizeName, newAvailability) {
@@ -2827,6 +2870,14 @@ async function toggleSingleSize(productId, sizeName, newAvailability) {
     });
 
     await db.collection("products").doc(productId).update({ sizes: updatedSizes });
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `Size ${sizeName}: ${newAvailability ? 'Available' : 'Sold Out'}`,
+        timer: 1200,
+        showConfirmButton: false
+    });
 }
 
 // =================================================================
