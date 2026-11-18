@@ -2881,8 +2881,28 @@ async function toggleSingleSize(productId, sizeName, newAvailability) {
 }
 
 // =================================================================
-// UPDATED PROMO CODE ENGINE (GLOBAL, CATEGORY & PRODUCT SPECIFIC)
+// UPDATED PROMO CODE ENGINE V2.0 PRO (GLOBAL, CATEGORY & PRODUCT)
 // =================================================================
+
+function updatePromoLivePreview() {
+    const code = document.getElementById('promo-code')?.value.trim().toUpperCase() || 'REDAMS20';
+    const type = document.getElementById('promo-type')?.value || 'percent';
+    const val = document.getElementById('promo-value')?.value || '0';
+    const scopeEl = document.getElementById('promo-scope');
+    const scopeText = scopeEl ? scopeEl.options[scopeEl.selectedIndex].text : 'All Storefront Drops';
+
+    const codePreview = document.getElementById('promo-live-code-preview');
+    const valPreview = document.getElementById('promo-live-val-preview');
+    const scopePreview = document.getElementById('promo-live-scope-preview');
+
+    if (codePreview) codePreview.innerText = code;
+    if (scopePreview) scopePreview.innerText = scopeText;
+    if (valPreview) {
+        if (type === 'delivery') valPreview.innerText = 'FREE DEL';
+        else if (type === 'percent') valPreview.innerText = `${val}% OFF`;
+        else valPreview.innerText = `৳${val} OFF`;
+    }
+}
 
 function openAddPromoModal() { 
     const promoModal = document.getElementById('promo-modal');
@@ -2897,9 +2917,10 @@ function openAddPromoModal() {
     // Populate Individual Products Dropdown
     populatePromoProductDropdown();
 
-    // Reset Target Visibilities
+    // Reset Target Visibilities & Live Preview
     handlePromoScopeChange();
     togglePromoValueInput();
+    updatePromoLivePreview();
 
     // Display Modal
     promoModal.classList.remove('hidden');
@@ -2910,7 +2931,7 @@ function populatePromoProductDropdown() {
     const productSelect = document.getElementById('promo-target-product');
     if (!productSelect) return;
 
-    const products = window.allProducts || [];
+    const products = (typeof allProducts !== 'undefined' && Array.isArray(allProducts)) ? allProducts : (window.allProducts || []);
     if (products.length === 0) {
         productSelect.innerHTML = `<option value="">No products available</option>`;
         return;
@@ -2934,6 +2955,7 @@ function handlePromoScopeChange() {
     } else if (scope === 'product' && productWrapper) {
         productWrapper.classList.remove('hidden');
     }
+    updatePromoLivePreview();
 }
 
 function togglePromoValueInput() {
@@ -2947,6 +2969,7 @@ function togglePromoValueInput() {
     } else {
         if (valueWrapper) valueWrapper.classList.remove('opacity-50', 'pointer-events-none');
     }
+    updatePromoLivePreview();
 }
 
 async function savePromo() {
@@ -3001,19 +3024,66 @@ async function savePromo() {
     }
 }
 
+function copyPromoVoucherCode(code) {
+    navigator.clipboard.writeText(code);
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `Copied Code: ${code}`,
+        timer: 1300,
+        showConfirmButton: false
+    });
+}
+
+function editPromoVoucher(promoEncoded) {
+    try {
+        const p = JSON.parse(decodeURIComponent(promoEncoded));
+        openAddPromoModal();
+
+        if (document.getElementById('promo-code')) document.getElementById('promo-code').value = p.code || '';
+        if (document.getElementById('promo-type')) document.getElementById('promo-type').value = p.type || 'percent';
+        if (document.getElementById('promo-value')) document.getElementById('promo-value').value = p.value ?? '';
+        if (document.getElementById('promo-scope')) document.getElementById('promo-scope').value = p.scope || 'global';
+
+        handlePromoScopeChange();
+        togglePromoValueInput();
+
+        if (p.scope === 'category' && document.getElementById('promo-target-category')) {
+            document.getElementById('promo-target-category').value = p.targetCategory || 'drop-shoulder';
+        } else if (p.scope === 'product' && document.getElementById('promo-target-product')) {
+            document.getElementById('promo-target-product').value = p.targetProductId || '';
+        }
+
+        updatePromoLivePreview();
+    } catch (e) {
+        console.error("Edit Promo Error:", e);
+    }
+}
+
 function renderPromoTab() {
     const table = document.getElementById('promo-table');
     if (!table) return;
 
+    const productsList = (typeof allProducts !== 'undefined' && Array.isArray(allProducts)) ? allProducts : (window.allProducts || []);
+
     db.collection("promos").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         if (snapshot.empty) {
-            table.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400 font-bold uppercase text-xs">No active promo codes created yet.</td></tr>';
+            table.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold uppercase text-xs">No active promo codes created yet.</td></tr>';
             return;
         }
 
         table.innerHTML = snapshot.docs.map(doc => {
             const p = doc.data();
             const id = doc.id;
+            const encodedPromo = encodeURIComponent(JSON.stringify({
+                code: p.code,
+                type: p.type,
+                value: p.value,
+                scope: p.scope,
+                targetCategory: p.targetCategory,
+                targetProductId: p.targetProductId
+            }));
 
             // Type Label Formatting
             let typeBadge = '';
@@ -3028,13 +3098,13 @@ function renderPromoTab() {
             // Target Scope Display Text
             let targetText = '';
             if (p.scope === 'category') {
-                targetText = `<span class="text-cyan-600 font-black uppercase">📁 Category: ${p.targetCategory || 'N/A'}</span>`;
+                targetText = `<span class="text-cyan-700 bg-cyan-50 border border-cyan-100 px-2.5 py-1 rounded-lg font-black uppercase text-[10px]">📁 Category: ${p.targetCategory || 'N/A'}</span>`;
             } else if (p.scope === 'product') {
-                const matchedProduct = (window.allProducts || []).find(item => String(item.id) === String(p.targetProductId));
+                const matchedProduct = productsList.find(item => String(item.id) === String(p.targetProductId));
                 const prodName = matchedProduct ? matchedProduct.name : `Product ID: ${p.targetProductId}`;
-                targetText = `<span class="text-purple-600 font-black uppercase">👕 Product: ${prodName}</span>`;
+                targetText = `<span class="text-purple-700 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg font-black uppercase text-[10px]">👕 Product: ${prodName}</span>`;
             } else {
-                targetText = `<span class="text-gray-500 font-black uppercase">🌐 All Products (Global)</span>`;
+                targetText = `<span class="text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg font-black uppercase text-[10px]">🌐 All Products (Global)</span>`;
             }
 
             // Discount Display
@@ -3042,14 +3112,24 @@ function renderPromoTab() {
 
             return `
                 <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
-                    <td class="px-5 py-4 font-black text-black tracking-wider uppercase">${p.code}</td>
-                    <td class="px-5 py-4">${typeBadge}</td>
-                    <td class="px-5 py-4 font-black text-gray-900">${valDisplay}</td>
-                    <td class="px-5 py-4 text-xs">${targetText}</td>
-                    <td class="px-5 py-4 text-right">
-                        <button type="button" onclick="deletePromo('${id}')" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center cursor-pointer active:scale-95 shadow-sm" title="Delete Promo">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
+                    <td class="px-5 py-4">
+                        <button type="button" onclick="copyPromoVoucherCode('${p.code}')" title="Click to Copy Promo Code" class="inline-flex items-center gap-2 font-mono font-black text-gray-900 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-gray-200 tracking-wider uppercase cursor-pointer transition">
+                            <span>${p.code}</span>
+                            <i class="fa-regular fa-copy text-[11px] opacity-60"></i>
                         </button>
+                    </td>
+                    <td class="px-5 py-4">${typeBadge}</td>
+                    <td class="px-5 py-4 font-black text-red-600 text-sm">${valDisplay}</td>
+                    <td class="px-5 py-4 text-xs">${targetText}</td>
+                    <td class="px-5 py-4 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button type="button" onclick="editPromoVoucher('${encodedPromo}')" class="w-8 h-8 rounded-xl bg-gray-100 text-gray-800 hover:bg-black hover:text-white transition inline-flex items-center justify-center cursor-pointer active:scale-95" title="Edit / Clone Voucher">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button type="button" onclick="deletePromo('${id}')" class="w-8 h-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center cursor-pointer active:scale-95" title="Delete Promo">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -3181,11 +3261,27 @@ function deleteReview(id) {
     });
 }
 // =================================================================
-// CATEGORY SIZE CHART EDITOR ENGINE (ULTRA-DYNAMIC REFACTORED)
+// CATEGORY SIZE CHART EDITOR ENGINE (ULTRA-DYNAMIC V2.0 PRO)
 // =================================================================
 
-// Default columns state for size charts
 let currentSizeChartColumns = ['size', 'chest', 'length', 'sleeve'];
+
+function highlightActiveSizeChartPill(category) {
+    const container = document.getElementById('sizechart-settings-content');
+    if (!container) return;
+
+    const pillButtons = container.querySelectorAll('button[onclick*="editor-chart-category"]');
+    pillButtons.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${category}'`)) {
+            btn.classList.remove('bg-gray-100', 'text-gray-700');
+            btn.classList.add('bg-gray-900', 'text-white');
+        } else {
+            btn.classList.remove('bg-gray-900', 'text-white');
+            btn.classList.add('bg-gray-100', 'text-gray-700');
+        }
+    });
+}
 
 async function loadCategorySizeChartToEditor() {
     const categorySelect = document.getElementById('editor-chart-category');
@@ -3193,16 +3289,23 @@ async function loadCategorySizeChartToEditor() {
     if (!tbody) return;
 
     const category = categorySelect?.value || 'drop-shoulder';
+    highlightActiveSizeChartPill(category);
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="10" class="p-6 text-center text-xs font-bold text-gray-400">
-                <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-base mb-1 block"></i> Loading size measurements...
+            <td colspan="10" class="p-8 text-center text-xs font-bold text-gray-400">
+                <i class="fa-solid fa-spinner fa-spin text-cyan-600 text-lg mb-1.5 block"></i> Loading ${category.toUpperCase()} size measurements...
             </td>
         </tr>
     `;
 
-    let rowsData = DEFAULT_SIZE_CHARTS[category] || DEFAULT_SIZE_CHARTS['drop-shoulder'];
+    let rowsData = (typeof DEFAULT_SIZE_CHARTS !== 'undefined' && DEFAULT_SIZE_CHARTS[category]) 
+        ? JSON.parse(JSON.stringify(DEFAULT_SIZE_CHARTS[category])) 
+        : [
+            { size: 'M', chest: '40', length: '27.5', sleeve: '8.5' },
+            { size: 'L', chest: '42', length: '28.5', sleeve: '9.0' },
+            { size: 'XL', chest: '44', length: '29.5', sleeve: '9.5' }
+        ];
     currentSizeChartColumns = ['size', 'chest', 'length', 'sleeve'];
 
     try {
@@ -3238,34 +3341,38 @@ function renderSizeChartHeadersHTML() {
     headerRow.innerHTML = currentSizeChartColumns.map((col, colIdx) => `
         <th class="p-3 border-r border-gray-800 relative group">
             <div class="flex items-center justify-between gap-2">
-                <input type="text" value="${col.toUpperCase()}" onchange="updateColumnKey(${colIdx}, this.value)" class="bg-transparent text-white font-black uppercase outline-none focus:bg-gray-800 p-1 rounded w-full text-xs">
+                <input type="text" value="${col.replace(/_/g, ' ').toUpperCase()}" onchange="updateColumnKey(${colIdx}, this.value)" class="bg-transparent text-white font-black uppercase outline-none focus:bg-gray-800 p-1 rounded w-full text-xs tracking-wider">
                 ${currentSizeChartColumns.length > 1 ? `
-                    <button type="button" onclick="deleteSizeChartColumn(${colIdx})" class="text-red-400 hover:text-red-300 p-1 text-xs" title="Delete Column">
+                    <button type="button" onclick="deleteSizeChartColumn(${colIdx})" class="text-red-400 hover:text-red-300 p-1 text-xs cursor-pointer" title="Delete Column">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 ` : ''}
             </div>
         </th>
-    `).join('') + `<th class="p-3 text-center w-20">Action</th>`;
+    `).join('') + `<th class="p-3 text-center w-24">Actions</th>`;
 }
 
 function updateColumnKey(colIdx, newValue) {
+    const oldKey = currentSizeChartColumns[colIdx];
     const cleanKey = newValue.trim().toLowerCase().replace(/\s+/g, '_') || `col_${colIdx + 1}`;
     currentSizeChartColumns[colIdx] = cleanKey;
+
+    document.querySelectorAll(`#size-chart-inputs-body input[data-key="${oldKey}"]`).forEach(inp => {
+        inp.setAttribute('data-key', cleanKey);
+    });
+
     renderSizeChartHeadersHTML();
 }
 
 function addNewSizeChartColumn() {
     Swal.fire({
-        title: 'Add New Measurement Column',
+        title: 'Add Measurement Column',
         input: 'text',
-        inputPlaceholder: 'e.g. Shoulder, Waist, Hip',
+        inputPlaceholder: 'e.g. Shoulder, Waist, Hem, Collar',
         showCancelButton: true,
         confirmButtonColor: '#9333ea',
         confirmButtonText: 'Add Column',
-        customClass: {
-            input: 'text-xs font-bold'
-        }
+        customClass: { input: 'text-xs font-bold' }
     }).then((result) => {
         if (result.isConfirmed && result.value.trim()) {
             const newColKey = result.value.trim().toLowerCase().replace(/\s+/g, '_');
@@ -3275,7 +3382,6 @@ function addNewSizeChartColumn() {
             }
             currentSizeChartColumns.push(newColKey);
             
-            // Append cell to existing table rows dynamically
             const tbody = document.getElementById('size-chart-inputs-body');
             const trs = tbody.querySelectorAll('tr');
             trs.forEach(tr => {
@@ -3302,7 +3408,6 @@ function deleteSizeChartColumn(colIdx) {
     const targetKey = currentSizeChartColumns[colIdx];
     currentSizeChartColumns.splice(colIdx, 1);
     
-    // Retain input data while removing column
     const tbody = document.getElementById('size-chart-inputs-body');
     const tableRows = tbody.querySelectorAll('tr');
     const currentRowsData = [];
@@ -3323,6 +3428,29 @@ function deleteSizeChartColumn(colIdx) {
     renderSizeChartRowsHTML(currentRowsData);
 }
 
+function buildSizeChartRowHTML(rowObj = {}) {
+    return `
+        <tr class="hover:bg-cyan-50/30 transition-colors border-b border-gray-100">
+            ${currentSizeChartColumns.map((col, idx) => `
+                <td class="p-3 border-r border-gray-100">
+                    <input type="text" data-key="${col}" value="${rowObj[col] || ''}" placeholder="${idx === 0 ? 'e.g. XL' : '-'}" 
+                        class="chart-cell-val w-full p-2.5 ${idx === 0 ? 'bg-gray-900 text-white font-black uppercase text-center' : 'bg-gray-50 text-gray-900 font-bold'} border border-gray-200 rounded-xl text-xs outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-600/10 transition shadow-sm">
+                </td>
+            `).join('')}
+            <td class="p-3 text-center whitespace-nowrap">
+                <div class="inline-flex items-center gap-1.5">
+                    <button type="button" onclick="duplicateSizeChartRow(this)" class="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 hover:bg-black hover:text-white transition inline-flex items-center justify-center cursor-pointer shadow-sm active:scale-95" title="Duplicate Row">
+                        <i class="fa-regular fa-clone text-xs"></i>
+                    </button>
+                    <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center cursor-pointer shadow-sm active:scale-95" title="Remove Row">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 function renderSizeChartRowsHTML(rows) {
     const tbody = document.getElementById('size-chart-inputs-body');
     if (!tbody) return;
@@ -3330,28 +3458,15 @@ function renderSizeChartRowsHTML(rows) {
     if (!rows || rows.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="${currentSizeChartColumns.length + 1}" class="p-6 text-center text-xs font-bold text-gray-400">
-                    No measurements recorded. Click "Add Row" to create.
+                <td colspan="${currentSizeChartColumns.length + 1}" class="p-8 text-center text-xs font-bold text-gray-400">
+                    No measurements recorded. Click "Add Size Row" to create.
                 </td>
             </tr>
         `;
         return;
     }
 
-    tbody.innerHTML = rows.map(r => `
-        <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
-            ${currentSizeChartColumns.map(col => `
-                <td class="p-3 border-r border-gray-100">
-                    <input type="text" data-key="${col}" value="${r[col] || ''}" placeholder="-" class="chart-cell-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-                </td>
-            `).join('')}
-            <td class="p-3 text-center">
-                <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = rows.map(r => buildSizeChartRowHTML(r)).join('');
 }
 
 function addNewSizeChartRow() {
@@ -3362,20 +3477,20 @@ function addNewSizeChartRow() {
         tbody.innerHTML = '';
     }
 
-    const tr = document.createElement('tr');
-    tr.className = "hover:bg-gray-50/80 transition-colors border-b border-gray-100";
-    tr.innerHTML = currentSizeChartColumns.map(col => `
-        <td class="p-3 border-r border-gray-100">
-            <input type="text" data-key="${col}" placeholder="-" class="chart-cell-val w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-cyan-600 focus:bg-white transition shadow-sm">
-        </td>
-    `).join('') + `
-        <td class="p-3 text-center">
-            <button type="button" onclick="deleteSizeChartRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center mx-auto cursor-pointer shadow-sm active:scale-95" title="Remove Row">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
-        </td>
-    `;
-    tbody.appendChild(tr);
+    tbody.insertAdjacentHTML('beforeend', buildSizeChartRowHTML({}));
+}
+
+function duplicateSizeChartRow(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+
+    const rowObj = {};
+    row.querySelectorAll('.chart-cell-val').forEach(inp => {
+        rowObj[inp.getAttribute('data-key')] = inp.value;
+    });
+
+    row.insertAdjacentHTML('afterend', buildSizeChartRowHTML(rowObj));
+    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Row Duplicated!', timer: 1000, showConfirmButton: false });
 }
 
 function deleteSizeChartRow(btn) {
@@ -3426,7 +3541,7 @@ async function saveCategorySizeChart() {
         Swal.fire({
             icon: 'success',
             title: 'SIZE CHART SAVED!',
-            text: `Updated measurements & dynamic structure for ${category.toUpperCase()}`,
+            text: `Live storefront measurements updated for ${category.toUpperCase()}`,
             timer: 1500,
             showConfirmButton: false
         });
