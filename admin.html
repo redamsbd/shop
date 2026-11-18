@@ -877,28 +877,72 @@
                 </div>
             </div> <!-- /#reviews-content -->
 
-            <!-- 6. SIZE & INVENTORY CONTROL -->
+           <!-- 6. SIZE & INVENTORY CONTROL (ADVANCED INVENTORY MATRIX V2.0) -->
             <div id="inventory-content" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">INVENTORY CONTROL</span>
-                    <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight mt-1">Size Availability & Inventory</h1>
-                    <p class="text-xs text-gray-500 font-semibold mt-0.5">Toggle overall stock & individual garment sizes (S, M, L, XL, XXL) in real time</p>
+                
+                <!-- Executive Header & Quick Action Bar -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-3xl border border-gray-100 card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-gray-900 to-red-600"></div>
+
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">LIVE INVENTORY MATRIX V2.0</span>
+                            <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-gray-700 bg-gray-100 px-2.5 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Instant Storefront Sync
+                            </span>
+                        </div>
+                        <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Size Availability & Inventory</h1>
+                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Toggle overall stock & individual garment sizes (S, M, L, XL, XXL) in real time on redamsbd.me</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <button type="button" onclick="switchTab('products')" class="flex-1 sm:flex-none bg-gray-900 hover:bg-red-600 text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-md">
+                            <i class="fa-solid fa-shirt text-sm"></i> Open Catalog
+                        </button>
+                    </div>
                 </div>
 
-                <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left min-w-[700px]">
-                            <thead class="bg-gray-50/80 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Product Title</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Category</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Overall Stock</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase text-gray-500">Size Toggles (S / M / L / XL / XXL)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inventory-table" class="divide-y divide-gray-100 text-xs md:text-sm"></tbody>
-                        </table>
+                <!-- Interactive Inventory Search & Filter Toolbar -->
+                <div class="bg-white p-4 rounded-3xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
+                    <div class="relative w-full md:w-96">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="inventory-search-input" oninput="filterInventoryMatrix()" placeholder="Search product name or category to toggle sizes..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-emerald-600 focus:bg-white transition">
                     </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <select id="inventory-category-filter" onchange="filterInventoryMatrix()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-emerald-600 flex-1 md:flex-none cursor-pointer">
+                            <option value="all">All Categories</option>
+                            <option value="drop-shoulder">Drop Shoulder</option>
+                            <option value="acid-wash">Acid Wash</option>
+                            <option value="regular-tshirt">Regular T-Shirt</option>
+                            <option value="hoodie">Hoodie</option>
+                            <option value="couple-tshirt">Couple T-Shirt</option>
+                            <option value="polo-tshirt">Polo T-Shirt</option>
+                            <option value="henley">Henley T-Shirt</option>
+                            <option value="combo">Combo Offer</option>
+                        </select>
+
+                        <select id="inventory-stock-filter" onchange="filterInventoryMatrix()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-emerald-600 flex-1 md:flex-none cursor-pointer">
+                            <option value="all">All Stock Status</option>
+                            <option value="in-stock">✅ In Stock</option>
+                            <option value="out-of-stock">❌ Out of Stock</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Full-Responsive Size Matrix Container (PC Table + Mobile Smart Cards) -->
+                <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
+                    <table class="block md:table w-full text-left border-collapse">
+                        <thead class="hidden md:table-header-group bg-gray-900 text-white">
+                            <tr>
+                                <th class="px-5 py-3.5 font-black text-[10px] uppercase tracking-wider">Product Title</th>
+                                <th class="px-5 py-3.5 font-black text-[10px] uppercase tracking-wider">Category</th>
+                                <th class="px-5 py-3.5 font-black text-[10px] uppercase tracking-wider">Overall Stock</th>
+                                <th class="px-5 py-3.5 font-black text-[10px] uppercase tracking-wider">One-Tap Size Toggles (S / M / L / XL / XXL)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table" class="block md:table-row-group p-3 md:p-0 space-y-3 md:space-y-0 bg-gray-50/60 md:bg-white divide-y divide-gray-100 text-xs"></tbody>
+                    </table>
                 </div>
             </div> <!-- /#inventory-content -->
 
