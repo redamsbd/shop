@@ -1065,7 +1065,7 @@ async function deleteProduct(id) {
 }
 
 // =================================================================
-// ORDERS MANAGEMENT ENGINE
+// ORDERS MANAGEMENT ENGINE (UPGRADED V4.0 OMNICHANNEL)
 // =================================================================
 
 function openAddOrderModal() { 
@@ -1076,6 +1076,27 @@ function openAddOrderModal() {
     }
 }
 
+function setOrderSourceQuickFilter(source, btnEl) {
+    const sourceDropdown = document.getElementById('order-source-filter');
+    if (sourceDropdown) sourceDropdown.value = source;
+
+    document.querySelectorAll('.ord-pill-btn').forEach(btn => {
+        btn.classList.remove('bg-gray-900', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-700');
+    });
+    if (btnEl) {
+        btnEl.classList.remove('bg-gray-100', 'text-gray-700');
+        btnEl.classList.add('bg-gray-900', 'text-white');
+    }
+    filterOrdersTable();
+}
+
+function setOrderStatusQuickFilter(status) {
+    const statusDropdown = document.getElementById('order-status-filter');
+    if (statusDropdown) statusDropdown.value = status;
+    filterOrdersTable();
+}
+
 function filterOrdersTable() {
     const query = document.getElementById('order-search-input')?.value.toLowerCase().trim() || '';
     const selectedSource = document.getElementById('order-source-filter')?.value || 'all';
@@ -1084,15 +1105,17 @@ function filterOrdersTable() {
     const filtered = allOrders.filter(o => {
         const name = (o.Customer_Name || o.customerName || '').toLowerCase();
         const phone = (o.Customer_Phone || o.customerPhone || '').toLowerCase();
+        const items = (o.Ordered_Items || o.items || o.Product_Details || '').toLowerCase();
         const id = (o.id || '').toLowerCase();
-        const matchesQuery = name.includes(query) || phone.includes(query) || id.includes(query);
+        const matchesQuery = name.includes(query) || phone.includes(query) || id.includes(query) || items.includes(query);
 
         const src = o.orderSource || o.source || 'Website';
-        const matchesSource = selectedSource === 'all' || src.toLowerCase() === selectedSource.toLowerCase();
+        const matchesSource = selectedSource === 'all' || src.toLowerCase().includes(selectedSource.toLowerCase());
 
         const st = o.status || 'Pending';
         let matchesStatus = selectedStatus === 'all';
         if (selectedStatus === 'Pending') matchesStatus = st === 'Pending';
+        else if (selectedStatus === 'Confirmed') matchesStatus = st === 'Confirmed';
         else if (selectedStatus === 'Shipped') matchesStatus = st === 'Shipped';
         else if (selectedStatus === 'Completed') matchesStatus = (st === 'Completed' || st === 'Delivered');
         else if (selectedStatus === 'Cancelled') matchesStatus = st === 'Cancelled';
@@ -1104,11 +1127,24 @@ function filterOrdersTable() {
 }
 
 function renderOrdersTab(ordersToRender = allOrders) {
+    // ১. মিনি KPI কাউন্টার আপডেট
+    if (Array.isArray(allOrders)) {
+        const kpiAll = document.getElementById('ord-kpi-all');
+        const kpiPending = document.getElementById('ord-kpi-pending');
+        const kpiShipped = document.getElementById('ord-kpi-shipped');
+        const kpiCompleted = document.getElementById('ord-kpi-completed');
+
+        if (kpiAll) kpiAll.innerText = allOrders.length;
+        if (kpiPending) kpiPending.innerText = allOrders.filter(o => (o.status || 'Pending') === 'Pending').length;
+        if (kpiShipped) kpiShipped.innerText = allOrders.filter(o => (o.status || '') === 'Shipped').length;
+        if (kpiCompleted) kpiCompleted.innerText = allOrders.filter(o => ['Completed', 'Delivered'].includes(o.status || '')).length;
+    }
+
     const table = document.getElementById('orders-table');
     if (!table) return;
 
     if (!ordersToRender || ordersToRender.length === 0) {
-        table.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400 font-bold uppercase text-xs">No matching orders found.</td></tr>';
+        table.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 font-bold uppercase text-xs">No matching orders found.</td></tr>';
         return;
     }
 
@@ -1116,38 +1152,109 @@ function renderOrdersTab(ordersToRender = allOrders) {
         const source = o.orderSource || o.source || 'Website';
         const method = o.Payment_Method || o.paymentMethod || 'COD';
         const status = o.status || 'Pending';
+        const custName = o.Customer_Name || o.customerName || 'N/A';
+        const custPhone = o.Customer_Phone || o.customerPhone || '';
+        const cleanPhone = custPhone.replace(/[^0-9]/g, '');
+        const waPhone = cleanPhone.startsWith('88') ? cleanPhone : '88' + cleanPhone;
+        const address = o.Delivery_Address || o.address || '';
+        const itemsText = o.Ordered_Items || o.items || o.Product_Details || 'Apparel Item';
         
-        let statusBadge = 'bg-yellow-100 text-yellow-700';
-        if (status === 'Completed' || status === 'Delivered') statusBadge = 'bg-green-100 text-green-700';
-        else if (status === 'Shipped') statusBadge = 'bg-blue-100 text-blue-700';
-        else if (status === 'Cancelled') statusBadge = 'bg-red-100 text-red-700';
+        // চ্যানেল ব্যাজ স্টাইল
+        let sourceBadge = 'text-red-600 bg-red-50 border-red-200';
+        let sourceIcon = 'fa-solid fa-globe';
+        if (source.toLowerCase().includes('facebook')) {
+            sourceBadge = 'text-blue-700 bg-blue-50 border-blue-200';
+            sourceIcon = 'fa-brands fa-facebook';
+        } else if (source.toLowerCase().includes('whatsapp')) {
+            sourceBadge = 'text-emerald-700 bg-emerald-50 border-emerald-200';
+            sourceIcon = 'fa-brands fa-whatsapp';
+        } else if (source.toLowerCase().includes('manual')) {
+            sourceBadge = 'text-amber-700 bg-amber-50 border-amber-200';
+            sourceIcon = 'fa-solid fa-pen-to-square';
+        }
+
+        // স্ট্যাটাস ড্রপডাউন কালার
+        let statusSelectStyle = 'bg-amber-50 text-amber-700 border-amber-300';
+        if (status === 'Confirmed') statusSelectStyle = 'bg-blue-50 text-blue-700 border-blue-300';
+        else if (status === 'Shipped') statusSelectStyle = 'bg-purple-50 text-purple-700 border-purple-300';
+        else if (status === 'Completed' || status === 'Delivered') statusSelectStyle = 'bg-emerald-50 text-emerald-700 border-emerald-300';
+        else if (status === 'Cancelled') statusSelectStyle = 'bg-red-50 text-red-600 border-red-300';
+
+        // অর্ডার তারিখ ও সময়
+        let dateStr = '';
+        if (o.createdAt) {
+            const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+            if (!isNaN(d)) {
+                dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' • ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        }
 
         return `
-            <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                <td class="px-5 py-3.5 font-black text-gray-900">#${o.id.substring(0, 6)}</td>
-                <td class="px-5 py-3.5">
-                    <p class="font-bold text-gray-900">${o.Customer_Name || o.customerName || 'N/A'}</p>
-                    <p class="text-xs text-gray-400 font-mono">${o.Customer_Phone || o.customerPhone || ''}</p>
-                    <span class="inline-block text-[9px] font-black uppercase text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full mt-0.5">${source}</span>
-                </td>
-                <td class="px-5 py-3.5 font-black text-red-600">${o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0))}</td>
-                <td class="px-5 py-3.5 text-xs font-bold text-gray-700">
-                    ${method}${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[10px] font-mono text-purple-700 bg-purple-50 px-1 rounded">Trx: ${o.Transaction_ID}</span>` : ''}
-                </td>
-                <td class="px-5 py-3.5">
-                    <span class="px-2.5 py-1 text-[10px] font-black rounded-full uppercase ${statusBadge}">
-                        ${status}
+            <tr class="hover:bg-gray-50/90 transition border-b border-gray-100">
+                <!-- Order ID & Channel -->
+                <td class="px-5 py-3.5 align-top">
+                    <span class="font-mono font-black text-gray-900 text-xs block">#${o.id.substring(0, 6).toUpperCase()}</span>
+                    <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase border px-2 py-0.5 rounded-md mt-1 ${sourceBadge}">
+                        <i class="${sourceIcon}"></i> ${source}
                     </span>
+                    ${dateStr ? `<span class="block text-[10px] font-semibold text-gray-400 mt-1">${dateStr}</span>` : ''}
                 </td>
-                <td class="px-5 py-3.5 text-right">
+
+                <!-- Customer & Direct Call/WA -->
+                <td class="px-5 py-3.5 align-top">
+                    <p class="font-black text-gray-900 text-xs">${custName}</p>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="text-xs text-gray-600 font-mono font-bold">${custPhone}</span>
+                        ${cleanPhone ? `
+                            <a href="tel:${cleanPhone}" title="Call Customer" class="w-5 h-5 rounded-md bg-green-50 text-green-600 hover:bg-green-600 hover:text-white flex items-center justify-center text-[9px] transition">
+                                <i class="fa-solid fa-phone"></i>
+                            </a>
+                            <a href="https://wa.me/${waPhone}" target="_blank" title="WhatsApp Chat" class="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center text-[10px] transition">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        ` : ''}
+                    </div>
+                    ${address ? `<p class="text-[10px] text-gray-400 font-medium mt-1 max-w-[190px] truncate" title="${address}">${address}</p>` : ''}
+                </td>
+
+                <!-- Ordered Items -->
+                <td class="px-5 py-3.5 align-top">
+                    <div class="text-[11px] font-bold text-gray-800 max-w-[210px] line-clamp-2 leading-relaxed" title="${itemsText}">
+                        ${itemsText}
+                    </div>
+                </td>
+
+                <!-- Total & Payment -->
+                <td class="px-5 py-3.5 align-top">
+                    <span class="font-black text-red-600 text-sm block">${o.TOTAL_BILL || ('৳' + (o.amount || o.totalAmount || 0))}</span>
+                    <span class="inline-block text-[10px] font-bold text-gray-700 mt-0.5">${method}</span>
+                    ${o.Transaction_ID && o.Transaction_ID !== 'N/A' ? `<br><span class="text-[9px] font-mono font-bold text-purple-700 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded mt-0.5 inline-block">Trx: ${o.Transaction_ID}</span>` : ''}
+                </td>
+
+                <!-- INLINE EDITABLE STATUS DROPDOWN (Fixes manual courier booking status issue) -->
+                <td class="px-5 py-3.5 align-top">
+                    <select onchange="updateOrderStatusDirectly('${o.id}', this.value)" 
+                            class="px-2.5 py-1.5 rounded-xl text-[11px] font-black border outline-none cursor-pointer transition shadow-sm ${statusSelectStyle}">
+                        <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                        <option value="Confirmed" ${status === 'Confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                        <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>🚚 Shipped / Courier</option>
+                        <option value="Completed" ${(status === 'Completed' || status === 'Delivered') ? 'selected' : ''}>🎉 Completed / Paid</option>
+                        <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                    </select>
+                </td>
+
+                <!-- Quick Actions -->
+                <td class="px-5 py-3.5 align-top text-right whitespace-nowrap">
                     <div class="flex items-center justify-end gap-1.5">
-                        <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-black transition" title="View Full Details">
+                        <button onclick="viewOrderDetails('${o.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-black transition cursor-pointer" title="View Full Details">
                             <i class="fa-solid fa-eye"></i> Details
                         </button>
-                        <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-purple-700 transition" title="Dispatch Courier">
+                        <button onclick="openCourierDispatchModal('${o.id}')" class="px-2.5 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 hover:bg-purple-700 transition cursor-pointer" title="Dispatch Courier">
                             <i class="fa-solid fa-truck-fast"></i>
                         </button>
-                        <button onclick="deleteOrder('${o.id}')" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition" title="Delete Order"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="deleteOrder('${o.id}')" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition cursor-pointer" title="Delete Order">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -1155,14 +1262,46 @@ function renderOrdersTab(ordersToRender = allOrders) {
     }).join('');
 }
 
+// ম্যানুয়ালি কুরিয়ার বুক করার পর বা যেকোনো সময় সরাসরি স্ট্যাটাস আপডেট করার ফাংশন
+async function updateOrderStatusDirectly(orderId, newStatus) {
+    try {
+        await db.collection("orders").doc(orderId).update({
+            status: newStatus,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `Status updated to "${newStatus}"`,
+            timer: 1600,
+            showConfirmButton: false
+        });
+    } catch (err) {
+        console.error("Status Update Error:", err);
+        Swal.fire({ icon: 'error', title: 'Update Failed', text: err.message });
+    }
+}
+
 function viewOrderDetails(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8)}`; 
+    document.getElementById('detail-order-id').innerText = `Order #${order.id.substring(0, 8).toUpperCase()}`; 
     document.getElementById('detail-source-badge').innerText = order.orderSource || order.source || 'Website Order'; 
     document.getElementById('detail-cust-name').innerText = order.Customer_Name || order.customerName || 'N/A'; 
-    document.getElementById('detail-cust-phone').innerText = order.Customer_Phone || order.customerPhone || 'N/A'; 
+    
+    const rawPhone = order.Customer_Phone || order.customerPhone || 'N/A';
+    document.getElementById('detail-cust-phone').innerText = rawPhone; 
+
+    // মডালের ভেতরের কল ও হোয়াটসঅ্যাপ বাটন কানেক্ট করা
+    const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+    const callBtn = document.getElementById('detail-phone-call-btn');
+    const waBtn = document.getElementById('detail-whatsapp-btn');
+    if (callBtn && cleanPhone) callBtn.href = `tel:${cleanPhone}`;
+    if (waBtn && cleanPhone) waBtn.href = `https://wa.me/${cleanPhone.startsWith('88') ? cleanPhone : '88' + cleanPhone}`;
+
     document.getElementById('detail-cust-address').innerText = order.Delivery_Address || order.address || 'N/A'; 
     document.getElementById('detail-items').innerText = order.Ordered_Items || order.items || order.Product_Details || 'No item specifications recorded.';  
     document.getElementById('detail-subtotal').innerText = order.Subtotal || '৳0'; 
@@ -1273,7 +1412,6 @@ async function deleteOrder(id) {
         }
     });
 }
-
 // =================================================================
 // AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO)
 // =================================================================
