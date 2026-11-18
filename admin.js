@@ -1735,16 +1735,15 @@ async function dispatchCourierParcel(e) {
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
                 liveApiStatus = resData.data.order_status || "Pending";
 
-                // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ হিসাব
-                courierOriginalFee = Number(resData.data.delivery_fee || 0);
-                courierCodCharge = detectedCity !== 1 ? Math.round(codAmount * 0.01) : 0;
-            } else {
-                throw new Error(resData?.message || "Pathao Rejected Parcel");
-            }
-        }
+               // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ রাউন্ড-আপ (Math.ceil) হিসাব
+                const rawDeliveryFee = Number(resData.data.delivery_fee || 0);
+                const rawCodFee = resData.data.cod_fee !== undefined 
+                    ? Number(resData.data.cod_fee) 
+                    : (detectedCity !== 1 ? (codAmount * 0.01) : 0);
 
-        const totalCourierDeduction = courierOriginalFee + courierCodCharge;
-        const netReceivableAmount = codAmount - totalCourierDeduction;
+                // দশমিকের পর কোনো পয়সা থাকলেই পরবর্তী পূর্ণ টাকায় (Round Up) নিয়ে যাবে
+                courierOriginalFee = Math.ceil(rawDeliveryFee);
+                courierCodCharge = Math.ceil(rawCodFee);
 
         // Firebase-এ সম্পূর্ণ আর্থিক ও লজিস্টিক রেকর্ড সংরক্ষণ
         await db.collection("courier_shipments").add({
@@ -1863,9 +1862,8 @@ async function inspectCourierShipment(shipmentId) {
     });
 
     let liveStatusText = s.liveCourierStatus || s.status || 'In Transit';
-    let liveFee = s.courierDeliveryFee || 0;
-    let liveCodFee = s.courierCodCharge || 0;
-    let updatedTime = 'Just now';
+    let liveFee = Math.ceil(Number(s.courierDeliveryFee || 0));
+    let liveCodFee = Math.ceil(Number(s.courierCodCharge || 0));
 
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
@@ -1879,12 +1877,35 @@ async function inspectCourierShipment(shipmentId) {
             });
             if (res?.data) {
                 liveStatusText = res.data.order_status || liveStatusText;
-                if (res.data.delivery_fee) liveFee = Number(res.data.delivery_fee);
-                updatedTime = res.data.updated_at || updatedTime;
 
-                // ডাটাবেসে লেটেস্ট স্ট্যাটাস আপডেট রাখা
+                if (res.data.delivery_fee !== undefined) {
+                    liveFee = Math.ceil(Number(res.data.delivery_fee));
+                }
+
+                // Pathao API থেকে cod_fee বা total_fee পেলে সেটাও রাউন্ড-আপ করবে
+                if (res.data.cod_fee !== undefined) {
+                    liveCodFee = Math.ceil(Number(res.data.cod_fee));
+                } else if (res.data.total_fee !== undefined) {
+                    const roundedTotal = Math.ceil(Number(res.data.total_fee));
+                    liveCodFee = Math.max(0, roundedTotal - liveFee);
+                } else if (liveCodFee === 0 && Number(s.codAmount) > 0) {
+                    // ঢাকার বাইরে ১% COD চার্জ রাউন্ড আপ (যেমন 14.40 -> 15)
+                    const isOutsideDhaka = !(s.address || '').toLowerCase().includes('dhaka');
+                    if (isOutsideDhaka) {
+                        liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
+                    }
+                }
+
+                const updatedTotalFee = liveFee + liveCodFee;
+                const updatedNetPay = (Number(s.codAmount) || 0) - updatedTotalFee;
+
+                // ডাটাবেসে রাউন্ড-আপ করা চার্জ ও নেট পে-আউট আপডেট রাখা
                 await db.collection("courier_shipments").doc(s.id).update({
-                    liveCourierStatus: liveStatusText
+                    liveCourierStatus: liveStatusText,
+                    courierDeliveryFee: liveFee,
+                    courierCodCharge: liveCodFee,
+                    totalCourierFee: updatedTotalFee,
+                    netReceivable: updatedNetPay
                 });
             }
         } 
@@ -1933,7 +1954,8 @@ async function inspectCourierShipment(shipmentId) {
                 <div class="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-1">
                     <div class="flex justify-between"><span>Customer COD Amount:</span> <b>৳${Number(s.codAmount || 0).toLocaleString()}</b></div>
                     <div class="flex justify-between text-red-600"><span>Courier Delivery Fee:</span> <b>-৳${liveFee}</b></div>
-                    <div class="flex justify-between text-red-600"><span>COD Handling Charge:</span> <b>-৳${liveCodFee}</b></div>
+                    <div class="flex justify-between text-red-600"><span>COD Handling Charge (Rounded):</span> <b>-৳${liveCodFee}</b></div>
+                    <div class="flex justify-between text-amber-700 text-[11px] pt-0.5"><span>Total Courier Cost:</span> <b>-৳${totalDed}</b></div>
                     <div class="flex justify-between text-emerald-800 border-t border-emerald-200 pt-1.5 text-sm font-black">
                         <span>Net Payout to You:</span> <span>৳${netPay.toLocaleString()}</span>
                     </div>
@@ -1953,45 +1975,283 @@ async function inspectCourierShipment(shipmentId) {
         showCloseButton: true
     });
 }
-
-// প্রিন্টেবল পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
+// প্রিন্টেবল প্রিমিয়াম REDAMS ব্র্যান্ডেড পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
 function printParcelSlip(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
 
-    const printWin = window.open('', '_blank', 'width=420,height=600');
+    // মূল অর্ডার থেকে অর্ডারকৃত প্রোডাক্টের বিবরণ খুঁজে বের করা
+    const linkedOrder = Array.isArray(allOrders) ? allOrders.find(o => o.id === s.orderId) : null;
+    const orderedItems = linkedOrder?.Ordered_Items || linkedOrder?.items || linkedOrder?.Product_Details || 'REDAMS Premium Apparel';
+    const bookedDate = s.bookedAt?.seconds 
+        ? new Date(s.bookedAt.seconds * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    const isPathao = (s.provider || '').toUpperCase() === 'PATHAO';
+    const providerColor = isPathao ? '#e11d48' : '#7c3aed';
+
+    const printWin = window.open('', '_blank', 'width=460,height=720');
     printWin.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
-            <title>REDAMS Parcel Slip - ${s.consignmentId}</title>
+            <meta charset="UTF-8">
+            <title>REDAMS Dispatch Label - ${s.consignmentId}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
-                .box { border: 2px solid #000; padding: 16px; border-radius: 8px; }
-                .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 12px; }
-                .brand { font-size: 22px; font-weight: 900; letter-spacing: 2px; margin: 0; }
-                .cid { font-size: 18px; font-weight: bold; font-family: monospace; background: #eee; padding: 6px; margin-top: 8px; }
-                .row { margin: 8px 0; font-size: 13px; line-height: 1.4; }
-                .cod { margin-top: 14px; border-top: 2px dashed #000; padding-top: 10px; font-size: 18px; font-weight: 900; text-align: center; }
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+                
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { 
+                    font-family: 'Inter', Arial, sans-serif; 
+                    background: #f3f4f6; 
+                    padding: 16px; 
+                    color: #09090b;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .slip-card {
+                    max-width: 400px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border: 2.5px solid #09090b;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+                }
+                .top-accent {
+                    height: 6px;
+                    background: linear-gradient(90deg, #dc2626 0%, #09090b 50%, #dc2626 100%);
+                }
+                .header {
+                    background: #09090b;
+                    color: #ffffff;
+                    padding: 16px 18px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .brand-title {
+                    font-size: 24px;
+                    font-weight: 900;
+                    letter-spacing: 3px;
+                    line-height: 1;
+                }
+                .brand-title span { color: #ef4444; }
+                .brand-sub {
+                    font-size: 9px;
+                    font-weight: 700;
+                    letter-spacing: 1.5px;
+                    color: #a1a1aa;
+                    text-transform: uppercase;
+                    margin-top: 4px;
+                }
+                .courier-pill {
+                    background: ${providerColor};
+                    color: #ffffff;
+                    font-size: 11px;
+                    font-weight: 900;
+                    padding: 5px 11px;
+                    border-radius: 8px;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                }
+                .meta-strip {
+                    background: #fef2f2;
+                    border-bottom: 1.5px dashed #fca5a5;
+                    padding: 8px 18px;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 10px;
+                    font-weight: 800;
+                    color: #991b1b;
+                }
+                .cid-section {
+                    padding: 14px 18px;
+                    text-align: center;
+                    border-bottom: 2px dashed #e4e4e7;
+                    background: #fafafa;
+                }
+                .cid-label {
+                    font-size: 9px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                    color: #71717a;
+                }
+                .cid-code {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 20px;
+                    font-weight: 800;
+                    color: #09090b;
+                    background: #ffffff;
+                    border: 2px solid #09090b;
+                    border-radius: 10px;
+                    padding: 6px 12px;
+                    margin: 6px 0 8px;
+                    display: inline-block;
+                    letter-spacing: 1px;
+                }
+                .barcode-lines {
+                    height: 26px;
+                    width: 82%;
+                    margin: 0 auto;
+                    background: repeating-linear-gradient(
+                        90deg,
+                        #09090b 0px, #09090b 2px,
+                        transparent 2px, transparent 5px,
+                        #09090b 5px, #09090b 9px,
+                        transparent 9px, transparent 11px,
+                        #09090b 11px, #09090b 12px,
+                        transparent 12px, transparent 16px
+                    );
+                    opacity: 0.85;
+                }
+                .section {
+                    padding: 14px 18px;
+                    border-bottom: 1.5px solid #f4f4f5;
+                }
+                .sec-tag {
+                    display: inline-block;
+                    font-size: 9px;
+                    font-weight: 900;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    background: #09090b;
+                    color: #ffffff;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    margin-bottom: 8px;
+                }
+                .cust-name {
+                    font-size: 16px;
+                    font-weight: 900;
+                    color: #09090b;
+                }
+                .cust-phone {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 14px;
+                    font-weight: 800;
+                    color: #dc2626;
+                    margin: 3px 0 6px;
+                }
+                .cust-addr {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #3f3f46;
+                    line-height: 1.45;
+                }
+                .items-box {
+                    background: #f8fafc;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 10px 12px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #1e293b;
+                    line-height: 1.4;
+                }
+                .cod-banner {
+                    margin: 14px 18px;
+                    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                    color: #ffffff;
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .cod-title {
+                    font-size: 10px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    opacity: 0.9;
+                }
+                .cod-sub {
+                    font-size: 9px;
+                    font-weight: 600;
+                    opacity: 0.85;
+                    margin-top: 2px;
+                }
+                .cod-amount {
+                    font-size: 24px;
+                    font-weight: 900;
+                    letter-spacing: 0.5px;
+                }
+                .footer {
+                    background: #09090b;
+                    color: #e4e4e7;
+                    padding: 10px 18px;
+                    text-align: center;
+                    font-size: 10px;
+                    font-weight: 700;
+                }
+                .footer span { color: #ef4444; font-weight: 900; }
+                @media print {
+                    body { background: #ffffff; padding: 0; }
+                    .slip-card { box-shadow: none; max-width: 100%; }
+                }
             </style>
         </head>
-        <body onload="window.print()">
-            <div class="box">
+        <body onload="setTimeout(() => window.print(), 300)">
+            <div class="slip-card">
+                <div class="top-accent"></div>
+                
+                <!-- REDAMS Brand Header -->
                 <div class="header">
-                    <p class="brand">REDAMS APPAREL</p>
-                    <small>Courier: ${s.provider} | Inv: ${s.invoiceNo || ''}</small>
-                    <div class="cid">CID: ${s.consignmentId}</div>
+                    <div>
+                        <div class="brand-title">RED<span>AMS</span></div>
+                        <div class="brand-sub">Authentic Streetwear • redamsbd.me</div>
+                    </div>
+                    <div class="courier-pill">${s.provider}</div>
                 </div>
-                <div class="row"><b>Recipient:</b> ${s.customerName}</div>
-                <div class="row"><b>Phone:</b> ${s.customerPhone}</div>
-                <div class="row"><b>Address:</b> ${s.address}</div>
-                <div class="cod">COLLECT COD: ৳${s.codAmount}</div>
+
+                <!-- Invoice & Date Strip -->
+                <div class="meta-strip">
+                    <span>INV: ${s.invoiceNo || 'RED-APPAREL'}</span>
+                    <span>DATE: ${bookedDate}</span>
+                </div>
+
+                <!-- Consignment ID & Barcode -->
+                <div class="cid-section">
+                    <div class="cid-label">Consignment / Tracking ID</div>
+                    <div class="cid-code">${s.consignmentId}</div>
+                    <div class="barcode-lines"></div>
+                </div>
+
+                <!-- Recipient Information -->
+                <div class="section">
+                    <div class="sec-tag">Deliver To</div>
+                    <div class="cust-name">${s.customerName}</div>
+                    <div class="cust-phone">📞 ${s.customerPhone}</div>
+                    <div class="cust-addr">📍 ${s.address}</div>
+                </div>
+
+                <!-- Parcel Content Summary -->
+                <div class="section" style="border-bottom: none; padding-bottom: 4px;">
+                    <div class="sec-tag" style="background: #dc2626;">Parcel Contents</div>
+                    <div class="items-box">${orderedItems}</div>
+                </div>
+
+                <!-- High-Visibility COD Box -->
+                <div class="cod-banner">
+                    <div>
+                        <div class="cod-title">Cash On Delivery</div>
+                        <div class="cod-sub">Check product in front of rider</div>
+                    </div>
+                    <div class="cod-amount">৳${Number(s.codAmount || 0).toLocaleString()}</div>
+                </div>
+
+                <!-- Brand Footer -->
+                <div class="footer">
+                    Sender: <span>REDAMS APPAREL</span> • Hub: ${s.pickupLocationName || 'Main Hub'}
+                </div>
             </div>
         </body>
         </html>
     `);
     printWin.document.close();
 }
-
 // রিয়েল লাইভ স্ট্যাটাস সিঙ্ক (Steadfast & Pathao উভয় API থেকে আসল স্ট্যাটাস আপডেট)
 async function syncLiveCourierStatuses() {
     const activeShipments = allCourierShipments.filter(s => ['In Transit', 'Hold'].includes(s.status) && s.consignmentId);
