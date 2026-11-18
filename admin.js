@@ -1505,42 +1505,63 @@ async function callCourierApi(targetUrl, fetchOptions = {}) {
     const body = fetchOptions.body || null;
     const cleanProxyBase = OWN_CLOUDFLARE_PROXY.replace(/\/+$/, '');
 
-    if (cleanProxyBase && !cleanProxyBase.includes("YOUR-SUBDOMAIN")) {
-        const workerUrl = `${cleanProxyBase}?url=${encodeURIComponent(targetUrl)}`;
-        const res = await fetch(workerUrl, { method, headers, body });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.message || data?.error || `Courier API Error (${res.status})`);
-        return data;
+    const workerUrl = `${cleanProxyBase}?url=${encodeURIComponent(targetUrl)}`;
+    const res = await fetch(workerUrl, { method, headers, body });
+    const rawText = await res.text();
+
+    let data;
+    try {
+        data = JSON.parse(rawText);
+    } catch (e) {
+        throw new Error(`Invalid Server Response (HTTP ${res.status}): Server returned HTML instead of JSON.`);
     }
 
-    const fallbackProxies = [
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
-    ];
-
-    let lastErr = null;
-    for (const proxyUrl of fallbackProxies) {
-        try {
-            const res = await fetch(proxyUrl, { method, headers, body });
-            if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-            return await res.json();
-        } catch (err) {
-            lastErr = err;
+    if (!res.ok) {
+        // আসল ফিল্ড এরর (যেমন: store_id, recipient_zone, recipient_address ইত্যাদি) বের করে দেখাবে
+        let detailedError = data?.message || data?.error || `Courier API Error (${res.status})`;
+        if (data?.errors && typeof data.errors === 'object') {
+            const errorList = Object.entries(data.errors)
+                .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+                .join(' | ');
+            if (errorList) detailedError = errorList;
         }
+        throw new Error(detailedError);
     }
-
-    throw new Error(lastErr ? lastErr.message : "CORS Proxy Connection Failed.");
+    return data;
 }
 
-function onCourierProviderChange() {
+async function onCourierProviderChange() {
     const provider = document.getElementById('courier-provider')?.value || 'steadfast';
     const locationSelect = document.getElementById('courier-pickup-location');
     if (!locationSelect) return;
 
-    const locList = COURIER_CREDENTIALS[provider]?.locations || [];
-    locationSelect.innerHTML = locList.map(loc => `
-        <option value="${loc.id}">${loc.name}</option>
-    `).join('');
+    if (provider === 'steadfast') {
+        const locList = COURIER_CREDENTIALS.steadfast.locations || [];
+        locationSelect.innerHTML = locList.map(loc => `
+            <option value="${loc.id}">${loc.name}</option>
+        `).join('');
+    } 
+    else if (provider === 'pathao') {
+        locationSelect.innerHTML = `<option value="">Loading Pathao Stores...</option>`;
+        try {
+            const token = await getPathaoAccessToken();
+            const storeRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/stores", {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+            });
+            const stores = storeRes?.data?.data || [];
+            if (stores.length > 0) {
+                locationSelect.innerHTML = stores.map(st => `
+                    <option value="${st.store_id}">${st.store_name} (ID: ${st.store_id})</option>
+                `).join('');
+            } else {
+                locationSelect.innerHTML = `<option value="">No Active Pathao Store Found</option>`;
+            }
+        } catch (err) {
+            console.error("Pathao Store Fetch Error:", err);
+            locationSelect.innerHTML = `<option value="">Failed to load stores (${err.message})</option>`;
+        }
+    }
 }
 
 function calculateTotalCod() {
@@ -1657,17 +1678,35 @@ async function dispatchCourierParcel(e) {
             }
         } 
         else if (provider === 'pathao') {
+            const realStoreId = parseInt(selectedLocId);
+            if (!realStoreId) {
+                throw new Error("Please select a valid Pathao Pickup Store from the dropdown.");
+            }
+
             const token = await getPathaoAccessToken();
             const detectedCity = detectPathaoCityId(address);
 
+            // নির্বাচিত City-এর অধীনে প্রথম বৈধ Zone ID নিয়ে আসা
+            let validZoneId = 1;
+            try {
+                const zoneRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${detectedCity}/zone-list`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+                });
+                const zones = zoneRes?.data?.data || [];
+                if (zones.length > 0) validZoneId = zones[0].zone_id;
+            } catch (zErr) {
+                console.warn("Zone fetch fallback:", zErr);
+            }
+
             const pathaoPayload = {
-                store_id: parseInt(selectedLocId) || 1001,
+                store_id: realStoreId,
                 merchant_order_id: invoiceNo,
                 recipient_name: name,
                 recipient_phone: phone,
-                recipient_address: address,
+                recipient_address: address.length < 10 ? `${address}, Bangladesh` : address,
                 recipient_city: detectedCity,
-                recipient_zone: 1,
+                recipient_zone: validZoneId,
                 delivery_type: 48,
                 item_type: 2,
                 special_instruction: note,
@@ -1691,10 +1730,9 @@ async function dispatchCourierParcel(e) {
                 trackingCode = consignmentId; 
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
             } else {
-                throw new Error(resData?.message || (resData?.errors ? JSON.stringify(resData.errors) : "Pathao Rejected Parcel"));
+                throw new Error(resData?.message || "Pathao Rejected Parcel");
             }
         }
-
         // Firebase-এ পার্সেল রেকর্ড সংরক্ষণ
         await db.collection("courier_shipments").add({
             orderId: orderId || '',
