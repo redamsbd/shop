@@ -458,52 +458,119 @@
 
             </div> <!-- /#dashboard-content -->
 
-            <!-- 2. PRODUCTS CATALOG TAB -->
+           <!-- 2. PRODUCTS CATALOG TAB (ADVANCED CATALOG CONTROL ENGINE V2.0) -->
             <div id="products-content" class="tab-content hidden space-y-6">
                 
-                <!-- Top Header & Add Button Bar -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <!-- Top Executive Header & Quick Action Bar -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-3xl border border-gray-100 card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-gray-900 to-red-600"></div>
+
                     <div>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full">CATALOG CONTROL ENGINE</span>
-                        <h1 class="text-xl md:text-3xl font-black text-gray-900 mt-1">Products Catalog</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage apparel items, Cloudinary multi-image galleries, pricing & stock status</p>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">CATALOG CONTROL ENGINE V2.0</span>
+                            <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Firebase & Cloudinary Synced
+                            </span>
+                        </div>
+                        <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Products Catalog</h1>
+                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage REDAMS streetwear drops, multi-angle galleries, discount pricing & live stock availability</p>
                     </div>
-                    <button onclick="openAddProductModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
-                        <i class="fa-solid fa-plus text-sm"></i> Add New Product
-                    </button>
+
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <button type="button" onclick="switchTab('inventory')" class="flex-1 sm:flex-none bg-gray-100 hover:bg-gray-900 text-gray-800 hover:text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-layer-group text-sm"></i> Size Matrix
+                        </button>
+                        <button type="button" onclick="openAddProductModal()" class="flex-1 sm:flex-none bg-red-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-plus text-sm"></i> Add New Product
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Live Search & Category Filter Toolbar -->
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-                    <div class="relative w-full md:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" id="product-search-input" oninput="filterProductsCatalog()" placeholder="Search product name or title..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 transition">
+                <!-- 4 Interactive Catalog KPI Cards (Click to filter) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    <div onclick="document.getElementById('product-stock-filter').value='all'; filterProductsCatalog();" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-gray-900 transition flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Catalog</p>
+                            <p class="text-xl md:text-2xl font-black text-gray-900 mt-1" id="stat-cat-total">0</p>
+                        </div>
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 text-gray-900 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-shirt"></i></div>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-                        <select id="product-category-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
-                            <option value="all">All Categories</option>
-                            <option value="drop-shoulder">Drop Shoulder</option>
-                            <option value="acid-wash">Acid Wash</option>
-                            <option value="regular-tshirt">Regular T-Shirt</option>
-                            <option value="hoodie">Hoodie</option>
-                            <option value="couple-tshirt">Couple T-Shirt</option>
-                            <option value="polo-tshirt">Polo T-Shirt</option>
-                            <option value="henley">Henley T-Shirt</option>
-                            <option value="combo">Combo Offer</option>
-                        </select>
+                    <div onclick="document.getElementById('product-stock-filter').value='in-stock'; filterProductsCatalog();" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-emerald-400 transition flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Active In-Stock</p>
+                            <p class="text-xl md:text-2xl font-black text-emerald-600 mt-1" id="stat-cat-instock">0</p>
+                        </div>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
 
-                        <select id="product-stock-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition">
-                            <option value="all">All Stock Status</option>
-                            <option value="in-stock">In Stock Only</option>
-                            <option value="out-of-stock">Out of Stock Only</option>
-                        </select>
+                    <div onclick="document.getElementById('product-stock-filter').value='out-of-stock'; filterProductsCatalog();" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-red-400 transition flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Sold Out</p>
+                            <p class="text-xl md:text-2xl font-black text-red-600 mt-1" id="stat-cat-outstock">0</p>
+                        </div>
+                        <div class="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-ban"></i></div>
+                    </div>
+
+                    <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Avg. Item Price</p>
+                            <p class="text-xl md:text-2xl font-black text-purple-600 mt-1" id="stat-cat-avgprice">৳0</p>
+                        </div>
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-tags"></i></div>
+                    </div>
+                </div>
+
+                <!-- Category Quick Pills, Search & Advanced Multi-Filter Toolbar -->
+                <div class="bg-white p-4 rounded-3xl border border-gray-100 card-shadow space-y-3">
+                    <!-- One-Tap Category Pills -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-gray-100 custom-scrollbar">
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='all'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-900 text-white text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">All Drops</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='drop-shoulder'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Drop Shoulder</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='acid-wash'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Acid Wash</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='hoodie'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Hoodie</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='henley'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Henley</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='polo-tshirt'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Polo</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='regular-tshirt'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Regular Tee</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='couple-tshirt'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Couple</button>
+                        <button type="button" onclick="document.getElementById('product-category-filter').value='combo'; filterProductsCatalog();" class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 text-[10px] font-black uppercase tracking-wider shrink-0 cursor-pointer transition">Combo</button>
+                    </div>
+
+                    <!-- Search + Dropdown Filters -->
+                    <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+                        <div class="relative w-full md:w-96">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                            <input type="text" id="product-search-input" oninput="filterProductsCatalog()" placeholder="Search product name, title, badge or price..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <select id="product-category-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition flex-1 md:flex-none cursor-pointer">
+                                <option value="all">All Categories</option>
+                                <option value="drop-shoulder">Drop Shoulder</option>
+                                <option value="acid-wash">Acid Wash</option>
+                                <option value="regular-tshirt">Regular T-Shirt</option>
+                                <option value="hoodie">Hoodie</option>
+                                <option value="couple-tshirt">Couple T-Shirt</option>
+                                <option value="polo-tshirt">Polo T-Shirt</option>
+                                <option value="henley">Henley T-Shirt</option>
+                                <option value="combo">Combo Offer</option>
+                            </select>
+
+                            <select id="product-stock-filter" onchange="filterProductsCatalog()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition flex-1 md:flex-none cursor-pointer">
+                                <option value="all">All Stock Status</option>
+                                <option value="in-stock">✅ In Stock Only</option>
+                                <option value="out-of-stock">❌ Out of Stock Only</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Dynamic Premium Products Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="products-grid">
-                    <p class="text-xs font-bold text-gray-400 col-span-full py-12 text-center uppercase tracking-wider">Loading products catalog from Firebase...</p>
+                    <div class="col-span-full py-14 text-center bg-white rounded-3xl border border-gray-100 card-shadow">
+                        <i class="fa-solid fa-spinner fa-spin text-red-600 text-xl mb-2"></i>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Loading REDAMS products catalog...</p>
+                    </div>
                 </div>
             </div> <!-- /#products-content -->
 
