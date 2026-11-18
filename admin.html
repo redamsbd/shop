@@ -632,75 +632,83 @@
                 </div>
             </div> <!-- /#orders-content -->
 
-           <!-- 4. COURIER LOGISTICS TAB (AUTONOMOUS LOGISTICS ENGINE V5.0) -->
+          <!-- 4. COURIER LOGISTICS TAB (AUTONOMOUS LOGISTICS ENGINE V6.0 PRO) -->
             <div id="courier-content" class="tab-content hidden space-y-6">
                 
-                <!-- Top Executive Header & Action Bar -->
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow relative overflow-hidden">
+                <!-- Top Executive Header & Quick Action Bar -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-3xl border border-gray-100 card-shadow relative overflow-hidden">
                     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-red-600 to-emerald-500"></div>
 
                     <div>
                         <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">AUTONOMOUS LOGISTICS HUB V5.0</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">AUTONOMOUS LOGISTICS HUB V6.0</span>
                             <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Cloudflare API Proxy Live
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Direct Pathao & Steadfast API
                             </span>
                         </div>
                         <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Courier Logistics Engine</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Steadfast & Pathao real-time API dispatch, live balance check & parcel tracking</p>
+                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Live parcel inspection, original delivery & COD charge breakdown, instant API cancellation & slip printing</p>
                     </div>
                     
                     <!-- Action Buttons: Balance Check + Live Status Sync -->
                     <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        <button type="button" onclick="checkSteadfastWalletBalance()" id="sf-balance-btn" class="bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition active:scale-95 cursor-pointer">
+                        <button type="button" onclick="checkSteadfastWalletBalance()" id="sf-balance-btn" class="flex-1 sm:flex-none bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
                             <i class="fa-solid fa-wallet text-sm"></i> <span id="sf-balance-label">Steadfast Balance</span>
                         </button>
-                        <button type="button" onclick="syncLiveCourierStatuses()" class="bg-purple-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-purple-600/20 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+                        <button type="button" onclick="syncLiveCourierStatuses()" class="flex-1 sm:flex-none bg-purple-600 hover:bg-black text-white px-5 py-3 rounded-2xl font-black shadow-lg shadow-purple-600/20 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
                             <i class="fa-solid fa-arrows-rotate text-sm"></i> Sync Live Statuses
                         </button>
                     </div>
                 </div>
 
-                <!-- Interactive Analytics KPI Cards (Click any card to filter) -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                    <div onclick="setCourierStatusQuickFilter('all')" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-purple-300 transition flex items-center justify-between">
+                <!-- 6 Interactive Analytics KPI Cards (Including Total Courier Fees) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+                    <div onclick="setCourierStatusQuickFilter('all')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-purple-300 transition flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Total Booked</p>
-                            <p class="text-xl md:text-2xl font-black text-purple-600 mt-1" id="stat-courier-total">0</p>
+                            <p class="text-xl font-black text-purple-600 mt-1" id="stat-courier-total">0</p>
                         </div>
-                        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-boxes-packing"></i></div>
                     </div>
 
-                    <div onclick="setCourierStatusQuickFilter('In Transit')" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-blue-300 transition flex items-center justify-between">
+                    <div onclick="setCourierStatusQuickFilter('In Transit')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-blue-300 transition flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">In Transit</p>
-                            <p class="text-xl md:text-2xl font-black text-blue-600 mt-1" id="stat-courier-transit">0</p>
+                            <p class="text-xl font-black text-blue-600 mt-1" id="stat-courier-transit">0</p>
                         </div>
-                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-truck-fast"></i></div>
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-truck-fast"></i></div>
                     </div>
 
-                    <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between">
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Active COD</p>
-                            <p class="text-xl md:text-2xl font-black text-emerald-600 mt-1" id="stat-courier-cod">৳0</p>
+                            <p class="text-xl font-black text-emerald-600 mt-1" id="stat-courier-cod">৳0</p>
                         </div>
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-bangladeshi-taka-sign"></i></div>
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-bangladeshi-taka-sign"></i></div>
                     </div>
 
-                    <div onclick="setCourierStatusQuickFilter('Delivered')" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-green-300 transition flex items-center justify-between">
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Courier Fees</p>
+                            <p class="text-xl font-black text-amber-600 mt-1" id="stat-courier-fees">৳0</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-receipt"></i></div>
+                    </div>
+
+                    <div onclick="setCourierStatusQuickFilter('Delivered')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-green-300 transition flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Delivered</p>
-                            <p class="text-xl md:text-2xl font-black text-green-700 mt-1" id="stat-courier-delivered">0</p>
+                            <p class="text-xl font-black text-green-700 mt-1" id="stat-courier-delivered">0</p>
                         </div>
-                        <div class="w-8 h-8 rounded-xl bg-green-50 text-green-700 flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="w-8 h-8 rounded-xl bg-green-50 text-green-700 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-circle-check"></i></div>
                     </div>
 
-                    <div onclick="setCourierStatusQuickFilter('Cancelled')" class="cursor-pointer bg-white p-4 md:p-5 rounded-2xl border border-gray-100 card-shadow hover:border-red-300 transition col-span-2 sm:col-span-1 flex items-center justify-between">
+                    <div onclick="setCourierStatusQuickFilter('Cancelled')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-red-300 transition flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Cancelled / Hold</p>
-                            <p class="text-xl md:text-2xl font-black text-red-500 mt-1" id="stat-courier-cancelled">0</p>
+                            <p class="text-gray-400 text-[10px] font-black uppercase tracking-wider">Cancelled/Hold</p>
+                            <p class="text-xl font-black text-red-500 mt-1" id="stat-courier-cancelled">0</p>
                         </div>
-                        <div class="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xs"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div class="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-circle-xmark"></i></div>
                     </div>
                 </div>
 
@@ -712,7 +720,7 @@
                             <button type="button" onclick="setCourierProviderQuickFilter('STEADFAST', this)" class="cour-pill-btn bg-gray-100 hover:bg-purple-50 text-gray-700 hover:text-purple-700 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> Steadfast</button>
                             <button type="button" onclick="setCourierProviderQuickFilter('PATHAO', this)" class="cour-pill-btn bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-solid fa-motorcycle mr-1"></i> Pathao</button>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-400"><i class="fa-solid fa-copy text-purple-500"></i> Click CID to copy tracking code</span>
+                        <span class="text-[10px] font-bold text-gray-400"><i class="fa-solid fa-eye text-purple-600"></i> Click <b>Details</b> for live Pathao/Steadfast status & net payout</span>
                     </div>
 
                     <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
@@ -739,16 +747,16 @@
                     </div>
                 </div>
 
-                <!-- Full-Responsive Shipments Container (PC Compact Table + Mobile Cards) -->
+                <!-- Full-Responsive Shipments Container (PC Compact Table + Mobile Smart Cards) -->
                 <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
                     <table class="block md:table w-full text-left border-collapse">
                         <thead class="hidden md:table-header-group bg-gray-900 text-white">
                             <tr>
-                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">CID & Provider</th>
+                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">CID, Provider & API Status</th>
                                 <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">Recipient & Contact</th>
-                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">COD Breakdown</th>
-                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">Live Status</th>
-                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider text-right">Quick Actions</th>
+                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">COD, Fee & Net Payout</th>
+                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider">Hub Status</th>
+                                <th class="px-4 py-3.5 font-black text-[10px] uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="courier-shipments-table" class="block md:table-row-group p-3 md:p-0 space-y-3 md:space-y-0 bg-gray-50/60 md:bg-white divide-y divide-gray-100 text-xs"></tbody>
