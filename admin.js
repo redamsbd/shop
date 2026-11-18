@@ -472,7 +472,7 @@ async function verifyOTPAndResetPassword() {
 }
 
 // =================================================================
-// DASHBOARD INIT & REALTIME LISTENERS
+// DASHBOARD INIT & REALTIME LISTENERS (UPGRADED V4.0)
 // =================================================================
 
 function initDashboard() {
@@ -505,6 +505,7 @@ function initDashboard() {
 }
 
 function updateStats() {
+    // ১. মূল KPI স্ট্যাটাস আপডেট (Revenue, Total Orders, Pending, Out of Stock)
     const totalRev = allOrders.reduce((sum, o) => {
         const orderStatus = o.status || 'Pending';
         if (orderStatus === 'Completed' || orderStatus === 'Delivered') {
@@ -523,6 +524,116 @@ function updateStats() {
     if (orderElem) orderElem.innerText = allOrders.length;
     if (pendingElem) pendingElem.innerText = allOrders.filter(o => (o.status || 'Pending') === 'Pending').length;
     if (stockElem) stockElem.innerText = allProducts.filter(p => p.isOutOfStock).length;
+
+    // ২. প্রিমিয়াম ড্যাশবোর্ড উইজেটগুলো লাইভ আপডেট
+    syncPremiumDashboardWidgets();
+}
+
+function syncPremiumDashboardWidgets() {
+    // ক. ৮টি ক্যাটাগরির লাইভ প্রোডাক্ট ও স্টক ম্যাট্রিক্স
+    const categories = [
+        { id: 'drop-shoulder', label: 'Drop Shoulder', icon: 'fa-shirt', color: 'text-red-600 bg-red-50' },
+        { id: 'hoodie', label: 'Hoodie', icon: 'fa-vest', color: 'text-purple-600 bg-purple-50' },
+        { id: 'henley', label: 'Henley T-Shirt', icon: 'fa-user-tie', color: 'text-amber-600 bg-amber-50' },
+        { id: 'polo-tshirt', label: 'Polo T-Shirt', icon: 'fa-shirt', color: 'text-blue-600 bg-blue-50' },
+        { id: 'acid-wash', label: 'Acid Wash', icon: 'fa-fire', color: 'text-orange-600 bg-orange-50' },
+        { id: 'regular-tshirt', label: 'Regular T-Shirt', icon: 'fa-tshirt', color: 'text-emerald-600 bg-emerald-50' },
+        { id: 'couple-tshirt', label: 'Couple T-Shirt', icon: 'fa-heart', color: 'text-pink-600 bg-pink-50' },
+        { id: 'combo', label: 'Combo Offer', icon: 'fa-boxes-stacked', color: 'text-cyan-600 bg-cyan-50' }
+    ];
+
+    const matrixEl = document.getElementById('dash-category-matrix');
+    if (matrixEl && Array.isArray(allProducts)) {
+        matrixEl.innerHTML = categories.map(cat => {
+            const catItems = allProducts.filter(p => p.category === cat.id);
+            const outStockCount = catItems.filter(p => p.isOutOfStock === true || String(p.inStock ?? p.stock) === '0').length;
+            const inStockCount = catItems.length - outStockCount;
+
+            return `
+                <div onclick="switchTab('products'); document.getElementById('product-category-filter').value='${cat.id}'; if(typeof filterProductsCatalog === 'function') filterProductsCatalog();" 
+                     class="cursor-pointer p-4 rounded-2xl border border-gray-100 bg-gray-50/60 hover:bg-white hover:border-cyan-400 hover:shadow-md transition group">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="w-7 h-7 rounded-xl ${cat.color} flex items-center justify-center text-xs">
+                            <i class="fa-solid ${cat.icon}"></i>
+                        </div>
+                        <span class="text-sm font-black text-gray-900 bg-white px-2.5 py-0.5 rounded-lg border border-gray-200">${catItems.length}</span>
+                    </div>
+                    <p class="text-[11px] font-black text-gray-800 group-hover:text-cyan-700 truncate">${cat.label}</p>
+                    <div class="flex items-center gap-1.5 mt-2 text-[9px] font-black uppercase">
+                        <span class="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">✓ ${inStockCount} In</span>
+                        ${outStockCount > 0 
+                            ? `<span class="text-red-600 bg-red-50 px-1.5 py-0.5 rounded">✗ ${outStockCount} Out</span>` 
+                            : `<span class="text-gray-400">Full Stock</span>`}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // খ. চ্যানেল অনুযায়ী (Website, Facebook, WhatsApp, Manual) অর্ডার ব্রেকডাউন
+    if (Array.isArray(allOrders)) {
+        const total = allOrders.length;
+        const countBySource = (src) => allOrders.filter(o => (o.source || o.channel || o.ORDER_SOURCE || 'Website').toLowerCase().includes(src)).length;
+
+        const web = countBySource('web');
+        const fb = countBySource('facebook');
+        const wa = countBySource('whatsapp');
+        const manual = Math.max(0, total - (web + fb + wa));
+
+        const setBar = (key, count) => {
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            const txtEl = document.getElementById(`dash-source-${key}`);
+            const barEl = document.getElementById(`dash-bar-${key}`);
+            if (txtEl) txtEl.innerText = `${count} (${pct}%)`;
+            if (barEl) barEl.style.width = `${pct}%`;
+        };
+
+        setBar('web', web);
+        setBar('fb', fb);
+        setBar('wa', wa);
+        setBar('manual', manual);
+
+        // গ. সর্বশেষ ৫টি Pending অর্ডার কিউ (সরাসরি কুরিয়ার বুকিং বাটনসহ)
+        const pendingOrders = allOrders.filter(o => (o.status || 'Pending') === 'Pending').slice(0, 5);
+        const pendingBody = document.getElementById('dash-pending-orders-body');
+        if (pendingBody) {
+            if (pendingOrders.length === 0) {
+                pendingBody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-emerald-600 font-black">All pending orders have been dispatched!</td></tr>`;
+            } else {
+                pendingBody.innerHTML = pendingOrders.map(o => {
+                    const src = o.source || o.channel || o.ORDER_SOURCE || 'Website';
+                    const badgeClass = src.toLowerCase().includes('whatsapp') ? 'bg-emerald-50 text-emerald-700' 
+                                     : src.toLowerCase().includes('facebook') ? 'bg-blue-50 text-blue-700' 
+                                     : 'bg-red-50 text-red-600';
+                    const bill = parseInt(String(o.TOTAL_BILL || o.amount || o.totalAmount || 0).replace(/[^0-9]/g, '')) || 0;
+                    const custName = o.customerName || o.CUSTOMER_NAME || o.name || '-';
+                    const custPhone = o.customerPhone || o.PHONE || o.phone || '-';
+                    const orderItems = o.items || o.ITEMS || o.itemsSummary || 'Apparel Item';
+                    const displayId = o.orderId || o.ORDER_ID || (o.id || '').slice(0, 6);
+
+                    return `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-4 py-3">
+                                <span class="font-mono font-black text-gray-900 block">#${displayId}</span>
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${badgeClass}">${src}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="font-black text-gray-900">${custName}</p>
+                                <p class="text-[11px] font-mono text-gray-500">${custPhone}</p>
+                            </td>
+                            <td class="px-4 py-3 max-w-[220px] truncate text-gray-600">${orderItems}</td>
+                            <td class="px-4 py-3 font-black text-gray-900">৳${bill.toLocaleString()}</td>
+                            <td class="px-4 py-3 text-right space-x-1">
+                                <button type="button" onclick="openCourierModal('${o.id}')" class="bg-purple-600 hover:bg-black text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer">
+                                    <i class="fa-solid fa-truck-fast"></i> Book Courier
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+    }
 }
 
 // =================================================================
