@@ -1447,7 +1447,7 @@ async function deleteOrder(id) {
 }
 
 // =================================================================
-// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V5.0)
+// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V6.0 PRO)
 // =================================================================
 
 const OWN_CLOUDFLARE_PROXY = "https://redams-courier-proxy.anmridwanulhassan.workers.dev";
@@ -1469,12 +1469,12 @@ const COURIER_CREDENTIALS = {
         username: "redamsbd16@gmail.com",
         password: "RedAms16%",
         locations: [
-            { id: "1001", name: "Pathao Dhaka Store (Basabo)" }
+            { id: "1001", name: "Pathao Store (Auto-Fetch)" }
         ]
     }
 };
 
-// বাংলাদেশি ১১ ডিজিটের ফোন নম্বর ক্লিনার (+880 বা স্পেস রিমুভ করবে)
+// বাংলাদেশি ১১ ডিজিটের ফোন নম্বর ক্লিনার
 function formatBDPhone(rawPhone) {
     let digits = String(rawPhone || '').replace(/[^0-9]/g, '');
     if (digits.startsWith('880')) digits = '0' + digits.slice(3);
@@ -1517,7 +1517,6 @@ async function callCourierApi(targetUrl, fetchOptions = {}) {
     }
 
     if (!res.ok) {
-        // আসল ফিল্ড এরর (যেমন: store_id, recipient_zone, recipient_address ইত্যাদি) বের করে দেখাবে
         let detailedError = data?.message || data?.error || `Courier API Error (${res.status})`;
         if (data?.errors && typeof data.errors === 'object') {
             const errorList = Object.entries(data.errors)
@@ -1628,7 +1627,9 @@ async function dispatchCourierParcel(e) {
 
     const orderId = document.getElementById('courier-order-id')?.value;
     const provider = document.getElementById('courier-provider')?.value || 'steadfast';
-    const selectedLocId = document.getElementById('courier-pickup-location')?.value;
+    const locationSelectEl = document.getElementById('courier-pickup-location');
+    const selectedLocId = locationSelectEl?.value;
+    const selectedLocName = locationSelectEl?.options[locationSelectEl.selectedIndex]?.text || selectedLocId;
     const name = document.getElementById('courier-cust-name')?.value.trim();
     const phone = formatBDPhone(document.getElementById('courier-cust-phone')?.value);
     const address = document.getElementById('courier-cust-address')?.value.trim();
@@ -1645,6 +1646,9 @@ async function dispatchCourierParcel(e) {
         let consignmentId = "";
         let trackingCode = "";
         let trackingUrl = "";
+        let courierOriginalFee = 0;
+        let courierCodCharge = 0;
+        let liveApiStatus = "Pending Pickup";
         const invoiceNo = "RED-" + (orderId ? orderId.substring(0, 6).toUpperCase() : Math.floor(100000 + Math.random() * 900000));
 
         if (provider === 'steadfast') {
@@ -1659,7 +1663,7 @@ async function dispatchCourierParcel(e) {
                 note: note
             };
 
-            const resData = await callCourierApi("https://portal.steadfast.com.bd/api/v1/create_order", {
+            const resData = await callCourierApi("https://portal.packzy.com/api/v1/create_order", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1673,6 +1677,7 @@ async function dispatchCourierParcel(e) {
                 consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || '');
                 trackingCode = String(resData.consignment.tracking_code || consignmentId);
                 trackingUrl = `https://steadfast.com.bd/t/${trackingCode}`;
+                liveApiStatus = resData.consignment.status || "In Review";
             } else {
                 throw new Error(resData?.message || (resData?.errors ? JSON.stringify(resData.errors) : "Steadfast Rejected Parcel"));
             }
@@ -1686,7 +1691,6 @@ async function dispatchCourierParcel(e) {
             const token = await getPathaoAccessToken();
             const detectedCity = detectPathaoCityId(address);
 
-            // নির্বাচিত City-এর অধীনে প্রথম বৈধ Zone ID নিয়ে আসা
             let validZoneId = 1;
             try {
                 const zoneRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${detectedCity}/zone-list`, {
@@ -1729,15 +1733,25 @@ async function dispatchCourierParcel(e) {
                 consignmentId = String(resData.data.consignment_id || ''); 
                 trackingCode = consignmentId; 
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
+                liveApiStatus = resData.data.order_status || "Pending";
+
+                // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ হিসাব
+                courierOriginalFee = Number(resData.data.delivery_fee || 0);
+                courierCodCharge = detectedCity !== 1 ? Math.round(codAmount * 0.01) : 0;
             } else {
                 throw new Error(resData?.message || "Pathao Rejected Parcel");
             }
         }
-        // Firebase-এ পার্সেল রেকর্ড সংরক্ষণ
+
+        const totalCourierDeduction = courierOriginalFee + courierCodCharge;
+        const netReceivableAmount = codAmount - totalCourierDeduction;
+
+        // Firebase-এ সম্পূর্ণ আর্থিক ও লজিস্টিক রেকর্ড সংরক্ষণ
         await db.collection("courier_shipments").add({
             orderId: orderId || '',
             provider: provider.toUpperCase(),
             pickupLocationId: selectedLocId,
+            pickupLocationName: selectedLocName,
             consignmentId: consignmentId,
             trackingCode: trackingCode,
             trackingUrl: trackingUrl,
@@ -1748,6 +1762,11 @@ async function dispatchCourierParcel(e) {
             productAmount: productAmt,
             deliveryCharge: deliveryFee,
             codAmount: codAmount,
+            courierDeliveryFee: courierOriginalFee,
+            courierCodCharge: courierCodCharge,
+            totalCourierFee: totalCourierDeduction,
+            netReceivable: netReceivableAmount,
+            liveCourierStatus: liveApiStatus,
             status: 'In Transit',
             bookedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -1765,15 +1784,18 @@ async function dispatchCourierParcel(e) {
 
         Swal.fire({
             icon: 'success',
-            title: 'PARCEL BOOKED!',
+            title: 'PARCEL BOOKED SUCCESSFULLY!',
             html: `
-                <div class="text-left text-xs space-y-2 p-3 bg-gray-50 rounded-xl border border-gray-200 mt-2">
-                    <p><b>Courier:</b> <span class="uppercase font-black text-purple-700">${provider}</span></p>
-                    <p><b>Consignment ID:</b> <span class="font-mono text-purple-900 font-black">${consignmentId}</span></p>
-                    <p><b>Tracking Code:</b> <span class="font-mono font-black text-black">${trackingCode}</span></p>
-                    <p><b>COD Amount:</b> ৳${codAmount}</p>
-                    <div class="pt-1">
-                        <a href="${trackingUrl}" target="_blank" class="inline-block bg-purple-600 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] uppercase">Open Live Tracking ↗</a>
+                <div class="text-left text-xs space-y-2 p-3.5 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
+                    <div class="flex justify-between"><b>Courier:</b> <span class="uppercase font-black text-purple-700">${provider}</span></div>
+                    <div class="flex justify-between"><b>Consignment ID:</b> <span class="font-mono text-purple-900 font-black">${consignmentId}</span></div>
+                    <div class="flex justify-between"><b>Collectable COD:</b> <span class="font-black text-gray-900">৳${codAmount}</span></div>
+                    ${totalCourierDeduction > 0 ? `
+                        <div class="flex justify-between text-red-600"><b>Courier Charge (Del + COD):</b> <span class="font-bold">-৳${totalCourierDeduction} (৳${courierOriginalFee} + ৳${courierCodCharge})</span></div>
+                        <div class="flex justify-between text-emerald-700 border-t border-gray-200 pt-1.5"><b>Net Merchant Payout:</b> <span class="font-black text-sm">৳${netReceivableAmount}</span></div>
+                    ` : ''}
+                    <div class="pt-2 flex gap-2">
+                        <a href="${trackingUrl}" target="_blank" class="flex-1 text-center bg-purple-600 text-white font-bold px-3 py-2 rounded-xl text-[10px] uppercase">Live Tracking ↗</a>
                     </div>
                 </div>
             `,
@@ -1803,7 +1825,7 @@ async function checkSteadfastWalletBalance() {
 
     try {
         const sfLoc = COURIER_CREDENTIALS.steadfast.locations[0];
-        const res = await callCourierApi("https://portal.steadfast.com.bd/api/v1/get_balance", {
+        const res = await callCourierApi("https://portal.packzy.com/api/v1/get_balance", {
             method: "GET",
             headers: {
                 "Api-Key": sfLoc.apiKey,
@@ -1828,7 +1850,149 @@ async function checkSteadfastWalletBalance() {
     }
 }
 
-// রিয়েল লাইভ স্ট্যাটাস সিঙ্ক (Steadfast & Pathao উভয় API থেকে আসল স্ট্যাটাস আপডেট)
+// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর (Pathao/Steadfast অ্যাপে না ঢুকেই সব ডিটেইলস দেখার জন্য)
+async function inspectCourierShipment(shipmentId) {
+    const s = allCourierShipments.find(item => item.id === shipmentId);
+    if (!s) return;
+
+    Swal.fire({
+        title: 'Fetching Live Courier Info...',
+        text: `Checking #${s.consignmentId} from ${s.provider} server.`,
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    let liveStatusText = s.liveCourierStatus || s.status || 'In Transit';
+    let liveFee = s.courierDeliveryFee || 0;
+    let liveCodFee = s.courierCodCharge || 0;
+    let updatedTime = 'Just now';
+
+    try {
+        if (s.provider === 'PATHAO' && s.consignmentId) {
+            const token = await getPathaoAccessToken();
+            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/json"
+                }
+            });
+            if (res?.data) {
+                liveStatusText = res.data.order_status || liveStatusText;
+                if (res.data.delivery_fee) liveFee = Number(res.data.delivery_fee);
+                updatedTime = res.data.updated_at || updatedTime;
+
+                // ডাটাবেসে লেটেস্ট স্ট্যাটাস আপডেট রাখা
+                await db.collection("courier_shipments").doc(s.id).update({
+                    liveCourierStatus: liveStatusText
+                });
+            }
+        } 
+        else if (s.provider === 'STEADFAST' && s.consignmentId) {
+            const sfLoc = COURIER_CREDENTIALS.steadfast.locations[0];
+            const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}`, {
+                method: "GET",
+                headers: {
+                    "Api-Key": sfLoc.apiKey,
+                    "Secret-Key": sfLoc.secretKey
+                }
+            });
+            if (res?.delivery_status) {
+                liveStatusText = res.delivery_status.toUpperCase();
+                await db.collection("courier_shipments").doc(s.id).update({
+                    liveCourierStatus: liveStatusText
+                });
+            }
+        }
+    } catch (err) {
+        console.warn("Live inspect fallback to cached data:", err.message);
+    }
+
+    const totalDed = liveFee + liveCodFee;
+    const netPay = (Number(s.codAmount) || 0) - totalDed;
+
+    Swal.fire({
+        title: `<span class="text-base font-black uppercase">Parcel #${s.consignmentId}</span>`,
+        html: `
+            <div class="text-left text-xs space-y-3 mt-2">
+                <div class="p-3 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] font-black uppercase text-purple-600 block">Live Courier Status</span>
+                        <span class="font-black text-purple-950 text-sm">${liveStatusText}</span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-xl bg-white text-purple-700 font-black text-[10px] border border-purple-200">${s.provider}</span>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 space-y-1.5">
+                    <p><b>Recipient:</b> ${s.customerName} (${s.customerPhone})</p>
+                    <p><b>Address:</b> ${s.address}</p>
+                    <p><b>Pickup Hub:</b> ${s.pickupLocationName || s.pickupLocationId || 'Main Store'}</p>
+                    <p><b>Invoice:</b> <span class="font-mono">${s.invoiceNo || 'N/A'}</span></p>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-1">
+                    <div class="flex justify-between"><span>Customer COD Amount:</span> <b>৳${Number(s.codAmount || 0).toLocaleString()}</b></div>
+                    <div class="flex justify-between text-red-600"><span>Courier Delivery Fee:</span> <b>-৳${liveFee}</b></div>
+                    <div class="flex justify-between text-red-600"><span>COD Handling Charge:</span> <b>-৳${liveCodFee}</b></div>
+                    <div class="flex justify-between text-emerald-800 border-t border-emerald-200 pt-1.5 text-sm font-black">
+                        <span>Net Payout to You:</span> <span>৳${netPay.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button type="button" onclick="printParcelSlip('${s.id}')" class="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-black text-[11px] uppercase cursor-pointer">
+                        <i class="fa-solid fa-print mr-1"></i> Print Label
+                    </button>
+                    <a href="${s.trackingUrl}" target="_blank" class="flex-1 text-center bg-purple-600 text-white py-2.5 rounded-xl font-black text-[11px] uppercase">
+                        Tracking Link ↗
+                    </a>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true
+    });
+}
+
+// প্রিন্টেবল পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
+function printParcelSlip(shipmentId) {
+    const s = allCourierShipments.find(item => item.id === shipmentId);
+    if (!s) return;
+
+    const printWin = window.open('', '_blank', 'width=420,height=600');
+    printWin.document.write(`
+        <html>
+        <head>
+            <title>REDAMS Parcel Slip - ${s.consignmentId}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
+                .box { border: 2px solid #000; padding: 16px; border-radius: 8px; }
+                .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 12px; }
+                .brand { font-size: 22px; font-weight: 900; letter-spacing: 2px; margin: 0; }
+                .cid { font-size: 18px; font-weight: bold; font-family: monospace; background: #eee; padding: 6px; margin-top: 8px; }
+                .row { margin: 8px 0; font-size: 13px; line-height: 1.4; }
+                .cod { margin-top: 14px; border-top: 2px dashed #000; padding-top: 10px; font-size: 18px; font-weight: 900; text-align: center; }
+            </style>
+        </head>
+        <body onload="window.print()">
+            <div class="box">
+                <div class="header">
+                    <p class="brand">REDAMS APPAREL</p>
+                    <small>Courier: ${s.provider} | Inv: ${s.invoiceNo || ''}</small>
+                    <div class="cid">CID: ${s.consignmentId}</div>
+                </div>
+                <div class="row"><b>Recipient:</b> ${s.customerName}</div>
+                <div class="row"><b>Phone:</b> ${s.customerPhone}</div>
+                <div class="row"><b>Address:</b> ${s.address}</div>
+                <div class="cod">COLLECT COD: ৳${s.codAmount}</div>
+            </div>
+        </body>
+        </html>
+    `);
+    printWin.document.close();
+}
+
+// রিয়েল লাইভ স্ট্যাটাস সিঙ্ক (Steadfast & Pathao উভয় API থেকে আসল স্ট্যাটাস আপডেট)
 async function syncLiveCourierStatuses() {
     const activeShipments = allCourierShipments.filter(s => ['In Transit', 'Hold'].includes(s.status) && s.consignmentId);
     if (activeShipments.length === 0) {
@@ -1850,9 +2014,10 @@ async function syncLiveCourierStatuses() {
     for (const s of activeShipments) {
         try {
             let mappedStatus = null;
+            let rawApiStatus = null;
 
             if (s.provider === 'STEADFAST') {
-                const res = await callCourierApi(`https://portal.steadfast.com.bd/api/v1/status_by_cid/${s.consignmentId}`, {
+                const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}`, {
                     method: "GET",
                     headers: {
                         "Api-Key": sfLoc.apiKey,
@@ -1861,6 +2026,7 @@ async function syncLiveCourierStatuses() {
                 });
 
                 const deliveryStatus = (res?.delivery_status || '').toLowerCase();
+                rawApiStatus = res?.delivery_status || '';
                 if (deliveryStatus === 'delivered' || deliveryStatus === 'partial_delivered') mappedStatus = 'Delivered';
                 else if (deliveryStatus === 'cancelled') mappedStatus = 'Cancelled';
                 else if (deliveryStatus === 'hold') mappedStatus = 'Hold';
@@ -1874,18 +2040,26 @@ async function syncLiveCourierStatuses() {
                         "Accept": "application/json"
                     }
                 });
-                const st = (res?.data?.order_status || '').toLowerCase();
+                rawApiStatus = res?.data?.order_status || '';
+                const st = rawApiStatus.toLowerCase();
                 if (st.includes('delivered')) mappedStatus = 'Delivered';
                 else if (st.includes('cancel') || st.includes('return')) mappedStatus = 'Cancelled';
                 else if (st.includes('hold')) mappedStatus = 'Hold';
             }
 
+            const updatePayload = {};
+            if (rawApiStatus && rawApiStatus !== s.liveCourierStatus) {
+                updatePayload.liveCourierStatus = rawApiStatus;
+            }
             if (mappedStatus && mappedStatus !== s.status) {
-                await db.collection("courier_shipments").doc(s.id).update({ status: mappedStatus });
+                updatePayload.status = mappedStatus;
                 if (s.orderId && mappedStatus === 'Delivered') {
                     await db.collection("orders").doc(s.orderId).update({ status: 'Completed' });
                 }
                 updatedCount++;
+            }
+            if (Object.keys(updatePayload).length > 0) {
+                await db.collection("courier_shipments").doc(s.id).update(updatePayload);
             }
         } catch (err) {
             console.warn(`Sync skipped for ${s.consignmentId}:`, err.message);
@@ -1901,7 +2075,7 @@ async function syncLiveCourierStatuses() {
     });
 }
 
-// ম্যানুয়ালি কুরিয়ার স্ট্যাটাস পরিবর্তনের ফাংশন (Delivered দিলে মূল অর্ডারও Completed হবে)
+// ম্যানুয়ালি কুরিয়ার স্ট্যাটাস পরিবর্তনের ফাংশন
 async function updateCourierStatusDirectly(shipmentId, orderId, newStatus) {
     try {
         await db.collection("courier_shipments").doc(shipmentId).update({
@@ -1930,20 +2104,45 @@ async function updateCourierStatusDirectly(shipmentId, orderId, newStatus) {
     }
 }
 
+// আসল Pathao API Cancel + Firebase Sync
 async function cancelCourierShipment(shipmentDocId, orderId, trackingCode) {
+    const shipment = allCourierShipments.find(item => item.id === shipmentDocId);
+    const cid = shipment?.consignmentId || trackingCode;
+    const provider = (shipment?.provider || '').toUpperCase();
+
     Swal.fire({
-        title: 'Cancel Booking?',
-        text: `Are you sure you want to cancel courier booking #${trackingCode}?`,
+        title: 'Cancel Courier Parcel?',
+        text: `This will send a live cancellation request to ${provider || 'Courier'} for #${cid}.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#000',
-        confirmButtonText: 'Yes, Cancel Parcel'
+        confirmButtonText: 'Yes, Cancel on Courier'
     }).then(async (result) => {
         if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Cancelling on Courier...',
+                text: 'Sending live cancellation request to courier portal.',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
             try {
+                if (provider === 'PATHAO' && cid) {
+                    const token = await getPathaoAccessToken();
+                    await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${cid}/cancel`, {
+                        method: "PUT",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        }
+                    });
+                }
+
                 await db.collection("courier_shipments").doc(shipmentDocId).update({
                     status: 'Cancelled',
+                    liveCourierStatus: 'Cancelled',
                     cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
@@ -1958,14 +2157,18 @@ async function cancelCourierShipment(shipmentDocId, orderId, trackingCode) {
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Booking Cancelled!',
-                    text: 'Parcel status set to Cancelled and Main Order reset to Pending.',
-                    timer: 1500,
+                    title: 'PARCEL CANCELLED!',
+                    text: `${provider} parcel #${cid} cancelled successfully & main order reset to Pending.`,
+                    timer: 2000,
                     showConfirmButton: false
                 });
             } catch (err) {
-                console.error("Cancel Error:", err);
-                Swal.fire({ icon: 'error', title: 'Action Failed', text: err.message });
+                console.error("Courier Cancel Error:", err);
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Courier Cancel Failed', 
+                    text: err.message || "Could not cancel on courier portal (parcel may already be picked up)." 
+                });
             }
         }
     });
@@ -2006,6 +2209,7 @@ PHONE NUMBER   : ${s.customerPhone}
 ADDRESS        : ${s.address}
 
 TOTAL COD TO COLLECT : ৳${s.codAmount}
+NET PAYOUT           : ৳${s.netReceivable ?? s.codAmount}
 TRACKING LINK  : ${s.trackingUrl || 'N/A'}
 ----------------------------------------`;
 
@@ -2069,12 +2273,14 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
     const delivered = allCourierShipments.filter(s => s.status === 'Delivered').length;
     const cancelled = allCourierShipments.filter(s => s.status === 'Cancelled' || s.status === 'Hold').length;
     const activeCod = allCourierShipments.filter(s => s.status === 'In Transit').reduce((sum, s) => sum + (parseInt(s.codAmount) || 0), 0);
+    const totalFees = allCourierShipments.filter(s => s.status !== 'Cancelled').reduce((sum, s) => sum + (Number(s.totalCourierFee) || 0), 0);
 
     if (document.getElementById('stat-courier-total')) document.getElementById('stat-courier-total').innerText = total;
     if (document.getElementById('stat-courier-transit')) document.getElementById('stat-courier-transit').innerText = transit;
     if (document.getElementById('stat-courier-delivered')) document.getElementById('stat-courier-delivered').innerText = delivered;
     if (document.getElementById('stat-courier-cancelled')) document.getElementById('stat-courier-cancelled').innerText = cancelled;
     if (document.getElementById('stat-courier-cod')) document.getElementById('stat-courier-cod').innerText = `৳${activeCod.toLocaleString()}`;
+    if (document.getElementById('stat-courier-fees')) document.getElementById('stat-courier-fees').innerText = `৳${totalFees.toLocaleString()}`;
 
     if (shipmentsToRender.length === 0) {
         table.innerHTML = '<tr class="block md:table-row"><td colspan="5" class="block md:table-cell p-8 text-center text-gray-400 font-bold uppercase text-xs">No parcel shipment records found.</td></tr>';
@@ -2103,20 +2309,24 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
             ? new Date(s.bookedAt.seconds * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) 
             : 'Recently';
 
+        const hasOriginalFee = Number(s.totalCourierFee || 0) > 0;
+        const netPayout = Number(s.netReceivable ?? ((Number(s.codAmount) || 0) - Number(s.totalCourierFee || 0)));
+
         return `
             <tr class="block md:table-row bg-white rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-gray-200/80 md:border-0 md:border-b md:border-gray-100 p-3.5 md:p-0 hover:bg-gray-50/90 transition">
                 
-                <!-- 1. CID & Provider -->
+                <!-- 1. CID, Provider & Live Sub-Status -->
                 <td class="flex md:table-cell items-center justify-between md:px-4 md:py-3.5 pb-2.5 md:pb-3.5 border-b border-gray-100 md:border-0 align-top">
                     <div>
                         <button type="button" onclick="copyTrackingCode('${displayCid}')" title="Click to Copy CID" class="inline-flex items-center gap-1.5 font-mono font-black text-purple-900 hover:text-red-600 text-xs cursor-pointer">
                             <span class="text-[9px] font-black uppercase text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">CID</span>
                             ${displayCid} <i class="fa-regular fa-copy text-[10px] opacity-60"></i>
                         </button>
-                        <div class="flex items-center gap-1.5 mt-1">
+                        <div class="flex flex-wrap items-center gap-1.5 mt-1">
                             <span class="px-2 py-0.5 text-[9px] font-black rounded border uppercase ${providerBadge}">${s.provider}</span>
                             <span class="text-[9px] font-bold text-gray-400">${bookedDate}</span>
                         </div>
+                        ${s.liveCourierStatus ? `<span class="inline-block text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-1">API: ${s.liveCourierStatus}</span>` : ''}
                     </div>
                 </td>
 
@@ -2132,13 +2342,24 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                             ` : ''}
                         </div>
                     </div>
-                    <p class="text-[10px] text-gray-500 font-medium mt-1 md:max-w-[180px] truncate" title="${s.address || ''}">${s.address || ''}</p>
+                    <p class="text-[10px] text-gray-500 font-medium mt-1 md:max-w-[175px] truncate" title="${s.address || ''}">${s.address || ''}</p>
                 </td>
 
-                <!-- 3. COD Breakdown -->
+                <!-- 3. COD, Original Courier Fee & Net Payout -->
                 <td class="flex md:table-cell items-center justify-between md:px-4 md:py-3.5 py-2 md:py-3.5 border-t border-gray-100 md:border-0 align-top whitespace-nowrap">
-                    <span class="font-black text-purple-700 text-sm md:text-xs block">৳${Number(s.codAmount || 0).toLocaleString()}</span>
-                    <span class="text-[9px] font-bold text-gray-400 block">Prod: ৳${s.productAmount || 0} + Del: ৳${s.deliveryCharge || 0}</span>
+                    <div>
+                        <span class="font-black text-purple-700 text-sm md:text-xs block">COD: ৳${Number(s.codAmount || 0).toLocaleString()}</span>
+                        ${hasOriginalFee ? `
+                            <span class="text-[9px] font-bold text-red-500 block">
+                                Fee: -৳${s.totalCourierFee} (Del: ৳${s.courierDeliveryFee || 0} + COD: ৳${s.courierCodCharge || 0})
+                            </span>
+                            <span class="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                Net: ৳${netPayout.toLocaleString()}
+                            </span>
+                        ` : `
+                            <span class="text-[9px] font-bold text-gray-400 block">Prod: ৳${s.productAmount || 0} + Del: ৳${s.deliveryCharge || 0}</span>
+                        `}
+                    </div>
                 </td>
 
                 <!-- 4. Editable Live Status -->
@@ -2153,9 +2374,10 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                         </select>
 
                         <!-- Mobile Actions -->
-                        <div class="flex md:hidden items-center gap-1.5 shrink-0">
-                            <button type="button" onclick="copyParcelPrintLabel('${s.id}')" class="px-2.5 py-1.5 bg-gray-100 text-gray-800 rounded-xl text-xs font-bold"><i class="fa-solid fa-print"></i></button>
-                            <a href="${liveTrackingUrl}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 text-white rounded-xl text-xs font-bold"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                        <div class="flex md:hidden items-center gap-1 shrink-0">
+                            <button type="button" onclick="inspectCourierShipment('${s.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-bold" title="Live Info"><i class="fa-solid fa-eye"></i></button>
+                            <button type="button" onclick="printParcelSlip('${s.id}')" class="px-2.5 py-1.5 bg-gray-100 text-gray-800 rounded-xl text-xs font-bold" title="Print"><i class="fa-solid fa-print"></i></button>
+                            <button type="button" onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="px-2.5 py-1.5 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold" title="Cancel"><i class="fa-solid fa-ban"></i></button>
                             <button type="button" onclick="deleteCourierShipment('${s.id}')" class="p-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
@@ -2164,13 +2386,13 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                 <!-- 5. Desktop Quick Actions -->
                 <td class="hidden md:table-cell px-4 py-3.5 align-top text-right whitespace-nowrap">
                     <div class="flex items-center justify-end gap-1">
-                        <button type="button" onclick="copyParcelPrintLabel('${s.id}')" class="p-2 bg-gray-100 hover:bg-black hover:text-white text-gray-800 rounded-xl text-xs font-bold transition cursor-pointer" title="Copy Print Label">
+                        <button type="button" onclick="inspectCourierShipment('${s.id}')" class="px-2.5 py-1.5 bg-gray-900 hover:bg-black text-white rounded-xl text-[11px] font-black transition cursor-pointer inline-flex items-center gap-1" title="Live Courier Details & Financials">
+                            <i class="fa-solid fa-eye"></i> Details
+                        </button>
+                        <button type="button" onclick="printParcelSlip('${s.id}')" class="p-2 bg-gray-100 hover:bg-black hover:text-white text-gray-800 rounded-xl text-xs font-bold transition cursor-pointer" title="Print Parcel Slip">
                             <i class="fa-solid fa-print"></i>
                         </button>
-                        <a href="${liveTrackingUrl}" target="_blank" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-800 text-white rounded-xl text-[11px] font-black transition inline-flex items-center gap-1" title="Live Track">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Track
-                        </a>
-                        <button type="button" onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer" title="Cancel Booking">
+                        <button type="button" onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer" title="Cancel Booking on Courier">
                             <i class="fa-solid fa-ban"></i>
                         </button>
                         <button type="button" onclick="deleteCourierShipment('${s.id}')" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer" title="Delete Record">
