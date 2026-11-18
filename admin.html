@@ -507,63 +507,121 @@
                 </div>
             </div> <!-- /#products-content -->
 
-            <!-- 3. ORDERS MANAGEMENT TAB -->
+           <!-- 3. ORDERS MANAGEMENT TAB (PREMIUM OMNICHANNEL ENGINE V4.0) -->
             <div id="orders-content" class="tab-content hidden space-y-6">
                 
                 <!-- Top Header & Action Bar -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-purple-600 to-emerald-500"></div>
+                    
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">LIVE SYNC HUB</span>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100"><i class="fa-solid fa-bolt"></i> Realtime Sync</span>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">OMNICHANNEL ORDER HUB V4.0</span>
+                            <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Status Control
+                            </span>
                         </div>
                         <h1 class="text-xl md:text-3xl font-black text-gray-900 tracking-tight">Orders Management</h1>
-                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Website, Custom Form & WhatsApp customer orders control engine</p>
+                        <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage Website, Facebook & WhatsApp orders with instant inline status switching</p>
                     </div>
                     
-                    <button onclick="openAddOrderModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs md:text-sm flex items-center justify-center gap-2 transition active:scale-95 shrink-0">
-                        <i class="fa-solid fa-plus text-sm"></i> Add Manual Order
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <button type="button" onclick="openAddOrderModal()" class="bg-red-600 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-black shadow-lg shadow-red-600/20 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> + FB / WA / Manual Order
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Smart Search & Quick Filter Toolbar -->
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 card-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
-                    <div class="relative w-full md:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" id="order-search-input" oninput="if(typeof filterOrdersTable === 'function') filterOrdersTable()" placeholder="Search Order ID, Name, Phone..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                <!-- Mini Order Status KPI Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div onclick="setOrderStatusQuickFilter('all')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-gray-300 transition flex items-center justify-between">
+                        <div>
+                            <span class="text-[9px] font-black uppercase text-gray-400 block">All Orders</span>
+                            <span id="ord-kpi-all" class="text-xl font-black text-gray-900">0</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
                     </div>
 
-                    <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-                        <select id="order-source-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
-                            <option value="all">All Sources</option>
-                            <option value="Website">Website Order</option>
-                            <option value="WhatsApp">WhatsApp</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Manual">Manual Entry</option>
-                        </select>
+                    <div onclick="setOrderStatusQuickFilter('Pending')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-amber-300 transition flex items-center justify-between">
+                        <div>
+                            <span class="text-[9px] font-black uppercase text-amber-600 block">Pending</span>
+                            <span id="ord-kpi-pending" class="text-xl font-black text-amber-600">0</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs"><i class="fa-solid fa-clock"></i></div>
+                    </div>
 
-                        <select id="order-status-filter" onchange="if(typeof filterOrdersTable === 'function') filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto">
-                            <option value="all">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Shipped">Shipped / Courier</option>
-                            <option value="Completed">Completed / Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                    <div onclick="setOrderStatusQuickFilter('Shipped')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-purple-300 transition flex items-center justify-between">
+                        <div>
+                            <span class="text-[9px] font-black uppercase text-purple-600 block">Shipped / Courier</span>
+                            <span id="ord-kpi-shipped" class="text-xl font-black text-purple-600">0</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-truck-fast"></i></div>
+                    </div>
+
+                    <div onclick="setOrderStatusQuickFilter('Completed')" class="cursor-pointer bg-white p-4 rounded-2xl border border-gray-100 card-shadow hover:border-emerald-300 transition flex items-center justify-between">
+                        <div>
+                            <span class="text-[9px] font-black uppercase text-emerald-600 block">Delivered / Paid</span>
+                            <span id="ord-kpi-completed" class="text-xl font-black text-emerald-600">0</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                </div>
+
+                <!-- Smart Search, Channel Pills & Quick Filter Toolbar -->
+                <div class="bg-white p-4 rounded-3xl border border-gray-100 card-shadow space-y-3">
+                    <!-- Quick Channel Filter Pills -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                        <div class="flex flex-wrap items-center gap-1.5" id="order-channel-pills">
+                            <button type="button" onclick="setOrderSourceQuickFilter('all', this)" class="ord-pill-btn bg-gray-900 text-white px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer">All Channels</button>
+                            <button type="button" onclick="setOrderSourceQuickFilter('Website', this)" class="ord-pill-btn bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-solid fa-globe mr-1"></i> Website</button>
+                            <button type="button" onclick="setOrderSourceQuickFilter('Facebook', this)" class="ord-pill-btn bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-blue-600 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-brands fa-facebook mr-1"></i> Facebook</button>
+                            <button type="button" onclick="setOrderSourceQuickFilter('WhatsApp', this)" class="ord-pill-btn bg-gray-100 hover:bg-emerald-50 text-gray-700 hover:text-emerald-600 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp</button>
+                            <button type="button" onclick="setOrderSourceQuickFilter('Manual', this)" class="ord-pill-btn bg-gray-100 hover:bg-amber-50 text-gray-700 hover:text-amber-600 px-3.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition cursor-pointer"><i class="fa-solid fa-pen mr-1"></i> Manual</button>
+                        </div>
+
+                        <span class="text-[10px] font-bold text-gray-400"><i class="fa-solid fa-circle-info text-purple-500"></i> Change status directly from table dropdown</span>
+                    </div>
+
+                    <!-- Search & Dropdown Filters -->
+                    <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+                        <div class="relative w-full md:w-96">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                            <input type="text" id="order-search-input" oninput="filterOrdersTable()" placeholder="Search Order ID, Customer Name, Phone, Items..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-red-600 focus:bg-white transition">
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full md:w-auto">
+                            <select id="order-source-filter" onchange="filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto cursor-pointer">
+                                <option value="all">All Sources</option>
+                                <option value="Website">Website Order</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Manual">Manual Entry</option>
+                            </select>
+
+                            <select id="order-status-filter" onchange="filterOrdersTable()" class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-xs font-black text-gray-800 outline-none focus:border-red-600 transition w-1/2 md:w-auto cursor-pointer">
+                                <option value="all">All Statuses</option>
+                                <option value="Pending">⏳ Pending</option>
+                                <option value="Confirmed">✅ Confirmed</option>
+                                <option value="Shipped">🚚 Shipped / Courier</option>
+                                <option value="Completed">🎉 Completed / Delivered</option>
+                                <option value="Cancelled">❌ Cancelled</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Responsive High-Density Table Wrapper -->
                 <div class="bg-white rounded-3xl card-shadow overflow-hidden border border-gray-100">
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left min-w-[750px] border-collapse">
-                            <thead class="bg-gray-50/80 border-b border-gray-200">
+                        <table class="w-full text-left min-w-[920px] border-collapse">
+                            <thead class="bg-gray-900 text-white">
                                 <tr>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Order ID</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Customer & Channel</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Total Bill</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Payment</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500">Status</th>
-                                    <th class="px-5 py-3.5 font-black text-[11px] uppercase tracking-wider text-gray-500 text-right">Actions</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider">Order ID & Source</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider">Customer & Contact</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider">Ordered Items</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider">Total & Payment</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider">Live Status (Editable)</th>
+                                    <th class="px-5 py-4 font-black text-[10px] uppercase tracking-wider text-right">Quick Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="orders-table" class="divide-y divide-gray-100 text-xs md:text-sm">
