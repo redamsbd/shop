@@ -1828,11 +1828,11 @@ async function dispatchCourierParcel(e) {
                 trackingUrl = `https://merchant.pathao.com/tracking?consignment_id=${consignmentId}`;
                 liveApiStatus = resData.data.order_status || "Pending";
 
-                // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ রাউন্ড-আপ (Math.ceil) হিসাব
+                // Pathao API থেকে আসা আসল ডেলিভারি চার্জ ও ১% COD চার্জ (ঢাকা ও ঢাকার বাইরে সবক্ষেত্রেই প্রযোজ্য)
                 const rawDeliveryFee = Number(resData.data.delivery_fee || 0);
-                const rawCodFee = resData.data.cod_fee !== undefined 
-                    ? Number(resData.data.cod_fee) 
-                    : (detectedCity !== 1 ? (codAmount * 0.01) : 0);
+                const rawCodFee = (resData.data.cod_fee !== undefined && Number(resData.data.cod_fee) > 0)
+                    ? Number(resData.data.cod_fee)
+                    : (codAmount > 0 ? (codAmount * 0.01) : 0);
 
                 // দশমিকের পর কোনো পয়সা থাকলেই পরবর্তী পূর্ণ টাকায় (Round Up) নিয়ে যাবে
                 courierOriginalFee = Math.ceil(rawDeliveryFee);
