@@ -1965,6 +1965,11 @@ async function inspectCourierShipment(shipmentId) {
     let liveFee = Math.ceil(Number(s.courierDeliveryFee || 0));
     let liveCodFee = Math.ceil(Number(s.courierCodCharge || 0));
 
+    // Pathao হলে আগে থেকেই ক্যাশ ডাটাতে ১% COD চার্জ রাউন্ড-আপ নিশ্চিত করা
+    if (s.provider === 'PATHAO' && liveCodFee === 0 && Number(s.codAmount) > 0) {
+        liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
+    }
+
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
             const token = await getPathaoAccessToken();
@@ -1978,22 +1983,18 @@ async function inspectCourierShipment(shipmentId) {
             if (res?.data) {
                 liveStatusText = res.data.order_status || liveStatusText;
 
-                if (res.data.delivery_fee !== undefined) {
+                if (res.data.delivery_fee !== undefined && Number(res.data.delivery_fee) > 0) {
                     liveFee = Math.ceil(Number(res.data.delivery_fee));
                 }
 
-                // Pathao API থেকে cod_fee বা total_fee পেলে সেটাও রাউন্ড-আপ করবে
-                if (res.data.cod_fee !== undefined) {
+                // Pathao API থেকে cod_fee পেলে সেটা নেবে, নাহলে ঢাকা/বাইরে সব COD অর্ডারে ১% রাউন্ড-আপ করবে
+                if (res.data.cod_fee !== undefined && Number(res.data.cod_fee) > 0) {
                     liveCodFee = Math.ceil(Number(res.data.cod_fee));
-                } else if (res.data.total_fee !== undefined) {
+                } else if (res.data.total_fee !== undefined && Number(res.data.total_fee) > liveFee) {
                     const roundedTotal = Math.ceil(Number(res.data.total_fee));
                     liveCodFee = Math.max(0, roundedTotal - liveFee);
-                } else if (liveCodFee === 0 && Number(s.codAmount) > 0) {
-                    // ঢাকার বাইরে ১% COD চার্জ রাউন্ড আপ (যেমন 14.40 -> 15)
-                    const isOutsideDhaka = !(s.address || '').toLowerCase().includes('dhaka');
-                    if (isOutsideDhaka) {
-                        liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
-                    }
+                } else if (Number(s.codAmount) > 0) {
+                    liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
                 }
 
                 const updatedTotalFee = liveFee + liveCodFee;
@@ -2075,7 +2076,6 @@ async function inspectCourierShipment(shipmentId) {
         showCloseButton: true
     });
 }
-
 // প্রিন্টেবল প্রিমিয়াম REDAMS ব্র্যান্ডেড পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
 function printParcelSlip(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
