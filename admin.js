@@ -1949,14 +1949,14 @@ async function checkSteadfastWalletBalance() {
     }
 }
 
-// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর (Pathao/Steadfast অ্যাপে না ঢুকেই সব ডিটেইলস দেখার জন্য)
+// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V2.0 (Pathao/Steadfast সার্ভার থেকে সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
 async function inspectCourierShipment(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
 
     Swal.fire({
-        title: 'Fetching Live Courier Info...',
-        text: `Checking #${s.consignmentId} from ${s.provider} server.`,
+        title: 'Syncing Live Courier Info...',
+        text: `Fetching latest charges & status for #${s.consignmentId} from ${s.provider}.`,
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
@@ -1964,44 +1964,73 @@ async function inspectCourierShipment(shipmentId) {
     let liveStatusText = s.liveCourierStatus || s.status || 'In Transit';
     let liveFee = Math.ceil(Number(s.courierDeliveryFee || 0));
     let liveCodFee = Math.ceil(Number(s.courierCodCharge || 0));
-
-    // Pathao হলে আগে থেকেই ক্যাশ ডাটাতে ১% COD চার্জ রাউন্ড-আপ নিশ্চিত করা
-    if (s.provider === 'PATHAO' && liveCodFee === 0 && Number(s.codAmount) > 0) {
-        liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
-    }
+    let liveCodAmount = Number(s.codAmount || 0);
+    let parcelWeight = s.weight || '0.5 kg';
+    let isLiveSynced = false;
 
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
             const token = await getPathaoAccessToken();
-            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info`, {
+            // ক্যাশ এড়িয়ে Pathao সার্ভার থেকে একদম ফ্রেশ ডাটা আনার জন্য timestamp যুক্ত করা হয়েছে
+            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info?_t=${Date.now()}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${token}`,
-                    "Accept": "application/json"
+                    "Accept": "application/json",
+                    "Cache-Control": "no-cache"
                 }
             });
-            if (res?.data) {
-                liveStatusText = res.data.order_status || liveStatusText;
 
-                if (res.data.delivery_fee !== undefined && Number(res.data.delivery_fee) > 0) {
-                    liveFee = Math.ceil(Number(res.data.delivery_fee));
+            const info = res?.data?.data || res?.data || null;
+
+            if (info) {
+                isLiveSynced = true;
+                liveStatusText = info.order_status || info.order_status_slug || liveStatusText;
+
+                if (info.item_weight) {
+                    parcelWeight = `${info.item_weight} kg`;
                 }
 
-                // Pathao API থেকে cod_fee পেলে সেটা নেবে, নাহলে ঢাকা/বাইরে সব COD অর্ডারে ১% রাউন্ড-আপ করবে
-                if (res.data.cod_fee !== undefined && Number(res.data.cod_fee) > 0) {
-                    liveCodFee = Math.ceil(Number(res.data.cod_fee));
-                } else if (res.data.total_fee !== undefined && Number(res.data.total_fee) > liveFee) {
-                    const roundedTotal = Math.ceil(Number(res.data.total_fee));
+                // Pathao প্যানেল থেকে COD Amount আপডেট করা হলে তা রিড করা
+                if (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect))) {
+                    liveCodAmount = Number(info.amount_to_collect);
+                }
+
+                // সর্বশেষ আপডেট হওয়া Delivery Fee রিড করা (আগের পুরনো ডাটা সম্পূর্ণ ওভাররাইট করবে)
+                const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? null;
+                if (rawApiDelFee !== null && !isNaN(Number(rawApiDelFee)) && Number(rawApiDelFee) > 0) {
+                    liveFee = Math.ceil(Number(rawApiDelFee));
+                }
+
+                // সর্বশেষ আপডেট হওয়া COD Fee বা Total Fee থেকে রাউন্ড-আপ COD চার্জ বের করা
+                const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
+                const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
+
+                if (rawApiCodFee !== null && !isNaN(Number(rawApiCodFee)) && Number(rawApiCodFee) > 0) {
+                    liveCodFee = Math.ceil(Number(rawApiCodFee));
+                } else if (rawApiTotalFee !== null && !isNaN(Number(rawApiTotalFee)) && Number(rawApiTotalFee) > liveFee) {
+                    const roundedTotal = Math.ceil(Number(rawApiTotalFee));
                     liveCodFee = Math.max(0, roundedTotal - liveFee);
-                } else if (Number(s.codAmount) > 0) {
-                    liveCodFee = Math.ceil(Number(s.codAmount) * 0.01);
+                } else if (liveCodAmount > 0) {
+                    // ঢাকা ও ঢাকার বাইরে সব Pathao COD অর্ডারে ১% রাউন্ড-আপ
+                    liveCodFee = Math.ceil(liveCodAmount * 0.01);
+                } else {
+                    liveCodFee = 0;
                 }
 
                 const updatedTotalFee = liveFee + liveCodFee;
-                const updatedNetPay = (Number(s.codAmount) || 0) - updatedTotalFee;
+                const updatedNetPay = liveCodAmount - updatedTotalFee;
 
-                // ডাটাবেসে রাউন্ড-আপ করা চার্জ ও নেট পে-আউট আপডেট রাখা
+                // লোকাল অ্যারে ও Firebase ডাটাবেসে নতুন আপডেটেড চার্জ ও স্ট্যাটাস সেভ করা
+                s.codAmount = liveCodAmount;
+                s.liveCourierStatus = liveStatusText;
+                s.courierDeliveryFee = liveFee;
+                s.courierCodCharge = liveCodFee;
+                s.totalCourierFee = updatedTotalFee;
+                s.netReceivable = updatedNetPay;
+
                 await db.collection("courier_shipments").doc(s.id).update({
+                    codAmount: liveCodAmount,
                     liveCourierStatus: liveStatusText,
                     courierDeliveryFee: liveFee,
                     courierCodCharge: liveCodFee,
@@ -2012,7 +2041,7 @@ async function inspectCourierShipment(shipmentId) {
         } 
         else if (s.provider === 'STEADFAST' && s.consignmentId) {
             const sfLoc = COURIER_CREDENTIALS.steadfast.locations[0];
-            const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}`, {
+            const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}?_t=${Date.now()}`, {
                 method: "GET",
                 headers: {
                     "Api-Key": sfLoc.apiKey,
@@ -2020,7 +2049,10 @@ async function inspectCourierShipment(shipmentId) {
                 }
             });
             if (res?.delivery_status) {
+                isLiveSynced = true;
                 liveStatusText = res.delivery_status.toUpperCase();
+                s.liveCourierStatus = liveStatusText;
+
                 await db.collection("courier_shipments").doc(s.id).update({
                     liveCourierStatus: liveStatusText
                 });
@@ -2030,44 +2062,84 @@ async function inspectCourierShipment(shipmentId) {
         console.warn("Live inspect fallback to cached data:", err.message);
     }
 
+    // ফলব্যাক: Pathao হলে COD চার্জ কখনো 0 দেখাবে না (যদি COD > 0 হয়)
+    if (s.provider === 'PATHAO' && liveCodFee === 0 && liveCodAmount > 0) {
+        liveCodFee = Math.ceil(liveCodAmount * 0.01);
+    }
+
     const totalDed = liveFee + liveCodFee;
-    const netPay = (Number(s.codAmount) || 0) - totalDed;
+    const netPay = liveCodAmount - totalDed;
+    const customerPaidDelivery = Number(s.deliveryCharge || 0);
+    const deliveryDiff = customerPaidDelivery - totalDed;
+    const syncTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const trackingShareMsg = encodeURIComponent(
+        `Assalamu Alaikum ${s.customerName},\nYour REDAMS parcel has been dispatched via ${s.provider}!\n\nTracking ID: ${s.consignmentId}\nCOD Amount: ৳${liveCodAmount}\nLive Tracking: ${s.trackingUrl}\n\nThank you for shopping with REDAMS!`
+    );
 
     Swal.fire({
-        title: `<span class="text-base font-black uppercase">Parcel #${s.consignmentId}</span>`,
+        title: `<div class="flex flex-col items-center">
+                    <span class="text-[9px] font-black uppercase tracking-widest ${isLiveSynced ? 'text-emerald-600' : 'text-amber-600'}">
+                        ${isLiveSynced ? `● LIVE SYNCED (${syncTimeStr})` : '● CACHED RECORD'}
+                    </span>
+                    <span class="text-base font-black uppercase text-gray-900 mt-0.5">Parcel #${s.consignmentId}</span>
+                </div>`,
         html: `
             <div class="text-left text-xs space-y-3 mt-2">
+                <!-- Live Status Banner -->
                 <div class="p-3 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between">
                     <div>
                         <span class="text-[9px] font-black uppercase text-purple-600 block">Live Courier Status</span>
                         <span class="font-black text-purple-950 text-sm">${liveStatusText}</span>
                     </div>
-                    <span class="px-2.5 py-1 rounded-xl bg-white text-purple-700 font-black text-[10px] border border-purple-200">${s.provider}</span>
+                    <div class="text-right">
+                        <span class="px-2.5 py-1 rounded-xl bg-white text-purple-700 font-black text-[10px] border border-purple-200 block">${s.provider}</span>
+                        <span class="text-[9px] font-bold text-gray-500 mt-1 block">Wt: ${parcelWeight}</span>
+                    </div>
                 </div>
 
+                <!-- Recipient & Routing Card -->
                 <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 space-y-1.5">
-                    <p><b>Recipient:</b> ${s.customerName} (${s.customerPhone})</p>
+                    <div class="flex items-center justify-between">
+                        <p><b>Recipient:</b> ${s.customerName}</p>
+                        <a href="tel:${s.customerPhone}" class="text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 text-[11px]">
+                            <i class="fa-solid fa-phone mr-1"></i>${s.customerPhone}
+                        </a>
+                    </div>
                     <p><b>Address:</b> ${s.address}</p>
                     <p><b>Pickup Hub:</b> ${s.pickupLocationName || s.pickupLocationId || 'Main Store'}</p>
-                    <p><b>Invoice:</b> <span class="font-mono">${s.invoiceNo || 'N/A'}</span></p>
+                    <p><b>Invoice:</b> <span class="font-mono font-bold text-gray-800">${s.invoiceNo || 'N/A'}</span></p>
                 </div>
 
-                <div class="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-1">
-                    <div class="flex justify-between"><span>Customer COD Amount:</span> <b>৳${Number(s.codAmount || 0).toLocaleString()}</b></div>
+                <!-- Updated Financial Breakdown Card -->
+                <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-1.5">
+                    <div class="flex justify-between"><span>Customer COD Amount:</span> <b>৳${liveCodAmount.toLocaleString()}</b></div>
                     <div class="flex justify-between text-red-600"><span>Courier Delivery Fee:</span> <b>-৳${liveFee}</b></div>
-                    <div class="flex justify-between text-red-600"><span>COD Handling Charge (Rounded):</span> <b>-৳${liveCodFee}</b></div>
-                    <div class="flex justify-between text-amber-700 text-[11px] pt-0.5"><span>Total Courier Cost:</span> <b>-৳${totalDed}</b></div>
-                    <div class="flex justify-between text-emerald-800 border-t border-emerald-200 pt-1.5 text-sm font-black">
+                    <div class="flex justify-between text-red-600"><span>COD Handling Charge (1% Rounded):</span> <b>-৳${liveCodFee}</b></div>
+                    <div class="flex justify-between text-amber-700 text-[11px] pt-0.5 border-t border-emerald-200/60">
+                        <span>Total Courier Deduction:</span> <b>-৳${totalDed}</b>
+                    </div>
+                    ${customerPaidDelivery > 0 ? `
+                        <div class="flex justify-between text-[10px] ${deliveryDiff >= 0 ? 'text-emerald-700' : 'text-rose-600'}">
+                            <span>Delivery Margin (Charged ৳${customerPaidDelivery} vs Cost ৳${totalDed}):</span>
+                            <b>${deliveryDiff >= 0 ? `+৳${deliveryDiff} Surplus` : `-৳${Math.abs(deliveryDiff)} Subsidy`}</b>
+                        </div>
+                    ` : ''}
+                    <div class="flex justify-between text-emerald-900 border-t border-emerald-300 pt-1.5 text-sm font-black">
                         <span>Net Payout to You:</span> <span>৳${netPay.toLocaleString()}</span>
                     </div>
                 </div>
 
-                <div class="flex gap-2 pt-1">
-                    <button type="button" onclick="printParcelSlip('${s.id}')" class="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-black text-[11px] uppercase cursor-pointer">
-                        <i class="fa-solid fa-print mr-1"></i> Print Label
+                <!-- Quick Logistics Actions -->
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                    <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${trackingShareMsg}')); Swal.fire({toast:true, position:'top-end', icon:'success', title:'Tracking Message Copied!', timer:1300, showConfirmButton:false});" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1">
+                        <i class="fa-brands fa-whatsapp text-xs"></i> Copy Msg
                     </button>
-                    <a href="${s.trackingUrl}" target="_blank" class="flex-1 text-center bg-purple-600 text-white py-2.5 rounded-xl font-black text-[11px] uppercase">
-                        Tracking Link ↗
+                    <button type="button" onclick="printParcelSlip('${s.id}')" class="bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-print"></i> Label
+                    </button>
+                    <a href="${s.trackingUrl}" target="_blank" class="text-center bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-1">
+                        Track ↗
                     </a>
                 </div>
             </div>
