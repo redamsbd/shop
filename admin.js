@@ -1949,7 +1949,7 @@ async function checkSteadfastWalletBalance() {
     }
 }
 
-// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V2.1 (Pathao/Steadfast সার্ভার থেকে সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
+// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V2.2 PRO (Pathao/Steadfast সার্ভার থেকে সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
 async function inspectCourierShipment(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
@@ -1972,7 +1972,6 @@ async function inspectCourierShipment(shipmentId) {
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
             const token = await getPathaoAccessToken();
-            // ক্লিন Pathao Order Info Endpoint (কোনো এক্সট্রা প্যারামিটার ছাড়া)
             const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info`, {
                 method: "GET",
                 headers: {
@@ -1981,9 +1980,8 @@ async function inspectCourierShipment(shipmentId) {
                 }
             });
 
-            // Pathao API রেসপন্স স্ট্রাকচার হ্যান্ডলিং (res.data বা res.data.data)
-            const info = (res?.data && typeof res.data === 'object' && res.data.consignment_id) 
-                ? res.data 
+            const info = (res?.data && typeof res.data === 'object' && res.data.consignment_id)
+                ? res.data
                 : (res?.data?.data || res?.data || null);
 
             if (info && (info.order_status || info.consignment_id || info.delivery_fee !== undefined)) {
@@ -1999,25 +1997,54 @@ async function inspectCourierShipment(shipmentId) {
                     liveCodAmount = Number(info.amount_to_collect);
                 }
 
-                // সর্বশেষ আপডেট হওয়া Delivery Fee রিড করা (যেমন 60 থেকে 70 হলে 70 নেবে)
+                // ১. Pathao Order Info API-তে সরাসরি ফি থাকলে তা নেওয়া
                 const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
+                const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
+                const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
+
                 if (rawApiDelFee !== null && !isNaN(Number(rawApiDelFee)) && Number(rawApiDelFee) > 0) {
                     liveFee = Math.ceil(Number(rawApiDelFee));
                 }
 
-                // সর্বশেষ আপডেট হওয়া COD Fee বা Total Fee থেকে রাউন্ড-আপ COD চার্জ বের করা
-                const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
-                const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
-
                 if (rawApiCodFee !== null && !isNaN(Number(rawApiCodFee)) && Number(rawApiCodFee) > 0) {
                     liveCodFee = Math.ceil(Number(rawApiCodFee));
                 } else if (rawApiTotalFee !== null && !isNaN(Number(rawApiTotalFee)) && Number(rawApiTotalFee) > liveFee) {
-                    const roundedTotal = Math.ceil(Number(rawApiTotalFee));
-                    liveCodFee = Math.max(0, roundedTotal - liveFee);
+                    liveCodFee = Math.max(0, Math.ceil(Number(rawApiTotalFee)) - liveFee);
                 } else if (liveCodAmount > 0) {
                     liveCodFee = Math.ceil(liveCodAmount * 0.01);
                 } else {
                     liveCodFee = 0;
+                }
+
+                // ২. যদি Order Info API-তে আপডেটেড delivery_fee না পাঠায়, তবে আপডেট হওয়া City/Zone দিয়ে Price Plan API থেকে আসল চার্জ আনা
+                if ((!rawApiDelFee || Number(rawApiDelFee) === 0) && info.recipient_city && info.recipient_zone) {
+                    try {
+                        const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
+                            method: "POST",
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                store_id: Number(s.pickupLocationId) || 485941,
+                                item_type: 2,
+                                delivery_type: 48,
+                                item_weight: Number(info.item_weight || 0.5),
+                                recipient_city: Number(info.recipient_city),
+                                recipient_zone: Number(info.recipient_zone)
+                            })
+                        });
+                        const plan = priceRes?.data?.data || priceRes?.data || null;
+                        if (plan?.price && Number(plan.price) > 0) {
+                            liveFee = Math.ceil(Number(plan.price));
+                        }
+                        if (plan?.cod_percentage && liveCodAmount > 0) {
+                            liveCodFee = Math.ceil(liveCodAmount * (Number(plan.cod_percentage) / 100));
+                        }
+                    } catch (pErr) {
+                        console.warn("Price plan sync skipped:", pErr);
+                    }
                 }
 
                 const updatedTotalFee = liveFee + liveCodFee;
@@ -2152,6 +2179,7 @@ async function inspectCourierShipment(shipmentId) {
         showCloseButton: true
     });
 }
+
 // প্রিন্টেবল প্রিমিয়াম REDAMS ব্র্যান্ডেড পার্সেল ডিসপ্যাচ স্লিপ জেনারেটর
 function printParcelSlip(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
