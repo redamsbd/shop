@@ -1949,7 +1949,7 @@ async function checkSteadfastWalletBalance() {
     }
 }
 
-// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V2.0 (Pathao/Steadfast সার্ভার থেকে সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
+// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V2.1 (Pathao/Steadfast সার্ভার থেকে সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
 async function inspectCourierShipment(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
@@ -1967,23 +1967,26 @@ async function inspectCourierShipment(shipmentId) {
     let liveCodAmount = Number(s.codAmount || 0);
     let parcelWeight = s.weight || '0.5 kg';
     let isLiveSynced = false;
+    let syncErrorMsg = '';
 
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
             const token = await getPathaoAccessToken();
-            // ক্যাশ এড়িয়ে Pathao সার্ভার থেকে একদম ফ্রেশ ডাটা আনার জন্য timestamp যুক্ত করা হয়েছে
-            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info?_t=${Date.now()}`, {
+            // ক্লিন Pathao Order Info Endpoint (কোনো এক্সট্রা প্যারামিটার ছাড়া)
+            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/orders/${s.consignmentId}/info`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${token}`,
-                    "Accept": "application/json",
-                    "Cache-Control": "no-cache"
+                    "Accept": "application/json"
                 }
             });
 
-            const info = res?.data?.data || res?.data || null;
+            // Pathao API রেসপন্স স্ট্রাকচার হ্যান্ডলিং (res.data বা res.data.data)
+            const info = (res?.data && typeof res.data === 'object' && res.data.consignment_id) 
+                ? res.data 
+                : (res?.data?.data || res?.data || null);
 
-            if (info) {
+            if (info && (info.order_status || info.consignment_id || info.delivery_fee !== undefined)) {
                 isLiveSynced = true;
                 liveStatusText = info.order_status || info.order_status_slug || liveStatusText;
 
@@ -1996,8 +1999,8 @@ async function inspectCourierShipment(shipmentId) {
                     liveCodAmount = Number(info.amount_to_collect);
                 }
 
-                // সর্বশেষ আপডেট হওয়া Delivery Fee রিড করা (আগের পুরনো ডাটা সম্পূর্ণ ওভাররাইট করবে)
-                const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? null;
+                // সর্বশেষ আপডেট হওয়া Delivery Fee রিড করা (যেমন 60 থেকে 70 হলে 70 নেবে)
+                const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
                 if (rawApiDelFee !== null && !isNaN(Number(rawApiDelFee)) && Number(rawApiDelFee) > 0) {
                     liveFee = Math.ceil(Number(rawApiDelFee));
                 }
@@ -2012,7 +2015,6 @@ async function inspectCourierShipment(shipmentId) {
                     const roundedTotal = Math.ceil(Number(rawApiTotalFee));
                     liveCodFee = Math.max(0, roundedTotal - liveFee);
                 } else if (liveCodAmount > 0) {
-                    // ঢাকা ও ঢাকার বাইরে সব Pathao COD অর্ডারে ১% রাউন্ড-আপ
                     liveCodFee = Math.ceil(liveCodAmount * 0.01);
                 } else {
                     liveCodFee = 0;
@@ -2037,11 +2039,13 @@ async function inspectCourierShipment(shipmentId) {
                     totalCourierFee: updatedTotalFee,
                     netReceivable: updatedNetPay
                 });
+            } else {
+                syncErrorMsg = res?.message || 'Unexpected Pathao API response';
             }
         } 
         else if (s.provider === 'STEADFAST' && s.consignmentId) {
             const sfLoc = COURIER_CREDENTIALS.steadfast.locations[0];
-            const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}?_t=${Date.now()}`, {
+            const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}`, {
                 method: "GET",
                 headers: {
                     "Api-Key": sfLoc.apiKey,
@@ -2059,10 +2063,10 @@ async function inspectCourierShipment(shipmentId) {
             }
         }
     } catch (err) {
-        console.warn("Live inspect fallback to cached data:", err.message);
+        syncErrorMsg = err.message || 'API Connection Failed';
+        console.warn("Live inspect fallback to cached data:", err);
     }
 
-    // ফলব্যাক: Pathao হলে COD চার্জ কখনো 0 দেখাবে না (যদি COD > 0 হয়)
     if (s.provider === 'PATHAO' && liveCodFee === 0 && liveCodAmount > 0) {
         liveCodFee = Math.ceil(liveCodAmount * 0.01);
     }
@@ -2079,8 +2083,8 @@ async function inspectCourierShipment(shipmentId) {
 
     Swal.fire({
         title: `<div class="flex flex-col items-center">
-                    <span class="text-[9px] font-black uppercase tracking-widest ${isLiveSynced ? 'text-emerald-600' : 'text-amber-600'}">
-                        ${isLiveSynced ? `● LIVE SYNCED (${syncTimeStr})` : '● CACHED RECORD'}
+                    <span class="text-[9px] font-black uppercase tracking-widest ${isLiveSynced ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${isLiveSynced ? `● LIVE SYNCED (${syncTimeStr})` : `● CACHED (${syncErrorMsg || 'OFFLINE'})`}
                     </span>
                     <span class="text-base font-black uppercase text-gray-900 mt-0.5">Parcel #${s.consignmentId}</span>
                 </div>`,
