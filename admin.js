@@ -1550,9 +1550,9 @@ const COURIER_CREDENTIALS = {
         locations: [
             { 
                 id: "loc_dhaka", 
-                name: "Kohinoor Gate Hub (Main)", 
-                apiKey: "lxvwxbuudnywwjfdye9hldpkditxz2fr", 
-                secretKey: "fain4ueocrmazwfw1iszsixi" 
+                name: "Bashabo (Khilgaon)", 
+                apiKey: "rqc4cgfidj4ppo7g66fs8cnbfl2hh2wd", 
+                secretKey: "7sndfqcja4btypcm6ulke063" 
             }
         ]
     },
