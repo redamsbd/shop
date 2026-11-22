@@ -1540,7 +1540,7 @@ async function deleteOrder(id) {
 }
 
 // =================================================================
-// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V9.0 ULTRA PRO)
+// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V10.0 ULTRA PRO)
 // =================================================================
 
 const OWN_CLOUDFLARE_PROXY = "https://redams-courier-proxy.anmridwanulhassan.workers.dev";
@@ -1562,7 +1562,7 @@ const COURIER_CREDENTIALS = {
         username: "redamsbd16@gmail.com",
         password: "RedAms16%",
         locations: [
-            { id: "1001", name: "Pathao Store (Auto-Fetch)" }
+            { id: "1001", name: "REDAMS_BD (Auto-Fetch)" }
         ]
     }
 };
@@ -1676,7 +1676,7 @@ async function callCourierApi(targetUrl, fetchOptions = {}) {
 }
 
 // =================================================================
-// MODAL V9.0 UI HELPERS (QTY, CHARGE GUARD, CITY/ZONE/AREA & TARIFF)
+// MODAL V10.0 UI HELPERS (STEADFAST POINT PICKUP GUARD & PATHAO HYBRID AREA)
 // =================================================================
 
 function adjustParcelQty(delta) {
@@ -1687,13 +1687,17 @@ function adjustParcelQty(delta) {
     qtyInput.value = nextVal;
 }
 
-function onPathaoDeliveryTypeChange() {
-    const delType = document.getElementById('pathao-delivery-type')?.value || '48';
-    const warnBanner = document.getElementById('pathao-extra-fee-warning');
+// Steadfast-এ Point Pickup (+20 Tk) সিলেক্ট হলে সতর্কবার্তা দেখাবে
+function onSteadfastPickupTypeChange() {
+    const pickupType = document.getElementById('sf-pickup-type')?.value || 'regular';
+    const warnBanner = document.getElementById('sf-point-pickup-warning');
     if (warnBanner) {
-        if (delType === '12') warnBanner.classList.remove('hidden');
+        if (pickupType === 'point_pickup') warnBanner.classList.remove('hidden');
         else warnBanner.classList.add('hidden');
     }
+}
+
+function onPathaoDeliveryTypeChange() {
     fetchLivePathaoTariffPreview();
 }
 
@@ -1776,6 +1780,9 @@ async function onPathaoCityChange() {
 async function onPathaoZoneChange() {
     const zoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 0);
     const areaSelect = document.getElementById('pathao-area-select');
+    const areaDatalist = document.getElementById('pathao-area-datalist');
+    const areaManualInput = document.getElementById('pathao-area-manual-input');
+    const areaIdHidden = document.getElementById('pathao-area-id-hidden');
     const statusBadge = document.getElementById('pathao-routing-status');
     const zoneSelect = document.getElementById('pathao-zone-select');
 
@@ -1783,9 +1790,9 @@ async function onPathaoZoneChange() {
         statusBadge.innerText = `Zone: ${zoneSelect.options[zoneSelect.selectedIndex].text}`;
     }
 
-    if (!areaSelect || !zoneId) return;
+    if (!zoneId) return;
 
-    areaSelect.innerHTML = `<option value="">Loading Areas...</option>`;
+    if (areaSelect) areaSelect.innerHTML = `<option value="">Loading Areas...</option>`;
     try {
         const token = await getPathaoAccessToken();
         if (!pathaoAreasByZoneCache[zoneId]) {
@@ -1798,25 +1805,57 @@ async function onPathaoZoneChange() {
 
         const areas = pathaoAreasByZoneCache[zoneId];
         if (areas.length > 0) {
-            areaSelect.innerHTML = `<option value="">-- Optional Area --</option>` + areas.map(a => `
-                <option value="${a.area_id}">${a.area_name}</option>
-            `).join('');
+            if (areaSelect) {
+                areaSelect.innerHTML = `<option value="">-- Optional Area --</option>` + areas.map(a => `
+                    <option value="${a.area_id}">${a.area_name}</option>
+                `).join('');
+            }
+            if (areaDatalist) {
+                areaDatalist.innerHTML = areas.map(a => `<option value="${a.area_name}">`).join('');
+            }
 
             const addrLower = (document.getElementById('courier-cust-address')?.value || '').toLowerCase();
             const matchedArea = areas.find(a => addrLower.includes((a.area_name || '').toLowerCase()));
-            if (matchedArea) areaSelect.value = String(matchedArea.area_id);
+            if (matchedArea) {
+                if (areaSelect) areaSelect.value = String(matchedArea.area_id);
+                if (areaManualInput) areaManualInput.value = matchedArea.area_name;
+                if (areaIdHidden) areaIdHidden.value = String(matchedArea.area_id);
+            } else if (areaIdHidden) {
+                areaIdHidden.value = '';
+            }
         } else {
-            areaSelect.innerHTML = `<option value="">No Sub-Areas</option>`;
+            if (areaSelect) areaSelect.innerHTML = `<option value="">No Sub-Areas</option>`;
         }
     } catch (err) {
-        areaSelect.innerHTML = `<option value="">Optional Area...</option>`;
+        if (areaSelect) areaSelect.innerHTML = `<option value="">Optional Area...</option>`;
     }
 
     fetchLivePathaoTariffPreview();
 }
 
+// ইউজার ম্যানুয়ালি Area লিখলে বা সাজেশন থেকে বেছে নিলে আইডি ম্যাচ করা
+function syncPathaoAreaFromManualInput() {
+    const zoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 0);
+    const typedVal = (document.getElementById('pathao-area-manual-input')?.value || '').trim().toLowerCase();
+    const areaIdHidden = document.getElementById('pathao-area-id-hidden');
+    if (!areaIdHidden) return;
+
+    const areas = pathaoAreasByZoneCache[zoneId] || [];
+    const exactMatch = areas.find(a => (a.area_name || '').toLowerCase() === typedVal);
+    areaIdHidden.value = exactMatch ? String(exactMatch.area_id) : '';
+}
+
 function autoMatchPathaoFromAddressInput() {
     const provider = document.getElementById('courier-provider')?.value;
+    const addrText = document.getElementById('courier-cust-address')?.value || '';
+    const cityHint = document.getElementById('courier-city')?.value || '';
+
+    // Steadfast-এর জন্য Area (Police Station) ইনপুটে অটো-সাজেশন বসিয়ে দেওয়া (যদি ম্যানুয়ালি এডিট না করা থাকে)
+    const sfAreaInput = document.getElementById('sf-area-input');
+    if (provider === 'steadfast' && sfAreaInput && !sfAreaInput.dataset.userEdited) {
+        sfAreaInput.value = cityHint || '';
+    }
+
     if (provider !== 'pathao') return;
 
     clearTimeout(addressMatchDebounceTimer);
@@ -1825,7 +1864,7 @@ function autoMatchPathaoFromAddressInput() {
         const zoneSelect = document.getElementById('pathao-zone-select');
         if (!citySelect || !zoneSelect) return;
 
-        const combinedHint = `${document.getElementById('courier-city')?.value || ''} ${document.getElementById('courier-cust-address')?.value || ''}`;
+        const combinedHint = `${cityHint} ${addrText}`;
         const detectedCityId = detectPathaoCityId(combinedHint);
 
         if (String(citySelect.value) !== String(detectedCityId)) {
@@ -1840,6 +1879,11 @@ function autoMatchPathaoFromAddressInput() {
             }
         }
     }, 450);
+}
+
+// দুই নামেই কাজ করবে যাতে HTML-এ যেটাই থাকুক কোনো এরর না আসে
+function autoMatchLocationFromAddressInput() {
+    autoMatchPathaoFromAddressInput();
 }
 
 async function fetchLivePathaoTariffPreview() {
@@ -1860,6 +1904,7 @@ async function fetchLivePathaoTariffPreview() {
     const zoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 1);
     const weight = parseFloat(document.getElementById('courier-parcel-weight')?.value || 0.5);
     const deliveryType = parseInt(document.getElementById('pathao-delivery-type')?.value || 48);
+    const itemType = parseInt(document.getElementById('pathao-item-type')?.value || 2);
     const codAmount = parseInt(document.getElementById('courier-cod-amount')?.value || 0);
 
     if (costEl) costEl.innerText = 'Calculating...';
@@ -1875,7 +1920,7 @@ async function fetchLivePathaoTariffPreview() {
             },
             body: JSON.stringify({
                 store_id: storeId,
-                item_type: 2,
+                item_type: itemType,
                 delivery_type: deliveryType,
                 item_weight: weight,
                 recipient_city: cityId,
@@ -1909,6 +1954,11 @@ async function onCourierProviderChange() {
         if (pathaoBar) pathaoBar.classList.add('hidden');
         if (previewBox) previewBox.classList.add('hidden');
 
+        // Steadfast-এ সবসময় Default হিসেবে Regular সেট করা যাতে Point Pickup (+৳20) ভুল করে সিলেক্ট না হয়
+        const sfPickupEl = document.getElementById('sf-pickup-type');
+        if (sfPickupEl) sfPickupEl.value = 'regular';
+        onSteadfastPickupTypeChange();
+
         const locList = COURIER_CREDENTIALS.steadfast.locations || [];
         locationSelect.innerHTML = locList.map(loc => `
             <option value="${loc.id}">${loc.name}</option>
@@ -1918,10 +1968,8 @@ async function onCourierProviderChange() {
         if (sfBar) sfBar.classList.add('hidden');
         if (pathaoBar) pathaoBar.classList.remove('hidden');
 
-        // সবসময় Default হিসেবে Normal Delivery (48) সেট করা যাতে Extra ৳20 চার্জ না কাটে
         const delTypeEl = document.getElementById('pathao-delivery-type');
         if (delTypeEl) delTypeEl.value = '48';
-        onPathaoDeliveryTypeChange();
 
         locationSelect.innerHTML = `<option value="">Loading Pathao Stores...</option>`;
         try {
@@ -1966,7 +2014,16 @@ function openCourierDispatchModal(orderId) {
     document.getElementById('courier-cust-phone').value = formatBDPhone(order.Customer_Phone || order.customerPhone || '');
     if (document.getElementById('courier-alt-phone')) document.getElementById('courier-alt-phone').value = '';
     document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
-    if (document.getElementById('courier-city')) document.getElementById('courier-city').value = order.City || order.district || '';
+    
+    const cityVal = order.City || order.district || '';
+    if (document.getElementById('courier-city')) document.getElementById('courier-city').value = cityVal;
+    if (document.getElementById('sf-area-input')) {
+        document.getElementById('sf-area-input').value = cityVal;
+        delete document.getElementById('sf-area-input').dataset.userEdited;
+    }
+    if (document.getElementById('sf-cust-email')) document.getElementById('sf-cust-email').value = order.Customer_Email || order.email || '';
+    if (document.getElementById('pathao-area-manual-input')) document.getElementById('pathao-area-manual-input').value = '';
+    if (document.getElementById('pathao-area-id-hidden')) document.getElementById('pathao-area-id-hidden').value = '';
 
     const itemsSummary = order.Ordered_Items || order.items || order.Product_Details || 'REDAMS Apparel';
     if (document.getElementById('courier-item-desc')) document.getElementById('courier-item-desc').value = itemsSummary;
@@ -2032,7 +2089,7 @@ async function dispatchCourierParcel(e) {
     const phone = formatBDPhone(document.getElementById('courier-cust-phone')?.value);
     const altPhoneRaw = document.getElementById('courier-alt-phone')?.value.trim();
     const altPhone = altPhoneRaw ? formatBDPhone(altPhoneRaw) : '';
-    const address = document.getElementById('courier-cust-address')?.value.trim();
+    const rawAddress = document.getElementById('courier-cust-address')?.value.trim();
     const weightVal = parseFloat(document.getElementById('courier-parcel-weight')?.value || 0.5);
     const qtyVal = parseInt(document.getElementById('courier-item-qty')?.value || 1);
     const itemDesc = document.getElementById('courier-item-desc')?.value.trim() || 'REDAMS Apparel';
@@ -2049,6 +2106,7 @@ async function dispatchCourierParcel(e) {
         let consignmentId = "";
         let trackingCode = "";
         let trackingUrl = "";
+        let finalSavedAddress = rawAddress;
         let courierOriginalFee = 0;
         let courierCodCharge = 0;
         let liveApiStatus = "Pending Pickup";
@@ -2057,18 +2115,28 @@ async function dispatchCourierParcel(e) {
         if (provider === 'steadfast') {
             const locConfig = COURIER_CREDENTIALS.steadfast.locations.find(l => l.id === selectedLocId) || COURIER_CREDENTIALS.steadfast.locations[0];
             const sfDeliveryType = parseInt(document.getElementById('sf-delivery-type')?.value || 0);
-            const sfSpeed = document.getElementById('sf-service-speed')?.value || 'regular';
+            const sfPickupType = document.getElementById('sf-pickup-type')?.value || document.getElementById('sf-service-speed')?.value || 'regular';
             const sfIsExchange = document.getElementById('sf-is-exchange')?.checked ? 1 : 0;
-            const finalNote = sfSpeed === 'sameday' ? `[SAMEDAY EXPRESS] ${note}` : note;
+            const sfAreaVal = document.getElementById('sf-area-input')?.value.trim() || '';
+            const sfEmailVal = document.getElementById('sf-cust-email')?.value.trim() || '';
+
+            finalSavedAddress = (sfAreaVal && !rawAddress.toLowerCase().includes(sfAreaVal.toLowerCase()))
+                ? `${rawAddress}, ${sfAreaVal}`
+                : rawAddress;
+
+            let speedPrefix = '';
+            if (sfPickupType === 'sameday') speedPrefix = '[SAMEDAY EXPRESS] ';
+            else if (sfPickupType === 'point_pickup') speedPrefix = '[POINT PICKUP] ';
 
             const steadfastPayload = {
                 invoice: invoiceNo,
                 recipient_name: name,
                 recipient_phone: phone,
                 alternative_phone: altPhone || undefined,
-                recipient_address: address,
+                recipient_email: sfEmailVal || undefined,
+                recipient_address: finalSavedAddress,
                 cod_amount: codAmount,
-                note: finalNote,
+                note: `${speedPrefix}${note}`,
                 item_description: `${itemDesc} (Qty: ${qtyVal}, Wt: ${weightVal}kg)`,
                 delivery_type: sfDeliveryType,
                 is_exchange: sfIsExchange
@@ -2100,11 +2168,16 @@ async function dispatchCourierParcel(e) {
             }
 
             const token = await getPathaoAccessToken();
-            const selectedCityId = parseInt(document.getElementById('pathao-city-select')?.value || detectPathaoCityId(address));
+            const selectedCityId = parseInt(document.getElementById('pathao-city-select')?.value || detectPathaoCityId(rawAddress));
             const selectedZoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 1);
-            const selectedAreaId = parseInt(document.getElementById('pathao-area-select')?.value || 0);
+            const manualAreaText = document.getElementById('pathao-area-manual-input')?.value.trim() || '';
+            const selectedAreaId = parseInt(document.getElementById('pathao-area-id-hidden')?.value || document.getElementById('pathao-area-select')?.value || 0);
             const pathaoDelType = parseInt(document.getElementById('pathao-delivery-type')?.value || 48);
             const pathaoItemType = parseInt(document.getElementById('pathao-item-type')?.value || 2);
+
+            finalSavedAddress = (manualAreaText && !rawAddress.toLowerCase().includes(manualAreaText.toLowerCase()))
+                ? `${rawAddress}, ${manualAreaText}`
+                : rawAddress;
 
             const pathaoPayload = {
                 store_id: realStoreId,
@@ -2112,7 +2185,7 @@ async function dispatchCourierParcel(e) {
                 recipient_name: name,
                 recipient_phone: phone,
                 recipient_secondary_phone: altPhone || undefined,
-                recipient_address: address.length < 10 ? `${address}, Bangladesh` : address,
+                recipient_address: finalSavedAddress.length < 10 ? `${finalSavedAddress}, Bangladesh` : finalSavedAddress,
                 recipient_city: selectedCityId,
                 recipient_zone: selectedZoneId,
                 delivery_type: pathaoDelType,
@@ -2170,7 +2243,7 @@ async function dispatchCourierParcel(e) {
             customerName: name,
             customerPhone: phone,
             altPhone: altPhone,
-            address: address,
+            address: finalSavedAddress,
             weight: `${weightVal} kg`,
             quantity: qtyVal,
             itemDescription: itemDesc,
@@ -2446,7 +2519,7 @@ async function inspectCourierShipment(shipmentId) {
                     weight: parcelWeight
                 };
 
-                // যদি ম্যানুয়ালি এডিট করা না হয়ে থাকে, তবে Pathao-এর আপডেটেড চার্জ ও COD অটো-সিঙ্ক হবে
+                // যদি ম্যানুয়ালি এডিট করা না হয়ে থাকে, তবে Pathao-এর আপডেটেড চার্জ ও COD অটো-সিঙ্ক হবে
                 if (!isManuallyEdited) {
                     if (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect))) {
                         liveCodAmount = Number(info.amount_to_collect);
@@ -2877,7 +2950,7 @@ async function syncLiveCourierStatuses() {
                                 try {
                                     const zRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
                                         method: "GET",
-                                        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+                                        headers: { "Authorization": `Bearer ${pathaoToken}`, "Accept": "application/json" }
                                     });
                                     zonesCache[cityId] = zRes?.data?.data || [];
                                 } catch (zErr) {
