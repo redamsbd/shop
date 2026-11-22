@@ -1540,7 +1540,7 @@ async function deleteOrder(id) {
 }
 
 // =================================================================
-// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V7.0 ULTRA PRO)
+// AUTONOMOUS LOGISTICS ENGINE (STEADFAST & PATHAO V9.0 ULTRA PRO)
 // =================================================================
 
 const OWN_CLOUDFLARE_PROXY = "https://redams-courier-proxy.anmridwanulhassan.workers.dev";
@@ -1567,6 +1567,11 @@ const COURIER_CREDENTIALS = {
     }
 };
 
+let pathaoCitiesCache = [];
+let pathaoZonesByCityCache = {};
+let pathaoAreasByZoneCache = {};
+let addressMatchDebounceTimer = null;
+
 // বাংলাদেশি ১১ ডিজিটের ফোন নম্বর ক্লিনার
 function formatBDPhone(rawPhone) {
     let digits = String(rawPhone || '').replace(/[^0-9]/g, '');
@@ -1592,18 +1597,16 @@ function detectPathaoCityId(addressText) {
     return 1; // Default Dhaka
 }
 
-// ঠিকানা থেকে নিখুঁত Pathao Zone ID খুঁজে বের করার ইঞ্জিন (যেমন Dholaipar, Jatrabari, Uttara)
+// ঠিকানা থেকে নিখুঁত Pathao Zone ID খুঁজে বের করার ইঞ্জিন
 function matchPathaoZoneFromAddress(addressText, zonesList = []) {
     if (!Array.isArray(zonesList) || zonesList.length === 0) return null;
     const addrClean = (addressText || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
     
-    // ১. সরাসরি জোনের নামের সাথে ঠিকানা ম্যাচিং
     let bestMatch = zonesList.find(z => {
         const zName = (z.zone_name || '').toLowerCase().trim();
         return zName.length >= 3 && addrClean.includes(zName);
     });
 
-    // ২. ঠিকানার প্রতিটি শব্দ দিয়ে জোনের নামের আংশিক ম্যাচিং
     if (!bestMatch) {
         const words = addrClean.split(/\s+/).filter(w => w.length >= 4);
         for (const w of words) {
@@ -1631,7 +1634,6 @@ function calculateExactPathaoFees(codAmount, rawDelFee, rawCodFee, rawTotalFee, 
     } else if (rawTotalFee !== null && !isNaN(Number(rawTotalFee)) && Number(rawTotalFee) > delFee) {
         codFee = Math.max(0, Math.ceil(Number(rawTotalFee)) - delFee);
     } else if (cod > 0) {
-        // Pathao API cod_percentage অনেক সময় 0.01 (decimal) অথবা 1 (percent) পাঠায়—দুটোই হ্যান্ডেল করা হলো
         let rate = 0.01; // Default 1%
         if (planObj?.cod_percentage !== undefined && Number(planObj.cod_percentage) > 0) {
             const pVal = Number(planObj.cod_percentage);
@@ -1673,18 +1675,254 @@ async function callCourierApi(targetUrl, fetchOptions = {}) {
     return data;
 }
 
+// =================================================================
+// MODAL V9.0 UI HELPERS (QTY, CHARGE GUARD, CITY/ZONE/AREA & TARIFF)
+// =================================================================
+
+function adjustParcelQty(delta) {
+    const qtyInput = document.getElementById('courier-item-qty');
+    if (!qtyInput) return;
+    const current = parseInt(qtyInput.value) || 1;
+    const nextVal = Math.max(1, Math.min(50, current + delta));
+    qtyInput.value = nextVal;
+}
+
+function onPathaoDeliveryTypeChange() {
+    const delType = document.getElementById('pathao-delivery-type')?.value || '48';
+    const warnBanner = document.getElementById('pathao-extra-fee-warning');
+    if (warnBanner) {
+        if (delType === '12') warnBanner.classList.remove('hidden');
+        else warnBanner.classList.add('hidden');
+    }
+    fetchLivePathaoTariffPreview();
+}
+
+async function loadPathaoCitiesDropdown() {
+    const citySelect = document.getElementById('pathao-city-select');
+    if (!citySelect) return;
+
+    try {
+        const token = await getPathaoAccessToken();
+        if (pathaoCitiesCache.length === 0) {
+            const res = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/city-list", {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+            });
+            pathaoCitiesCache = res?.data?.data || [];
+        }
+
+        if (pathaoCitiesCache.length > 0) {
+            citySelect.innerHTML = pathaoCitiesCache.map(c => `
+                <option value="${c.city_id}">${c.city_name}</option>
+            `).join('');
+
+            const combinedHint = `${document.getElementById('courier-city')?.value || ''} ${document.getElementById('courier-cust-address')?.value || ''}`;
+            const detectedId = detectPathaoCityId(combinedHint);
+            citySelect.value = String(detectedId);
+            await onPathaoCityChange();
+        }
+    } catch (err) {
+        console.warn("Pathao City List Error:", err);
+        citySelect.innerHTML = `<option value="1">Dhaka (Default)</option>`;
+        await onPathaoCityChange();
+    }
+}
+
+async function onPathaoCityChange() {
+    const cityId = parseInt(document.getElementById('pathao-city-select')?.value || 1);
+    const zoneSelect = document.getElementById('pathao-zone-select');
+    const areaSelect = document.getElementById('pathao-area-select');
+    const statusBadge = document.getElementById('pathao-routing-status');
+    if (!zoneSelect) return;
+
+    zoneSelect.innerHTML = `<option value="">Loading Zones...</option>`;
+    if (areaSelect) areaSelect.innerHTML = `<option value="">Optional Area...</option>`;
+    if (statusBadge) statusBadge.innerText = 'Fetching zones...';
+
+    try {
+        const token = await getPathaoAccessToken();
+        if (!pathaoZonesByCityCache[cityId]) {
+            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+            });
+            pathaoZonesByCityCache[cityId] = res?.data?.data || [];
+        }
+
+        const zones = pathaoZonesByCityCache[cityId];
+        if (zones.length > 0) {
+            zoneSelect.innerHTML = zones.map(z => `
+                <option value="${z.zone_id}">${z.zone_name}</option>
+            `).join('');
+
+            const combinedAddr = `${document.getElementById('courier-city')?.value || ''} ${document.getElementById('courier-cust-address')?.value || ''}`;
+            const matched = matchPathaoZoneFromAddress(combinedAddr, zones);
+            if (matched) {
+                zoneSelect.value = String(matched.zone_id);
+                if (statusBadge) statusBadge.innerText = `Matched: ${matched.zone_name}`;
+            } else {
+                if (statusBadge) statusBadge.innerText = 'Verify Zone';
+            }
+            await onPathaoZoneChange();
+        } else {
+            zoneSelect.innerHTML = `<option value="1">Default Zone</option>`;
+        }
+    } catch (err) {
+        console.warn("Pathao Zone List Error:", err);
+        zoneSelect.innerHTML = `<option value="1">Default Zone</option>`;
+    }
+}
+
+async function onPathaoZoneChange() {
+    const zoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 0);
+    const areaSelect = document.getElementById('pathao-area-select');
+    const statusBadge = document.getElementById('pathao-routing-status');
+    const zoneSelect = document.getElementById('pathao-zone-select');
+
+    if (zoneSelect && statusBadge && zoneSelect.selectedIndex >= 0) {
+        statusBadge.innerText = `Zone: ${zoneSelect.options[zoneSelect.selectedIndex].text}`;
+    }
+
+    if (!areaSelect || !zoneId) return;
+
+    areaSelect.innerHTML = `<option value="">Loading Areas...</option>`;
+    try {
+        const token = await getPathaoAccessToken();
+        if (!pathaoAreasByZoneCache[zoneId]) {
+            const res = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/zones/${zoneId}/area-list`, {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+            });
+            pathaoAreasByZoneCache[zoneId] = res?.data?.data || [];
+        }
+
+        const areas = pathaoAreasByZoneCache[zoneId];
+        if (areas.length > 0) {
+            areaSelect.innerHTML = `<option value="">-- Optional Area --</option>` + areas.map(a => `
+                <option value="${a.area_id}">${a.area_name}</option>
+            `).join('');
+
+            const addrLower = (document.getElementById('courier-cust-address')?.value || '').toLowerCase();
+            const matchedArea = areas.find(a => addrLower.includes((a.area_name || '').toLowerCase()));
+            if (matchedArea) areaSelect.value = String(matchedArea.area_id);
+        } else {
+            areaSelect.innerHTML = `<option value="">No Sub-Areas</option>`;
+        }
+    } catch (err) {
+        areaSelect.innerHTML = `<option value="">Optional Area...</option>`;
+    }
+
+    fetchLivePathaoTariffPreview();
+}
+
+function autoMatchPathaoFromAddressInput() {
+    const provider = document.getElementById('courier-provider')?.value;
+    if (provider !== 'pathao') return;
+
+    clearTimeout(addressMatchDebounceTimer);
+    addressMatchDebounceTimer = setTimeout(async () => {
+        const citySelect = document.getElementById('pathao-city-select');
+        const zoneSelect = document.getElementById('pathao-zone-select');
+        if (!citySelect || !zoneSelect) return;
+
+        const combinedHint = `${document.getElementById('courier-city')?.value || ''} ${document.getElementById('courier-cust-address')?.value || ''}`;
+        const detectedCityId = detectPathaoCityId(combinedHint);
+
+        if (String(citySelect.value) !== String(detectedCityId)) {
+            citySelect.value = String(detectedCityId);
+            await onPathaoCityChange();
+        } else {
+            const zones = pathaoZonesByCityCache[detectedCityId] || [];
+            const matched = matchPathaoZoneFromAddress(combinedHint, zones);
+            if (matched && String(zoneSelect.value) !== String(matched.zone_id)) {
+                zoneSelect.value = String(matched.zone_id);
+                await onPathaoZoneChange();
+            }
+        }
+    }, 450);
+}
+
+async function fetchLivePathaoTariffPreview() {
+    const provider = document.getElementById('courier-provider')?.value;
+    const previewBox = document.getElementById('pathao-live-tariff-box');
+    const costEl = document.getElementById('preview-courier-cost');
+    const netEl = document.getElementById('preview-net-payout');
+    if (!previewBox) return;
+
+    if (provider !== 'pathao') {
+        previewBox.classList.add('hidden');
+        return;
+    }
+
+    previewBox.classList.remove('hidden');
+    const storeId = parseInt(document.getElementById('courier-pickup-location')?.value || 485941);
+    const cityId = parseInt(document.getElementById('pathao-city-select')?.value || 1);
+    const zoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 1);
+    const weight = parseFloat(document.getElementById('courier-parcel-weight')?.value || 0.5);
+    const deliveryType = parseInt(document.getElementById('pathao-delivery-type')?.value || 48);
+    const codAmount = parseInt(document.getElementById('courier-cod-amount')?.value || 0);
+
+    if (costEl) costEl.innerText = 'Calculating...';
+
+    try {
+        const token = await getPathaoAccessToken();
+        const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                store_id: storeId,
+                item_type: 2,
+                delivery_type: deliveryType,
+                item_weight: weight,
+                recipient_city: cityId,
+                recipient_zone: zoneId
+            })
+        });
+        const plan = priceRes?.data?.data || priceRes?.data || null;
+        const fees = calculateExactPathaoFees(codAmount, null, null, null, plan);
+        const totalCost = fees.delFee + fees.codFee;
+        const netPayout = codAmount - totalCost;
+
+        if (costEl) costEl.innerText = `-৳${totalCost} (Del: ৳${fees.delFee} + COD: ৳${fees.codFee})`;
+        if (netEl) netEl.innerText = `৳${netPayout.toLocaleString()}`;
+    } catch (err) {
+        const fallbackCod = Math.ceil(codAmount * 0.01);
+        if (costEl) costEl.innerText = `Est. COD Fee: -৳${fallbackCod}`;
+        if (netEl) netEl.innerText = `৳${(codAmount - fallbackCod).toLocaleString()}`;
+    }
+}
+
 async function onCourierProviderChange() {
     const provider = document.getElementById('courier-provider')?.value || 'steadfast';
     const locationSelect = document.getElementById('courier-pickup-location');
+    const sfBar = document.getElementById('steadfast-options-bar');
+    const pathaoBar = document.getElementById('pathao-options-bar');
+    const previewBox = document.getElementById('pathao-live-tariff-box');
     if (!locationSelect) return;
 
     if (provider === 'steadfast') {
+        if (sfBar) sfBar.classList.remove('hidden');
+        if (pathaoBar) pathaoBar.classList.add('hidden');
+        if (previewBox) previewBox.classList.add('hidden');
+
         const locList = COURIER_CREDENTIALS.steadfast.locations || [];
         locationSelect.innerHTML = locList.map(loc => `
             <option value="${loc.id}">${loc.name}</option>
         `).join('');
     } 
     else if (provider === 'pathao') {
+        if (sfBar) sfBar.classList.add('hidden');
+        if (pathaoBar) pathaoBar.classList.remove('hidden');
+
+        // সবসময় Default হিসেবে Normal Delivery (48) সেট করা যাতে Extra ৳20 চার্জ না কাটে
+        const delTypeEl = document.getElementById('pathao-delivery-type');
+        if (delTypeEl) delTypeEl.value = '48';
+        onPathaoDeliveryTypeChange();
+
         locationSelect.innerHTML = `<option value="">Loading Pathao Stores...</option>`;
         try {
             const token = await getPathaoAccessToken();
@@ -1700,6 +1938,7 @@ async function onCourierProviderChange() {
             } else {
                 locationSelect.innerHTML = `<option value="">No Active Pathao Store Found</option>`;
             }
+            await loadPathaoCitiesDropdown();
         } catch (err) {
             console.error("Pathao Store Fetch Error:", err);
             locationSelect.innerHTML = `<option value="">Failed to load stores (${err.message})</option>`;
@@ -1712,6 +1951,10 @@ function calculateTotalCod() {
     const deliveryFee = parseInt(document.getElementById('courier-delivery-charge')?.value) || 0;
     const totalCodInput = document.getElementById('courier-cod-amount');
     if (totalCodInput) totalCodInput.value = productAmt + deliveryFee;
+
+    if (document.getElementById('courier-provider')?.value === 'pathao') {
+        fetchLivePathaoTariffPreview();
+    }
 }
 
 function openCourierDispatchModal(orderId) {
@@ -1721,7 +1964,15 @@ function openCourierDispatchModal(orderId) {
     document.getElementById('courier-order-id').value = order.id;
     document.getElementById('courier-cust-name').value = order.Customer_Name || order.customerName || '';
     document.getElementById('courier-cust-phone').value = formatBDPhone(order.Customer_Phone || order.customerPhone || '');
+    if (document.getElementById('courier-alt-phone')) document.getElementById('courier-alt-phone').value = '';
     document.getElementById('courier-cust-address').value = order.Delivery_Address || order.address || '';
+    if (document.getElementById('courier-city')) document.getElementById('courier-city').value = order.City || order.district || '';
+
+    const itemsSummary = order.Ordered_Items || order.items || order.Product_Details || 'REDAMS Apparel';
+    if (document.getElementById('courier-item-desc')) document.getElementById('courier-item-desc').value = itemsSummary;
+    if (document.getElementById('courier-item-qty')) document.getElementById('courier-item-qty').value = 1;
+    if (document.getElementById('courier-parcel-weight')) document.getElementById('courier-parcel-weight').value = '0.5';
+    if (document.getElementById('sf-is-exchange')) document.getElementById('sf-is-exchange').checked = false;
     
     const rawBill = order.TOTAL_BILL ? parseInt(String(order.TOTAL_BILL).replace(/[^0-9]/g, '')) : (order.amount || order.totalAmount || 0);
     
@@ -1761,6 +2012,9 @@ async function getPathaoAccessToken() {
     throw new Error(data?.message || "Pathao Auth Token Generation Failed");
 }
 
+// =================================================================
+// DISPATCH PARCEL TO STEADFAST OR PATHAO API
+// =================================================================
 async function dispatchCourierParcel(e) {
     if (e) e.preventDefault();
     const btn = document.getElementById('dispatch-btn');
@@ -1776,7 +2030,12 @@ async function dispatchCourierParcel(e) {
     const selectedLocName = locationSelectEl?.options[locationSelectEl.selectedIndex]?.text || selectedLocId;
     const name = document.getElementById('courier-cust-name')?.value.trim();
     const phone = formatBDPhone(document.getElementById('courier-cust-phone')?.value);
+    const altPhoneRaw = document.getElementById('courier-alt-phone')?.value.trim();
+    const altPhone = altPhoneRaw ? formatBDPhone(altPhoneRaw) : '';
     const address = document.getElementById('courier-cust-address')?.value.trim();
+    const weightVal = parseFloat(document.getElementById('courier-parcel-weight')?.value || 0.5);
+    const qtyVal = parseInt(document.getElementById('courier-item-qty')?.value || 1);
+    const itemDesc = document.getElementById('courier-item-desc')?.value.trim() || 'REDAMS Apparel';
     const productAmt = parseInt(document.getElementById('courier-product-amount')?.value) || 0;
     const deliveryFee = parseInt(document.getElementById('courier-delivery-charge')?.value) || 0;
     const codAmount = parseInt(document.getElementById('courier-cod-amount')?.value) || (productAmt + deliveryFee);
@@ -1797,14 +2056,22 @@ async function dispatchCourierParcel(e) {
 
         if (provider === 'steadfast') {
             const locConfig = COURIER_CREDENTIALS.steadfast.locations.find(l => l.id === selectedLocId) || COURIER_CREDENTIALS.steadfast.locations[0];
-            
+            const sfDeliveryType = parseInt(document.getElementById('sf-delivery-type')?.value || 0);
+            const sfSpeed = document.getElementById('sf-service-speed')?.value || 'regular';
+            const sfIsExchange = document.getElementById('sf-is-exchange')?.checked ? 1 : 0;
+            const finalNote = sfSpeed === 'sameday' ? `[SAMEDAY EXPRESS] ${note}` : note;
+
             const steadfastPayload = {
                 invoice: invoiceNo,
                 recipient_name: name,
                 recipient_phone: phone,
+                alternative_phone: altPhone || undefined,
                 recipient_address: address,
                 cod_amount: codAmount,
-                note: note
+                note: finalNote,
+                item_description: `${itemDesc} (Qty: ${qtyVal}, Wt: ${weightVal}kg)`,
+                delivery_type: sfDeliveryType,
+                is_exchange: sfIsExchange
             };
 
             const resData = await callCourierApi("https://portal.packzy.com/api/v1/create_order", {
@@ -1833,37 +2100,30 @@ async function dispatchCourierParcel(e) {
             }
 
             const token = await getPathaoAccessToken();
-            const detectedCity = detectPathaoCityId(address);
-
-            let validZoneId = 1;
-            try {
-                const zoneRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${detectedCity}/zone-list`, {
-                    method: "GET",
-                    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
-                });
-                const zones = zoneRes?.data?.data || [];
-                const matchedZone = matchPathaoZoneFromAddress(address, zones);
-                if (matchedZone) validZoneId = matchedZone.zone_id;
-                else if (zones.length > 0) validZoneId = zones[0].zone_id;
-            } catch (zErr) {
-                console.warn("Zone fetch fallback:", zErr);
-            }
+            const selectedCityId = parseInt(document.getElementById('pathao-city-select')?.value || detectPathaoCityId(address));
+            const selectedZoneId = parseInt(document.getElementById('pathao-zone-select')?.value || 1);
+            const selectedAreaId = parseInt(document.getElementById('pathao-area-select')?.value || 0);
+            const pathaoDelType = parseInt(document.getElementById('pathao-delivery-type')?.value || 48);
+            const pathaoItemType = parseInt(document.getElementById('pathao-item-type')?.value || 2);
 
             const pathaoPayload = {
                 store_id: realStoreId,
                 merchant_order_id: invoiceNo,
                 recipient_name: name,
                 recipient_phone: phone,
+                recipient_secondary_phone: altPhone || undefined,
                 recipient_address: address.length < 10 ? `${address}, Bangladesh` : address,
-                recipient_city: detectedCity,
-                recipient_zone: validZoneId,
-                delivery_type: 48,
-                item_type: 2,
+                recipient_city: selectedCityId,
+                recipient_zone: selectedZoneId,
+                delivery_type: pathaoDelType,
+                item_type: pathaoItemType,
                 special_instruction: note,
-                item_quantity: 1,
-                item_weight: 0.5,
+                item_quantity: qtyVal,
+                item_weight: weightVal,
+                item_description: itemDesc,
                 amount_to_collect: codAmount
             };
+            if (selectedAreaId > 0) pathaoPayload.recipient_area = selectedAreaId;
 
             const resData = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/orders", {
                 method: "POST",
@@ -1909,7 +2169,11 @@ async function dispatchCourierParcel(e) {
             invoiceNo: invoiceNo,
             customerName: name,
             customerPhone: phone,
+            altPhone: altPhone,
             address: address,
+            weight: `${weightVal} kg`,
+            quantity: qtyVal,
+            itemDescription: itemDesc,
             productAmount: productAmt,
             deliveryCharge: deliveryFee,
             codAmount: codAmount,
@@ -1918,6 +2182,7 @@ async function dispatchCourierParcel(e) {
             totalCourierFee: totalCourierDeduction,
             netReceivable: netReceivableAmount,
             liveCourierStatus: liveApiStatus,
+            isManuallyEdited: false,
             status: 'In Transit',
             bookedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -1963,8 +2228,138 @@ async function dispatchCourierParcel(e) {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-truck-fast"></i> Confirm & Book Parcel`;
+            btn.innerHTML = `<i class="fa-solid fa-truck-fast"></i> Create Consignment`;
         }
+    }
+}
+
+// =================================================================
+// MANUAL OVERRIDE EDITOR (CUSTOMER DETAILS, DELIVERY & COD CHARGES)
+// =================================================================
+function openManualShipmentEditor(shipmentId) {
+    const s = allCourierShipments.find(item => item.id === shipmentId);
+    if (!s) return;
+
+    Swal.fire({
+        width: '450px',
+        padding: '0',
+        background: '#ffffff',
+        showConfirmButton: false,
+        showCloseButton: false,
+        customClass: {
+            popup: 'rounded-3xl overflow-hidden border border-gray-200 shadow-2xl'
+        },
+        html: `
+            <div class="text-left text-xs">
+                <div class="bg-gradient-to-r from-gray-950 via-gray-900 to-amber-950 text-white px-5 py-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-amber-300 bg-white/10 px-2 py-0.5 rounded-full">MANUAL OVERRIDE</span>
+                        <h3 class="text-base font-black mt-1">Edit Parcel #${s.consignmentId}</h3>
+                    </div>
+                    <button type="button" onclick="Swal.close()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-red-600 text-white flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-3">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[9px] font-black uppercase text-gray-500 mb-1">Customer Name</label>
+                            <input type="text" id="edit-ship-name" value="${(s.customerName || '').replace(/"/g, '&quot;')}" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-amber-600">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black uppercase text-gray-500 mb-1">Customer Phone</label>
+                            <input type="tel" id="edit-ship-phone" value="${s.customerPhone || ''}" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-mono font-bold text-gray-900 outline-none focus:border-amber-600">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] font-black uppercase text-gray-500 mb-1">Delivery Address</label>
+                        <textarea id="edit-ship-address" rows="2" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-medium text-gray-900 outline-none focus:border-amber-600 resize-none">${s.address || ''}</textarea>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2.5">
+                        <span class="text-[9px] font-black uppercase text-amber-900 tracking-wider block border-b border-amber-200/70 pb-1">
+                            Financial & Courier Charges Adjustment
+                        </span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-600 uppercase mb-0.5">COD Amount (৳)</label>
+                                <input type="number" id="edit-ship-cod" value="${Number(s.codAmount || 0)}" class="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-black text-gray-900 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-red-600 uppercase mb-0.5">Del. Fee (৳)</label>
+                                <input type="number" id="edit-ship-del-fee" value="${Number(s.courierDeliveryFee || 0)}" class="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-black text-red-600 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-red-600 uppercase mb-0.5">COD Fee (৳)</label>
+                                <input type="number" id="edit-ship-cod-fee" value="${Number(s.courierCodCharge || 0)}" class="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-black text-red-600 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2.5 pt-2">
+                        <button type="button" onclick="saveManualShipmentEdits('${s.id}')" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md">
+                            <i class="fa-solid fa-check mr-1"></i> Save Manual Changes
+                        </button>
+                        <button type="button" onclick="Swal.close()" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-4 py-3 rounded-xl font-black text-xs uppercase cursor-pointer">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+    });
+}
+
+async function saveManualShipmentEdits(shipmentId) {
+    const s = allCourierShipments.find(item => item.id === shipmentId);
+    if (!s) return;
+
+    const newName = document.getElementById('edit-ship-name')?.value.trim() || s.customerName;
+    const newPhone = formatBDPhone(document.getElementById('edit-ship-phone')?.value || s.customerPhone);
+    const newAddress = document.getElementById('edit-ship-address')?.value.trim() || s.address;
+    const newCod = Number(document.getElementById('edit-ship-cod')?.value || 0);
+    const newDelFee = Math.ceil(Number(document.getElementById('edit-ship-del-fee')?.value || 0));
+    const newCodFee = Math.ceil(Number(document.getElementById('edit-ship-cod-fee')?.value || 0));
+
+    const newTotalFee = newDelFee + newCodFee;
+    const newNetPay = newCod - newTotalFee;
+
+    try {
+        await db.collection("courier_shipments").doc(shipmentId).update({
+            customerName: newName,
+            customerPhone: newPhone,
+            address: newAddress,
+            codAmount: newCod,
+            courierDeliveryFee: newDelFee,
+            courierCodCharge: newCodFee,
+            totalCourierFee: newTotalFee,
+            netReceivable: newNetPay,
+            isManuallyEdited: true,
+            manualEditedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        s.customerName = newName;
+        s.customerPhone = newPhone;
+        s.address = newAddress;
+        s.codAmount = newCod;
+        s.courierDeliveryFee = newDelFee;
+        s.courierCodCharge = newCodFee;
+        s.totalCourierFee = newTotalFee;
+        s.netReceivable = newNetPay;
+        s.isManuallyEdited = true;
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Parcel details updated manually!',
+            timer: 1600,
+            showConfirmButton: false
+        });
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Update Failed', text: err.message });
     }
 }
 
@@ -2000,14 +2395,16 @@ async function checkSteadfastWalletBalance() {
     }
 }
 
-// ইন-অ্যাপ লাইভ পার্সেল ইনস্পেক্টর V4.0 ULTRA PRO (Pathao/Steadfast সর্বশেষ আপডেটেড চার্জ ও স্ট্যাটাস অটো-সিঙ্ক)
+// =================================================================
+// IN-APP LIVE PARCEL INSPECTOR V5.0 (AUTO-SYNC + MANUAL OVERRIDE BADGE)
+// =================================================================
 async function inspectCourierShipment(shipmentId) {
     const s = allCourierShipments.find(item => item.id === shipmentId);
     if (!s) return;
 
     Swal.fire({
         title: 'Syncing Live Courier Data...',
-        text: `Fetching latest tariff & status for #${s.consignmentId} from ${s.provider}.`,
+        text: `Fetching latest status & tariff for #${s.consignmentId} from ${s.provider}.`,
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
@@ -2020,6 +2417,7 @@ async function inspectCourierShipment(shipmentId) {
     let detectedZoneLabel = '';
     let isLiveSynced = false;
     let syncErrorMsg = '';
+    const isManuallyEdited = Boolean(s.isManuallyEdited);
 
     try {
         if (s.provider === 'PATHAO' && s.consignmentId) {
@@ -2040,91 +2438,94 @@ async function inspectCourierShipment(shipmentId) {
                 isLiveSynced = true;
                 liveStatusText = info.order_status || info.order_status_slug || liveStatusText;
 
-                const weightNum = Number(info.item_weight || 0.5);
+                const weightNum = Number(info.item_weight || parseFloat(s.weight) || 0.5);
                 parcelWeight = `${weightNum} kg`;
 
-                if (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect))) {
-                    liveCodAmount = Number(info.amount_to_collect);
-                }
-
-                // ১. Pathao Order Info-তে সরাসরি আসা আপডেটেড ফি চেক করা
-                const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
-                const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
-                const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
-
-                // ২. সিটি ও জোন নির্ণয় করে Price Plan API থেকে আপডেটেড চার্জ (যেমন Dholaipar = ৳70) রিক্যালকুলেট করা
-                let cityId = Number(info.recipient_city || 0);
-                let zoneId = Number(info.recipient_zone || 0);
-                let pricePlanObj = null;
-
-                if (!cityId || !zoneId) {
-                    cityId = detectPathaoCityId(info.recipient_address || s.address || '');
-                    try {
-                        const zRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
-                            method: "GET",
-                            headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
-                        });
-                        const zones = zRes?.data?.data || [];
-                        const matchedZone = matchPathaoZoneFromAddress(info.recipient_address || s.address || '', zones);
-                        if (matchedZone) {
-                            zoneId = Number(matchedZone.zone_id);
-                            detectedZoneLabel = matchedZone.zone_name;
-                        } else if (zones.length > 0) {
-                            zoneId = Number(zones[0].zone_id);
-                        }
-                    } catch (zErr) {
-                        console.warn("Zone lookup fallback:", zErr);
-                    }
-                }
-
-                if (cityId && zoneId) {
-                    try {
-                        const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
-                            method: "POST",
-                            headers: {
-                                "Authorization": `Bearer ${token}`,
-                                "Content-Type": "application/json",
-                                "Accept": "application/json"
-                            },
-                            body: JSON.stringify({
-                                store_id: Number(s.pickupLocationId) || 485941,
-                                item_type: 2,
-                                delivery_type: 48,
-                                item_weight: weightNum,
-                                recipient_city: cityId,
-                                recipient_zone: zoneId
-                            })
-                        });
-                        pricePlanObj = priceRes?.data?.data || priceRes?.data || null;
-                    } catch (pErr) {
-                        console.warn("Price plan sync fallback:", pErr);
-                    }
-                }
-
-                // ৩. নির্ভুল ডেলিভারি ফি ও ১% COD চার্জ ক্যালকুলেশন
-                const calculated = calculateExactPathaoFees(liveCodAmount, rawApiDelFee, rawApiCodFee, rawApiTotalFee, pricePlanObj);
-                if (calculated.delFee > 0) liveFee = calculated.delFee;
-                liveCodFee = calculated.codFee;
-
-                const updatedTotalFee = liveFee + liveCodFee;
-                const updatedNetPay = liveCodAmount - updatedTotalFee;
-
-                // লোকাল মেমোরি ও Firebase ডাটাবেসে নতুন আপডেটেড চার্জ ও স্ট্যাটাস সেভ করা
-                s.codAmount = liveCodAmount;
-                s.liveCourierStatus = liveStatusText;
-                s.courierDeliveryFee = liveFee;
-                s.courierCodCharge = liveCodFee;
-                s.totalCourierFee = updatedTotalFee;
-                s.netReceivable = updatedNetPay;
-
-                await db.collection("courier_shipments").doc(s.id).update({
-                    codAmount: liveCodAmount,
+                const updateObj = {
                     liveCourierStatus: liveStatusText,
-                    courierDeliveryFee: liveFee,
-                    courierCodCharge: liveCodFee,
-                    totalCourierFee: updatedTotalFee,
-                    netReceivable: updatedNetPay
-                });
+                    weight: parcelWeight
+                };
+
+                // যদি ম্যানুয়ালি এডিট করা না হয়ে থাকে, তবে Pathao-এর আপডেটেড চার্জ ও COD অটো-সিঙ্ক হবে
+                if (!isManuallyEdited) {
+                    if (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect))) {
+                        liveCodAmount = Number(info.amount_to_collect);
+                    }
+
+                    const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
+                    const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
+                    const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
+
+                    let cityId = Number(info.recipient_city || 0);
+                    let zoneId = Number(info.recipient_zone || 0);
+                    let pricePlanObj = null;
+
+                    if (!cityId || !zoneId) {
+                        cityId = detectPathaoCityId(info.recipient_address || s.address || '');
+                        try {
+                            const zRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
+                                method: "GET",
+                                headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+                            });
+                            const zones = zRes?.data?.data || [];
+                            const matchedZone = matchPathaoZoneFromAddress(info.recipient_address || s.address || '', zones);
+                            if (matchedZone) {
+                                zoneId = Number(matchedZone.zone_id);
+                                detectedZoneLabel = matchedZone.zone_name;
+                            } else if (zones.length > 0) {
+                                zoneId = Number(zones[0].zone_id);
+                            }
+                        } catch (zErr) {
+                            console.warn("Zone lookup fallback:", zErr);
+                        }
+                    }
+
+                    if (cityId && zoneId) {
+                        try {
+                            const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
+                                method: "POST",
+                                headers: {
+                                    "Authorization": `Bearer ${token}`,
+                                    "Content-Type": "application/json",
+                                    "Accept": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    store_id: Number(s.pickupLocationId) || 485941,
+                                    item_type: 2,
+                                    delivery_type: 48,
+                                    item_weight: weightNum,
+                                    recipient_city: cityId,
+                                    recipient_zone: zoneId
+                                })
+                            });
+                            pricePlanObj = priceRes?.data?.data || priceRes?.data || null;
+                        } catch (pErr) {
+                            console.warn("Price plan sync fallback:", pErr);
+                        }
+                    }
+
+                    const calculated = calculateExactPathaoFees(liveCodAmount, rawApiDelFee, rawApiCodFee, rawApiTotalFee, pricePlanObj);
+                    if (calculated.delFee > 0) liveFee = calculated.delFee;
+                    liveCodFee = calculated.codFee;
+
+                    const updatedTotalFee = liveFee + liveCodFee;
+                    const updatedNetPay = liveCodAmount - updatedTotalFee;
+
+                    s.codAmount = liveCodAmount;
+                    s.courierDeliveryFee = liveFee;
+                    s.courierCodCharge = liveCodFee;
+                    s.totalCourierFee = updatedTotalFee;
+                    s.netReceivable = updatedNetPay;
+
+                    updateObj.codAmount = liveCodAmount;
+                    updateObj.courierDeliveryFee = liveFee;
+                    updateObj.courierCodCharge = liveCodFee;
+                    updateObj.totalCourierFee = updatedTotalFee;
+                    updateObj.netReceivable = updatedNetPay;
+                }
+
+                s.liveCourierStatus = liveStatusText;
+                await db.collection("courier_shipments").doc(s.id).update(updateObj);
             } else {
                 syncErrorMsg = res?.message || 'Pathao API Offline';
             }
@@ -2153,8 +2554,7 @@ async function inspectCourierShipment(shipmentId) {
         console.warn("Live inspect fallback to cached data:", err);
     }
 
-    // ক্যাশ ফলব্যাক: Pathao-তে ১% COD চার্জ কখনো ভুল ভ্যালু দেখাবে না
-    if (s.provider === 'PATHAO' && liveCodAmount > 0 && (liveCodFee === 0 || liveCodFee === 1)) {
+    if (!isManuallyEdited && s.provider === 'PATHAO' && liveCodAmount > 0 && (liveCodFee === 0 || liveCodFee === 1)) {
         liveCodFee = Math.ceil(liveCodAmount * 0.01);
     }
 
@@ -2179,17 +2579,21 @@ async function inspectCourierShipment(shipmentId) {
         },
         html: `
             <div class="text-left text-xs">
-                <!-- Executive Noir & Crimson Header with High-Visibility Close Button -->
                 <div class="bg-gradient-to-r from-gray-950 via-gray-900 to-purple-950 text-white p-5 relative">
                     <button type="button" onclick="Swal.close()" class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/15 hover:bg-red-600 text-white flex items-center justify-center transition cursor-pointer shadow-md" title="Close">
                         <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
 
-                    <div class="flex items-center gap-2 mb-1 pr-8">
+                    <div class="flex flex-wrap items-center gap-1.5 mb-1 pr-8">
                         <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${isLiveSynced ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}">
                             <span class="w-1.5 h-1.5 rounded-full ${isLiveSynced ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}"></span>
                             ${isLiveSynced ? `LIVE SYNCED • ${syncTimeStr}` : `CACHED • ${syncErrorMsg || 'OFFLINE'}`}
                         </span>
+                        ${isManuallyEdited ? `
+                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/50">
+                                <i class="fa-solid fa-pen-to-square text-[8px]"></i> Manually Edited
+                            </span>
+                        ` : ''}
                     </div>
                     <div class="flex items-center justify-between gap-2 mt-1.5">
                         <div>
@@ -2204,9 +2608,7 @@ async function inspectCourierShipment(shipmentId) {
                     </div>
                 </div>
 
-                <!-- Body Content -->
                 <div class="p-5 space-y-3.5">
-                    <!-- Live Courier Status & Weight Strip -->
                     <div class="p-3 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
                             <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -2223,7 +2625,6 @@ async function inspectCourierShipment(shipmentId) {
                         </div>
                     </div>
 
-                    <!-- Recipient & Hub Details -->
                     <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/80 space-y-2">
                         <div class="flex items-center justify-between border-b border-gray-200/70 pb-2">
                             <div>
@@ -2244,7 +2645,6 @@ async function inspectCourierShipment(shipmentId) {
                         </div>
                     </div>
 
-                    <!-- Live Financial Settlement Breakdown -->
                     <div class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/90 to-teal-50/50 border border-emerald-200 space-y-1.5">
                         <div class="flex justify-between text-gray-700">
                             <span>Collectable COD Amount:</span>
@@ -2255,7 +2655,7 @@ async function inspectCourierShipment(shipmentId) {
                             <b>-৳${liveFee}</b>
                         </div>
                         <div class="flex justify-between text-red-600">
-                            <span>COD Handling Fee (1% Rounded):</span>
+                            <span>COD Handling Fee:</span>
                             <b>-৳${liveCodFee}</b>
                         </div>
                         <div class="flex justify-between text-amber-800 text-[11px] pt-1 border-t border-emerald-200/70">
@@ -2274,12 +2674,14 @@ async function inspectCourierShipment(shipmentId) {
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="grid grid-cols-3 gap-2 pt-1">
-                        <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${trackingShareMsg}')); Swal.fire({toast:true, position:'top-end', icon:'success', title:'WhatsApp Tracking Copied!', timer:1300, showConfirmButton:false});" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95">
+                    <div class="grid grid-cols-4 gap-1.5 pt-1">
+                        <button type="button" onclick="openManualShipmentEditor('${s.id}')" class="bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1 shadow-sm transition active:scale-95">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${trackingShareMsg}')); Swal.fire({toast:true, position:'top-end', icon:'success', title:'WhatsApp Tracking Copied!', timer:1300, showConfirmButton:false});" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1 shadow-sm transition active:scale-95">
                             <i class="fa-brands fa-whatsapp text-xs"></i> Share
                         </button>
-                        <button type="button" onclick="printParcelSlip('${s.id}')" class="bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95">
+                        <button type="button" onclick="printParcelSlip('${s.id}')" class="bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-black text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1 shadow-sm transition active:scale-95">
                             <i class="fa-solid fa-print"></i> Label
                         </button>
                         <a href="${s.trackingUrl}" target="_blank" class="text-center bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-1 shadow-sm transition active:scale-95">
@@ -2298,7 +2700,7 @@ function printParcelSlip(shipmentId) {
     if (!s) return;
 
     const linkedOrder = Array.isArray(allOrders) ? allOrders.find(o => o.id === s.orderId) : null;
-    const orderedItems = linkedOrder?.Ordered_Items || linkedOrder?.items || linkedOrder?.Product_Details || 'REDAMS Premium Apparel';
+    const orderedItems = s.itemDescription || linkedOrder?.Ordered_Items || linkedOrder?.items || linkedOrder?.Product_Details || 'REDAMS Premium Apparel';
     const bookedDate = s.bookedAt?.seconds 
         ? new Date(s.bookedAt.seconds * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
         : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -2316,196 +2718,32 @@ function printParcelSlip(shipmentId) {
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
                 * { box-sizing: border-box; margin: 0; padding: 0; }
-                body { 
-                    font-family: 'Inter', Arial, sans-serif; 
-                    background: #f3f4f6; 
-                    padding: 16px; 
-                    color: #09090b;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-                .slip-card {
-                    max-width: 400px;
-                    margin: 0 auto;
-                    background: #ffffff;
-                    border: 2.5px solid #09090b;
-                    border-radius: 16px;
-                    overflow: hidden;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-                }
-                .top-accent {
-                    height: 6px;
-                    background: linear-gradient(90deg, #dc2626 0%, #09090b 50%, #dc2626 100%);
-                }
-                .header {
-                    background: #09090b;
-                    color: #ffffff;
-                    padding: 16px 18px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .brand-title {
-                    font-size: 24px;
-                    font-weight: 900;
-                    letter-spacing: 3px;
-                    line-height: 1;
-                }
+                body { font-family: 'Inter', Arial, sans-serif; background: #f3f4f6; padding: 16px; color: #09090b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                .slip-card { max-width: 400px; margin: 0 auto; background: #ffffff; border: 2.5px solid #09090b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+                .top-accent { height: 6px; background: linear-gradient(90deg, #dc2626 0%, #09090b 50%, #dc2626 100%); }
+                .header { background: #09090b; color: #ffffff; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; }
+                .brand-title { font-size: 24px; font-weight: 900; letter-spacing: 3px; line-height: 1; }
                 .brand-title span { color: #ef4444; }
-                .brand-sub {
-                    font-size: 9px;
-                    font-weight: 700;
-                    letter-spacing: 1.5px;
-                    color: #a1a1aa;
-                    text-transform: uppercase;
-                    margin-top: 4px;
-                }
-                .courier-pill {
-                    background: ${providerColor};
-                    color: #ffffff;
-                    font-size: 11px;
-                    font-weight: 900;
-                    padding: 5px 11px;
-                    border-radius: 8px;
-                    letter-spacing: 1px;
-                    text-transform: uppercase;
-                }
-                .meta-strip {
-                    background: #fef2f2;
-                    border-bottom: 1.5px dashed #fca5a5;
-                    padding: 8px 18px;
-                    display: flex;
-                    justify-content: space-between;
-                    font-size: 10px;
-                    font-weight: 800;
-                    color: #991b1b;
-                }
-                .cid-section {
-                    padding: 14px 18px;
-                    text-align: center;
-                    border-bottom: 2px dashed #e4e4e7;
-                    background: #fafafa;
-                }
-                .cid-label {
-                    font-size: 9px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 1.5px;
-                    color: #71717a;
-                }
-                .cid-code {
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 20px;
-                    font-weight: 800;
-                    color: #09090b;
-                    background: #ffffff;
-                    border: 2px solid #09090b;
-                    border-radius: 10px;
-                    padding: 6px 12px;
-                    margin: 6px 0 8px;
-                    display: inline-block;
-                    letter-spacing: 1px;
-                }
-                .barcode-lines {
-                    height: 26px;
-                    width: 82%;
-                    margin: 0 auto;
-                    background: repeating-linear-gradient(
-                        90deg,
-                        #09090b 0px, #09090b 2px,
-                        transparent 2px, transparent 5px,
-                        #09090b 5px, #09090b 9px,
-                        transparent 9px, transparent 11px,
-                        #09090b 11px, #09090b 12px,
-                        transparent 12px, transparent 16px
-                    );
-                    opacity: 0.85;
-                }
-                .section {
-                    padding: 14px 18px;
-                    border-bottom: 1.5px solid #f4f4f5;
-                }
-                .sec-tag {
-                    display: inline-block;
-                    font-size: 9px;
-                    font-weight: 900;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    background: #09090b;
-                    color: #ffffff;
-                    padding: 2px 8px;
-                    border-radius: 4px;
-                    margin-bottom: 8px;
-                }
-                .cust-name {
-                    font-size: 16px;
-                    font-weight: 900;
-                    color: #09090b;
-                }
-                .cust-phone {
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 14px;
-                    font-weight: 800;
-                    color: #dc2626;
-                    margin: 3px 0 6px;
-                }
-                .cust-addr {
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #3f3f46;
-                    line-height: 1.45;
-                }
-                .items-box {
-                    background: #f8fafc;
-                    border: 1.5px solid #e2e8f0;
-                    border-radius: 10px;
-                    padding: 10px 12px;
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: #1e293b;
-                    line-height: 1.4;
-                }
-                .cod-banner {
-                    margin: 14px 18px;
-                    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-                    color: #ffffff;
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .cod-title {
-                    font-size: 10px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    opacity: 0.9;
-                }
-                .cod-sub {
-                    font-size: 9px;
-                    font-weight: 600;
-                    opacity: 0.85;
-                    margin-top: 2px;
-                }
-                .cod-amount {
-                    font-size: 24px;
-                    font-weight: 900;
-                    letter-spacing: 0.5px;
-                }
-                .footer {
-                    background: #09090b;
-                    color: #e4e4e7;
-                    padding: 10px 18px;
-                    text-align: center;
-                    font-size: 10px;
-                    font-weight: 700;
-                }
+                .brand-sub { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; color: #a1a1aa; text-transform: uppercase; margin-top: 4px; }
+                .courier-pill { background: ${providerColor}; color: #ffffff; font-size: 11px; font-weight: 900; padding: 5px 11px; border-radius: 8px; letter-spacing: 1px; text-transform: uppercase; }
+                .meta-strip { background: #fef2f2; border-bottom: 1.5px dashed #fca5a5; padding: 8px 18px; display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: #991b1b; }
+                .cid-section { padding: 14px 18px; text-align: center; border-bottom: 2px dashed #e4e4e7; background: #fafafa; }
+                .cid-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #71717a; }
+                .cid-code { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: #09090b; background: #ffffff; border: 2px solid #09090b; border-radius: 10px; padding: 6px 12px; margin: 6px 0 8px; display: inline-block; letter-spacing: 1px; }
+                .barcode-lines { height: 26px; width: 82%; margin: 0 auto; background: repeating-linear-gradient(90deg, #09090b 0px, #09090b 2px, transparent 2px, transparent 5px, #09090b 5px, #09090b 9px, transparent 9px, transparent 11px, #09090b 11px, #09090b 12px, transparent 12px, transparent 16px); opacity: 0.85; }
+                .section { padding: 14px 18px; border-bottom: 1.5px solid #f4f4f5; }
+                .sec-tag { display: inline-block; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: #09090b; color: #ffffff; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+                .cust-name { font-size: 16px; font-weight: 900; color: #09090b; }
+                .cust-phone { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #dc2626; margin: 3px 0 6px; }
+                .cust-addr { font-size: 12px; font-weight: 600; color: #3f3f46; line-height: 1.45; }
+                .items-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; font-size: 11px; font-weight: 700; color: #1e293b; line-height: 1.4; }
+                .cod-banner { margin: 14px 18px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+                .cod-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+                .cod-sub { font-size: 9px; font-weight: 600; opacity: 0.85; margin-top: 2px; }
+                .cod-amount { font-size: 24px; font-weight: 900; letter-spacing: 0.5px; }
+                .footer { background: #09090b; color: #e4e4e7; padding: 10px 18px; text-align: center; font-size: 10px; font-weight: 700; }
                 .footer span { color: #ef4444; font-weight: 900; }
-                @media print {
-                    body { background: #ffffff; padding: 0; }
-                    .slip-card { box-shadow: none; max-width: 100%; }
-                }
+                @media print { body { background: #ffffff; padding: 0; } .slip-card { box-shadow: none; max-width: 100%; } }
             </style>
         </head>
         <body onload="setTimeout(() => window.print(), 300)">
@@ -2530,7 +2768,7 @@ function printParcelSlip(shipmentId) {
                 <div class="section">
                     <div class="sec-tag">Deliver To</div>
                     <div class="cust-name">${s.customerName}</div>
-                    <div class="cust-phone">📞 ${s.customerPhone}</div>
+                    <div class="cust-phone">📞 ${s.customerPhone}${s.altPhone ? ` / ${s.altPhone}` : ''}</div>
                     <div class="cust-addr">📍 ${s.address}</div>
                 </div>
                 <div class="section" style="border-bottom: none; padding-bottom: 4px;">
@@ -2554,7 +2792,9 @@ function printParcelSlip(shipmentId) {
     printWin.document.close();
 }
 
-// রিয়েল লাইভ স্ট্যাটাস ও চার্জ সিঙ্ক V3.0 (Steadfast & Pathao উভয় API থেকে আসল স্ট্যাটাস + আপডেটেড চার্জ সিঙ্ক)
+// =================================================================
+// BULK LIVE STATUS & CHARGE SYNC (RESPECTS MANUAL OVERRIDES)
+// =================================================================
 async function syncLiveCourierStatuses() {
     const activeShipments = allCourierShipments.filter(s => ['In Transit', 'Hold'].includes(s.status) && s.consignmentId);
     if (activeShipments.length === 0) {
@@ -2579,6 +2819,7 @@ async function syncLiveCourierStatuses() {
             let mappedStatus = null;
             let rawApiStatus = null;
             const updatePayload = {};
+            const isManuallyEdited = Boolean(s.isManuallyEdited);
 
             if (s.provider === 'STEADFAST') {
                 const res = await callCourierApi(`https://portal.packzy.com/api/v1/status_by_cid/${s.consignmentId}`, {
@@ -2616,78 +2857,80 @@ async function syncLiveCourierStatuses() {
                     else if (st.includes('cancel') || st.includes('return')) mappedStatus = 'Cancelled';
                     else if (st.includes('hold')) mappedStatus = 'Hold';
 
-                    let liveCodAmount = (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect)))
-                        ? Number(info.amount_to_collect)
-                        : Number(s.codAmount || 0);
+                    if (!isManuallyEdited) {
+                        let liveCodAmount = (info.amount_to_collect !== undefined && !isNaN(Number(info.amount_to_collect)))
+                            ? Number(info.amount_to_collect)
+                            : Number(s.codAmount || 0);
 
-                    const weightNum = Number(info.item_weight || 0.5);
-                    const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
-                    const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
-                    const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
+                        const weightNum = Number(info.item_weight || parseFloat(s.weight) || 0.5);
+                        const rawApiDelFee = info.delivery_fee ?? info.delivery_charge ?? info.charge ?? info.fee ?? null;
+                        const rawApiCodFee = info.cod_fee ?? info.cod_charge ?? null;
+                        const rawApiTotalFee = info.total_fee ?? info.total_charge ?? null;
 
-                    let cityId = Number(info.recipient_city || 0);
-                    let zoneId = Number(info.recipient_zone || 0);
-                    let pricePlanObj = null;
+                        let cityId = Number(info.recipient_city || 0);
+                        let zoneId = Number(info.recipient_zone || 0);
+                        let pricePlanObj = null;
 
-                    if (!cityId || !zoneId) {
-                        cityId = detectPathaoCityId(info.recipient_address || s.address || '');
-                        if (!zonesCache[cityId]) {
+                        if (!cityId || !zoneId) {
+                            cityId = detectPathaoCityId(info.recipient_address || s.address || '');
+                            if (!zonesCache[cityId]) {
+                                try {
+                                    const zRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
+                                        method: "GET",
+                                        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+                                    });
+                                    zonesCache[cityId] = zRes?.data?.data || [];
+                                } catch (zErr) {
+                                    zonesCache[cityId] = [];
+                                }
+                            }
+                            const matchedZone = matchPathaoZoneFromAddress(info.recipient_address || s.address || '', zonesCache[cityId]);
+                            if (matchedZone) zoneId = Number(matchedZone.zone_id);
+                            else if (zonesCache[cityId].length > 0) zoneId = Number(zonesCache[cityId][0].zone_id);
+                        }
+
+                        if (cityId && zoneId) {
                             try {
-                                const zRes = await callCourierApi(`https://api-hermes.pathao.com/aladdin/api/v1/cities/${cityId}/zone-list`, {
-                                    method: "GET",
-                                    headers: { "Authorization": `Bearer ${pathaoToken}`, "Accept": "application/json" }
+                                const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
+                                    method: "POST",
+                                    headers: {
+                                        "Authorization": `Bearer ${pathaoToken}`,
+                                        "Content-Type": "application/json",
+                                        "Accept": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        store_id: Number(s.pickupLocationId) || 485941,
+                                        item_type: 2,
+                                        delivery_type: 48,
+                                        item_weight: weightNum,
+                                        recipient_city: cityId,
+                                        recipient_zone: zoneId
+                                    })
                                 });
-                                zonesCache[cityId] = zRes?.data?.data || [];
-                            } catch (zErr) {
-                                zonesCache[cityId] = [];
+                                pricePlanObj = priceRes?.data?.data || priceRes?.data || null;
+                            } catch (pErr) {
+                                console.warn("Bulk price plan sync skipped:", pErr);
                             }
                         }
-                        const matchedZone = matchPathaoZoneFromAddress(info.recipient_address || s.address || '', zonesCache[cityId]);
-                        if (matchedZone) zoneId = Number(matchedZone.zone_id);
-                        else if (zonesCache[cityId].length > 0) zoneId = Number(zonesCache[cityId][0].zone_id);
-                    }
 
-                    if (cityId && zoneId) {
-                        try {
-                            const priceRes = await callCourierApi("https://api-hermes.pathao.com/aladdin/api/v1/merchant/price-plan", {
-                                method: "POST",
-                                headers: {
-                                    "Authorization": `Bearer ${pathaoToken}`,
-                                    "Content-Type": "application/json",
-                                    "Accept": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    store_id: Number(s.pickupLocationId) || 485941,
-                                    item_type: 2,
-                                    delivery_type: 48,
-                                    item_weight: weightNum,
-                                    recipient_city: cityId,
-                                    recipient_zone: zoneId
-                                })
-                            });
-                            pricePlanObj = priceRes?.data?.data || priceRes?.data || null;
-                        } catch (pErr) {
-                            console.warn("Bulk price plan sync skipped:", pErr);
+                        const calculated = calculateExactPathaoFees(liveCodAmount, rawApiDelFee, rawApiCodFee, rawApiTotalFee, pricePlanObj);
+                        const liveFee = calculated.delFee > 0 ? calculated.delFee : Math.ceil(Number(s.courierDeliveryFee || 0));
+                        const liveCodFee = calculated.codFee;
+
+                        const updatedTotalFee = liveFee + liveCodFee;
+                        const updatedNetPay = liveCodAmount - updatedTotalFee;
+
+                        if (
+                            liveFee !== Number(s.courierDeliveryFee || 0) ||
+                            liveCodFee !== Number(s.courierCodCharge || 0) ||
+                            liveCodAmount !== Number(s.codAmount || 0)
+                        ) {
+                            updatePayload.codAmount = liveCodAmount;
+                            updatePayload.courierDeliveryFee = liveFee;
+                            updatePayload.courierCodCharge = liveCodFee;
+                            updatePayload.totalCourierFee = updatedTotalFee;
+                            updatePayload.netReceivable = updatedNetPay;
                         }
-                    }
-
-                    const calculated = calculateExactPathaoFees(liveCodAmount, rawApiDelFee, rawApiCodFee, rawApiTotalFee, pricePlanObj);
-                    const liveFee = calculated.delFee > 0 ? calculated.delFee : Math.ceil(Number(s.courierDeliveryFee || 0));
-                    const liveCodFee = calculated.codFee;
-
-                    const updatedTotalFee = liveFee + liveCodFee;
-                    const updatedNetPay = liveCodAmount - updatedTotalFee;
-
-                    if (
-                        liveFee !== Number(s.courierDeliveryFee || 0) ||
-                        liveCodFee !== Number(s.courierCodCharge || 0) ||
-                        liveCodAmount !== Number(s.codAmount || 0)
-                    ) {
-                        updatePayload.codAmount = liveCodAmount;
-                        updatePayload.courierDeliveryFee = liveFee;
-                        updatePayload.courierCodCharge = liveCodFee;
-                        updatePayload.totalCourierFee = updatedTotalFee;
-                        updatePayload.netReceivable = updatedNetPay;
                     }
                 }
             }
@@ -2836,38 +3079,6 @@ async function deleteCourierShipment(shipmentDocId) {
     });
 }
 
-function copyParcelPrintLabel(shipmentId) {
-    const s = allCourierShipments.find(item => item.id === shipmentId);
-    if (!s) return;
-
-    const labelText = 
-`----------------------------------------
-REDAMS APPAREL - PARCEL DISPATCH LABEL
-----------------------------------------
-CONSIGNMENT ID : ${s.consignmentId || s.trackingCode}
-TRACKING CODE  : ${s.trackingCode}
-INVOICE NO     : ${s.invoiceNo || 'N/A'}
-COURIER        : ${s.provider}
-
-RECIPIENT NAME : ${s.customerName}
-PHONE NUMBER   : ${s.customerPhone}
-ADDRESS        : ${s.address}
-
-TOTAL COD TO COLLECT : ৳${s.codAmount}
-NET PAYOUT           : ৳${s.netReceivable ?? s.codAmount}
-TRACKING LINK  : ${s.trackingUrl || 'N/A'}
-----------------------------------------`;
-
-    navigator.clipboard.writeText(labelText);
-    Swal.fire({
-        icon: 'success',
-        title: 'LABEL COPIED!',
-        text: 'Parcel label text copied to clipboard.',
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-
 function setCourierProviderQuickFilter(provider, btnEl) {
     const drop = document.getElementById('courier-provider-filter');
     if (drop) drop.value = provider;
@@ -2966,6 +3177,7 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                         <div class="flex flex-wrap items-center gap-1.5 mt-1">
                             <span class="px-2 py-0.5 text-[9px] font-black rounded border uppercase ${providerBadge}">${s.provider}</span>
                             <span class="text-[9px] font-bold text-gray-400">${bookedDate}</span>
+                            ${s.isManuallyEdited ? `<span class="px-1.5 py-0.5 text-[8px] font-black rounded bg-amber-50 text-amber-700 border border-amber-300 uppercase" title="Manually Edited"><i class="fa-solid fa-pen"></i> Edited</span>` : ''}
                         </div>
                         ${s.liveCourierStatus ? `<span class="inline-block text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-1">API: ${s.liveCourierStatus}</span>` : ''}
                     </div>
@@ -3016,9 +3228,10 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
 
                         <!-- Mobile Actions -->
                         <div class="flex md:hidden items-center gap-1 shrink-0">
-                            <button type="button" onclick="inspectCourierShipment('${s.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-bold" title="Live Info"><i class="fa-solid fa-eye"></i></button>
-                            <button type="button" onclick="printParcelSlip('${s.id}')" class="px-2.5 py-1.5 bg-gray-100 text-gray-800 rounded-xl text-xs font-bold" title="Print"><i class="fa-solid fa-print"></i></button>
-                            <button type="button" onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="px-2.5 py-1.5 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold" title="Cancel"><i class="fa-solid fa-ban"></i></button>
+                            <button type="button" onclick="inspectCourierShipment('${s.id}')" class="px-2 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-bold" title="Live Info"><i class="fa-solid fa-eye"></i></button>
+                            <button type="button" onclick="openManualShipmentEditor('${s.id}')" class="px-2 py-1.5 bg-amber-500 text-white rounded-xl text-xs font-bold" title="Manual Edit"><i class="fa-solid fa-pen"></i></button>
+                            <button type="button" onclick="printParcelSlip('${s.id}')" class="px-2 py-1.5 bg-gray-100 text-gray-800 rounded-xl text-xs font-bold" title="Print"><i class="fa-solid fa-print"></i></button>
+                            <button type="button" onclick="cancelCourierShipment('${s.id}', '${s.orderId || ''}', '${s.trackingCode}')" class="px-2 py-1.5 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold" title="Cancel"><i class="fa-solid fa-ban"></i></button>
                             <button type="button" onclick="deleteCourierShipment('${s.id}')" class="p-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
@@ -3029,6 +3242,9 @@ function renderCourierTab(shipmentsToRender = allCourierShipments) {
                     <div class="flex items-center justify-end gap-1">
                         <button type="button" onclick="inspectCourierShipment('${s.id}')" class="px-2.5 py-1.5 bg-gray-900 hover:bg-black text-white rounded-xl text-[11px] font-black transition cursor-pointer inline-flex items-center gap-1" title="Live Courier Details & Financials">
                             <i class="fa-solid fa-eye"></i> Details
+                        </button>
+                        <button type="button" onclick="openManualShipmentEditor('${s.id}')" class="p-2 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer" title="Manually Edit Customer / Charges">
+                            <i class="fa-solid fa-pen"></i>
                         </button>
                         <button type="button" onclick="printParcelSlip('${s.id}')" class="p-2 bg-gray-100 hover:bg-black hover:text-white text-gray-800 rounded-xl text-xs font-bold transition cursor-pointer" title="Print Parcel Slip">
                             <i class="fa-solid fa-print"></i>
